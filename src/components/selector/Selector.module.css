@@ -1,0 +1,92 @@
+@value colors: "@/components/commonPalette.module.css";
+@value button, button-text, button-highlight, button-text-highlight, button-disabled, button-text-disabled from colors;
+@value commonStyles: "@/components/commonStyles.module.css";
+@value disableSelect from commonStyles;
+
+.bar {
+    display: flex;
+    justify-content: flex-start;    
+    align-items: stretch;
+    flex-wrap: wrap;
+}
+
+.label {
+    composes: disableSelect;
+    flex-grow: 0;
+    min-width: 7rem;
+    font-size: 1.5rem;
+}
+
+.selectorButton {
+    composes: disableSelect;
+    justify-content: center;
+    background-color: button;
+    border-style: none;
+    background-position: center;
+    transition: background 0.2s;
+    cursor: pointer;
+    margin-bottom: .1rem;
+}
+
+.selectorButton:hover {
+    background: button-highlight radial-gradient(circle, transparent 1%, button 1%) center/23000%;
+}
+.selectorButton:active {
+    background-color: button-highlight;
+    background-size: 100%;
+    transition: background 0s;
+}
+
+.firstSelectorButton {
+    border-top-left-radius: .5rem;
+    border-bottom-left-radius: .5rem;
+}
+
+.lastSelectorButton {
+    border-top-right-radius: .5rem;
+    border-bottom-right-radius: .5rem;
+}
+
+.selectorButtonText {
+    padding-left: .1rem;
+    padding-right: .1rem;
+    letter-spacing: .1rem;
+    font-size: 1.1rem;
+    color: button-text;
+}
+
+.selectorButtonSelected {
+    composes: selectorButton;
+    background-color: button-highlight;
+    cursor: default;
+}
+
+.selectorButtonSelectedReclickable {
+    composes: selectorButton;
+    background-color: button-highlight;
+    cursor: pointer;
+}
+
+.selectorButtonSelected:hover {
+    background-color: button-highlight;
+}
+
+.selectorButtonTextSelected {
+    composes: selectorButtonText;
+    color: button-text-highlight;
+}
+
+.selectorButtonDisabled {
+    composes: selectorButton;
+    background-color: button-disabled;
+    cursor: pointer;
+}
+
+.selectorButtonDisabled:hover {
+    background-color: button-disabled;
+}
+
+.selectorButtonTextDisabled {
+    composes: selectorButtonText;
+    color: button-text-disabled;
+}

@@ -1,0 +1,25 @@
+/* Limit these definitions to the things that are applicable to every screen. In other cases, 
+   use CSS modules with component-local scope, and import/compose for shared definitions. */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'jellee', serif;
+}
+
+html, body { height: 100vh; }
+
+p, a, ul, ol, li {
+  padding: .5rem;
+}
+
+body, p, sub, sup, a, span, li, td, th, caption, label, input, textarea, select, button {
+  font-size: 1.3rem;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.9rem; }
+h3 { font-size: 1.8rem; }
+h4 { font-size: 1.7rem; }
+h5 { font-size: 1.6rem; }

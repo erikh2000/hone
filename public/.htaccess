@@ -1,0 +1,15 @@
+<IfModule mod_headers.c>
+    <FilesMatch "\.(jpg|jpeg|png|gif|ico|webm)$">
+        Header set Cache-Control "max-age=86400, public"
+        Header unset ETag
+        FileETag None
+    </FilesMatch>
+</IfModule>
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /your-app-route/
+    RewriteRule ^index\.html$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /your-app-route/index.html [L]
+</IfModule>

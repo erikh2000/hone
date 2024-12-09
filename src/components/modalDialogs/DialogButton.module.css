@@ -1,0 +1,56 @@
+@value colors: "@/components/commonPalette.module.css";
+@value button, button-text, button-highlight, button-primary, button-text-highlight, button-disabled, button-text-disabled, button-border-primary from colors;
+@value commonStyles: "@/components/commonStyles.module.css";
+@value disableSelect from commonStyles;
+
+.dialogButton {
+    composes: disableSelect;
+    flex-basis: 10rem;
+    justify-content: center;
+    background-color: button;
+    border-style: none;
+    background-position: center;
+    transition: background 0.2s;
+    cursor: pointer;
+    margin-right: .1rem;
+    margin-bottom: .1rem;
+}
+
+.dialogButton:hover {
+    background: button-highlight radial-gradient(circle, transparent 1%, button 1%) center/23000%;
+}
+.dialogButton:active {
+    background-color: button-highlight;
+    background-size: 100%;
+    transition: background 0s;
+}
+
+.dialogButtonText {
+    letter-spacing: .1rem;
+    font-size: 1.5rem;
+    color: button-text;
+}
+
+.dialogButtonDisabled {
+    composes: dialogButton;
+    background-color: button-disabled;
+    cursor: default;
+}
+
+.dialogButtonDisabled:hover {
+    background: button-disabled;
+}
+
+.dialogButtonTextDisabled {
+    composes: dialogButtonText;
+    color: button-text-disabled;
+}
+
+.dialogButtonPrimary {
+    composes: dialogButton;
+    background-color: button-primary;
+    border-style: solid;
+    border-width: 0.1rem;
+    border-color: button-border-primary;
+    box-sizing: border-box;
+}

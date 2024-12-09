@@ -1,0 +1,46 @@
+.sheetTable {
+  padding-bottom: .5vh;
+}
+
+.sheetTable h2 {
+  text-align: center;
+  background-color: lightgrey;
+  border-top-left-radius: 2vh;
+  border-top-right-radius: 2vh;
+}
+
+.sheetTable table  {
+  width: 100%;
+  table-layout: auto;
+  border-style: solid;
+  border-top-width: 0;
+  border-left-width: 1vh;
+  border-right-width: 1vh;
+  border-bottom-width: 1vh;
+  border-color: lightgrey;
+  border-bottom-left-radius: 1vh;
+  border-bottom-right-radius: 1vh;
+}
+
+.sheetTable table th, .sheetTable table td {
+  white-space: nowrap;
+  max-width: 10vh;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheetTable th {
+  background-color: #f2f2f2;
+  padding: 1vh;
+}
+.sheetTable table tr:nth-child(even) {
+  background-color: #f2f2f2; /* Light grey */
+}
+
+.sheetTable table tr:nth-child(odd) {
+  background-color: #ffffff; /* White */
+}
+
+.sheetTable td {
+  text-align: left;
+}

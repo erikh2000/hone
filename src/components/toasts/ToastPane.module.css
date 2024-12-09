@@ -1,0 +1,16 @@
+@value commonStyles: "@/components/commonStyles.module.css";
+@value disableSelect from commonStyles;
+
+.container {
+    composes: disableSelect;
+    width: 100%;
+    height: calc(100% - .3rem);
+    position: fixed;
+    left: 0;
+    top: 0;
+    margin-left: 5rem;
+    margin-right: 5rem;
+    display: flex;
+    flex-direction: column-reverse;
+    pointer-events: none;
+}

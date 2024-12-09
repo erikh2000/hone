@@ -1,0 +1,56 @@
+.ellipsis {
+  display: inline-flex;
+}
+
+.ellipsis span {
+  animation: ripple 2s infinite;
+  animation-fill-mode: forwards;
+}
+
+.ellipsis span:nth-child(1) {
+  animation-delay: 0s;
+  animation-name: ripple1;
+}
+
+.ellipsis span:nth-child(2) {
+  animation-delay: 0.2s;
+  animation-name: ripple2;
+}
+
+.ellipsis span:nth-child(3) {
+  animation-delay: 0.4s;
+  animation-name: ripple3;
+}
+
+@keyframes ripple1 {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2); /* Smallest ripple for the first dot */
+    opacity: 0.5;
+  }
+}
+
+@keyframes ripple2 {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4); /* Medium ripple for the second dot */
+    opacity: 0.5;
+  }
+}
+
+@keyframes ripple3 {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.6); /* Largest ripple for the third dot */
+    opacity: 0.5;
+  }
+}

@@ -1,0 +1,55 @@
+@value colors: "@/components/commonPalette.module.css";
+@value primary-off-white, primary-silver, primary-dark-orange, border-control from colors;
+
+.container {
+    background-color: primary-off-white;
+    border-style: solid;
+    border-radius: 1rem;
+    border-width: 0.2rem;
+    border-color: border-control;
+    height: inherit;
+    padding: .3rem;
+    margin: .2rem;
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.header {
+    display:flex;
+    border-bottom-color: primary-silver;
+    border-bottom-style: solid;
+    border-bottom-width: .1rem;
+    margin-bottom: .3rem;
+    box-sizing: border-box;
+}
+
+.footer {
+    text-align: right;
+    font-style: italic;
+    margin-top: 0.3rem;
+    font-size: 1.1rem;
+    color: primary-silver;
+    box-sizing: border-box;
+    position: absolute;
+    bottom:0;
+    right:0;
+    margin-right: 0.5rem;
+    margin-bottom: 0.2rem;
+}
+
+.buttonBar {
+    flex-grow:0;
+    flex-shrink:1;
+    box-sizing: border-box;
+}
+
+.caption {
+    flex-grow:1;
+    flex-shrink:1;
+    font-size:1.62rem;
+    letter-spacing: .3rem;
+    color: primary-dark-orange;
+}

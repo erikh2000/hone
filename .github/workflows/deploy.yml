@@ -1,0 +1,47 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual triggering from Github portal.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check required secrets
+        run: |
+          if [ -z "${{ secrets.REMOTE_SSH_PRIVATE_KEY }}" ] || [ -z "${{ secrets.REMOTE_USERNAME }}" ] || [ -z "${{ secrets.REMOTE_HOSTNAME }}" ] || [ -z "${{ secrets.REMOTE_PATH }}" ]; then
+            echo "Error: One or more required secrets are missing. If you don't have plans to deploy, you can ignore this message or delete /.github/workflows/deploy.yml in your repo."
+            exit 1
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static content
+        run: npm run build
+        env:
+          VITE_BASE_URL: ${{ vars.BASE_URL }}
+
+      # The output has a noisy, benign warning that spits out the public key and looks scary. To fix the warning, you need to
+      # regenerate the key with a comment that matches the Github convention, e.g. ssh-keygen -t rsa -b 4096 -C "git@github.com:username/repo"
+      # That would also mean updating the key on the remote host. See your 9/8/24 conversation with ChatGPT for more details.
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.REMOTE_SSH_PRIVATE_KEY }}
+
+      - name: Deploy using rsync
+        run: |
+          rsync -avz -e 'ssh -o StrictHostKeyChecking=no' ./dist/ ${{ secrets.REMOTE_USERNAME }}@${{ secrets.REMOTE_HOSTNAME }}:${{ secrets.REMOTE_PATH }}

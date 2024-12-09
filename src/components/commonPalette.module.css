@@ -1,0 +1,44 @@
+/* Medium-attention colors that can be used for many things. */
+@value primary-brown: #eac699;
+@value primary-dark-orange: #ba7840;
+@value primary-dark-brown: #471100;
+@value primary-silver: #acacac;
+@value primary-off-white: #efede6;
+@value primary-light-grey: #d9d4c7;
+
+/* For a document, form, or interactive area that allows changes to data. */
+@value background-content: #ffffff;
+@value border-content: #808080;
+
+/* For a navigation or control area. */
+@value background-control: #471100;
+@value border-control: #808080;
+
+/* For a non-interactive, empty space, or low-attention area. */
+@value background-garnish: #808080;
+
+/* Colors that can be used sparingly to add subtle flair, or used more prominently to draw attention. In the later
+   case, avoid using these colors in multiple locations on one screen. */
+@value accent-yellow: #fff4cb;
+@value accent-orange: #ff7800;
+@value accent-light-orange: #f6a462;
+@value accent-dark-grey: #808080;
+@value accent-peach: #ffe9d7;
+
+/* Messaging colors. */
+@value message-ambient-background: #f4f3f3;
+@value message-ambient-text: #00000;
+@value message-info-background: #fff4cb;
+@value message-info-text: #000000;
+@value message-alert-background: #fedb58;
+@value message-alert-text: #000000;
+
+/* Button colors. Avoid using them on non-buttons. */
+@value button: #c57431;
+@value button-primary: #ff850b;
+@value button-border-primary: #ba7840;
+@value button-text: #ffffff;
+@value button-highlight: #e68a40;
+@value button-text-highlight: #ffffff;
+@value button-disabled: #808080;
+@value button-text-disabled: #d3d3d3;
