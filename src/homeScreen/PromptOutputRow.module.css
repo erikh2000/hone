@@ -1,9 +1,9 @@
-.sheetTable {
+.promptOutputRow {
   padding-bottom: .5vh;
-  overflow-x: auto; 
+  overflow-x: auto;
 }
 
-.sheetTable table  {
+.promptOutputRow table  {
   width: 100%;
   table-layout: auto;
   border-style: solid;
@@ -14,51 +14,58 @@
   overflow-x: hidden; 
 }
 
-.sheetTable thead,
-.sheetTable tbody,
-.sheetTable tfoot {
+.promptOutputRow thead,
+.promptOutputRow tbody,
+.promptOutputRow tfoot {
   display: table-row-group;
 }
 
-.sheetTable tbody td {
+.promptOutputRow tbody td {
   border-width: .4vh;
   border-style: none solid none none;
   border-color: #f2f2f2;
 }
 
-.sheetTable tbody td:last-child {
+.promptOutputRow tbody td:first-child {
+  padding:0;
+  margin:0;
+}
+
+.promptOutputRow tbody td:last-child {
   border-width: 0;
   border-style: none;
 }
 
-.sheetTable tfoot tr {
+.promptOutputRow tfoot tr {
   background-color: lightgrey;
 }
 
-.sheetTable tfoot td {
+.promptOutputRow tfoot td {
   text-align: right;
   color: grey;
 }
 
-.sheetTable table th, .sheetTable table td {
+.promptOutputRow table th, .promptOutputRow table td {
   white-space: nowrap;
   max-width: 10vh;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.sheetTable th {
+.promptOutputRow th {
   background-color: #f2f2f2;
   padding: 1vh;
 }
-.sheetTable table tbody tr:nth-child(even) {
-  background-color: #f2f2f2; 
+
+.promptOutputRow th:first-child {
+  padding:0;
+  margin:0;
 }
 
-.sheetTable table tbody tr:nth-child(odd) {
+.promptOutputRow table tbody tr {
   background-color: #ffffff;
 }
 
-.sheetTable table tbody td {
+.promptOutputRow table tbody td {
   text-align: left;
 }

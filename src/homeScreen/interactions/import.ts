@@ -4,6 +4,8 @@ import { MIMETYPE_CSV, MIMETYPE_XLS, MIMETYPE_XLSX } from "@/persistence/mimeTyp
 import { errorToast } from '@/components/toasts/toastUtil';
 import { baseUrl } from '@/common/urlUtil';
 import ImportSheetDialog from '../dialogs/ImportSheetDialog';
+import { createHoneSheet } from '@/sheets/sheetUtil';
+import HoneSheet from '@/sheets/types/HoneSheet';
 
 async function _selectSpreadsheetFileHandle():Promise<FileSystemFileHandle|null> {
     const openFileOptions = {
@@ -60,21 +62,21 @@ export async function importExample(onChangeWorkbook:Function):Promise<void> {
     }
 }
 
-export function onChangeWorkbook(workbook:WorkBook, workbookName:string, setWorkbook:Function, setWorkbookName:Function, setSelectedSheetName:Function, setModalDialog:Function) {
+export function onChangeWorkbook(workbook:WorkBook, workbookName:string, setWorkbook:Function, setWorkbookName:Function, setSelectedSheet:Function, setModalDialog:Function) {
     setWorkbook(workbook);
     setWorkbookName(workbookName);
-    setSelectedSheetName('');
+    setSelectedSheet(null);
     if (workbook !== null) setModalDialog(ImportSheetDialog.name);
   }
 
-export function onCancelImportSheet(setWorkbook:Function, setWorkbookName:Function, setSelectedSheetName:Function, setModalDialog:Function) {
+export function onCancelImportSheet(setWorkbook:Function, setWorkbookName:Function, setSelectedSheet:Function, setModalDialog:Function) {
     setWorkbook(null);
     setWorkbookName('');
-    setSelectedSheetName('');
+    setSelectedSheet(null);
     setModalDialog(null);
   }
 
-export function onSelectSheet(sheetName:string, setSelectedSheetName:Function, setModalDialog:Function) {
-    setSelectedSheetName(sheetName);
+export function onSelectSheet(sheet:HoneSheet, setSelectedSheet:Function, setModalDialog:Function) {
+    setSelectedSheet(sheet);
     setModalDialog(null);
 }

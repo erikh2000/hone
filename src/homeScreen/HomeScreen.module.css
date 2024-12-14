@@ -3,12 +3,12 @@
   height: 100vh;
   column-gap: .2rem;
   row-gap: 0;
-  grid-template-rows: 10vh calc(80vh - 1rem) 10vh 1vh;
+  grid-template-rows: 10vh calc(60vh - 1rem) 30vh 1vh;
   grid-template-columns: 1fr 8fr 1fr;
   grid-template-areas: 
           "header header header"
-          ". content ." 
-          "footer footer footer"
+          ". sheet ." 
+          ". prompt ."
           "avoid-overflow avoid-overflow avoid-overflow";
 }
 
@@ -42,31 +42,14 @@
   }
 }
 
-.content {
-  grid-area: content;
-  padding: 3vh;
-  align-self: center;
-  text-align: center;
+.sheetPane {
+  display: block;
+  grid-area: sheet;
+  width:100%;
 }
 
-.content p {
-  font-size: 2vh;
-  text-align: center;
-  padding-bottom: 1vh;
-}
-
-.content h1 {
-  color: #666;
-  background-color: #ededed;
-  border-top-left-radius: 2vh;
-  border-top-right-radius: 2vh;
-  font-size: 1.5vh;
-  letter-spacing: .8vh;
-  font-weight: normal;
-  text-align: center;
-  margin-top: 2vh;
-}
-
-.workbookPane {
+.promptPane {
+  display: block;
+  grid-area: prompt;
   width:100%;
 }

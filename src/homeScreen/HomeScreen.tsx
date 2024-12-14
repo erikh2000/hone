@@ -7,17 +7,21 @@ import ToastPane from "@/components/toasts/ToastPane";
 import SheetPane from "./SheetPane";
 import ImportSheetDialog from "./dialogs/ImportSheetDialog";
 import { onCancelImportSheet, onChangeWorkbook, onSelectSheet } from "./interactions/import";
+import PromptPane from "./PromptPane";
+import HoneSheet from "@/sheets/types/HoneSheet";
 
 function HomeScreen() {
   
   const [workbook, setWorkbook] = useState<WorkBook|null>(null);
   const [, setWorkbookName] = useState<string>(''); // TODO - use workbookName later for export.
-  const [selectedSheetName, setSelectedSheetName] = useState<string>('');
+  const [selectedSheet, setSelectedSheet] = useState<HoneSheet|null>(null);
   const [modalDialog, setModalDialog] = useState<string|null>(null);
 
   useEffect(() => {
     init().then(() => { });
   });
+
+  const promptPaneContent = selectedSheet ? <PromptPane sheet={selectedSheet} className={styles.promptPane} testRowNo={1}/> : null;
   
   return (
     <div className={styles.container}>
@@ -25,14 +29,15 @@ function HomeScreen() {
         <h1>Hone</h1>
       </div>
       <SheetPane 
-        workbook={workbook} sheetName={selectedSheetName} className={styles.content}
+        workbook={workbook} sheet={selectedSheet} className={styles.sheetPane}
         onChangeWorkbook={(nextWorkbook, nextWorkbookName) => onChangeWorkbook(nextWorkbook, nextWorkbookName, 
-          setWorkbook, setWorkbookName, setSelectedSheetName, setModalDialog)}
+          setWorkbook, setWorkbookName, setSelectedSheet, setModalDialog)}
       />
+      {promptPaneContent}
       <ToastPane/>
       <ImportSheetDialog workbook={workbook} isOpen={modalDialog === ImportSheetDialog.name} 
-        onChoose={(sheetName) => onSelectSheet(sheetName, setSelectedSheetName, setModalDialog)} 
-        onCancel={() => onCancelImportSheet(setWorkbook, setWorkbookName, setSelectedSheetName, setModalDialog)} 
+        onChoose={(sheet) => onSelectSheet(sheet, setSelectedSheet, setModalDialog)} 
+        onCancel={() => onCancelImportSheet(setWorkbook, setWorkbookName, setSelectedSheet, setModalDialog)} 
       />
     </div>
   );
