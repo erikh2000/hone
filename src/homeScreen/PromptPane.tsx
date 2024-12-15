@@ -8,6 +8,7 @@ import { fillTemplate } from "@/persistence/pathUtil";
 import { isGenerating, submitPrompt } from "./interactions/prompt";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import PromptOutputRow from "./PromptOutputRow";
+import { fixGrammar } from "@/common/englishGrammarUtil";
 
 type Props = {
   sheet:HoneSheet,
@@ -20,14 +21,20 @@ function _noSheetLoadedContent() {
 }
 
 function _content(sheet:HoneSheet|null, promptTemplate:string, setPromptTemplate:Function, 
-    testPrompt:string, lastTestOutput:string, testRowNo:number) {
+    testPrompt:string, lastTestOutput:string, testRowNo:number, isTestPromptGenerating:boolean) {
   if (!sheet) return _noSheetLoadedContent();
   
-  const testPromptContent = testPrompt ? <div className={styles.testPrompt}>Test prompt for row #{testRowNo}: "{testPrompt}"</div> : null;
+  const testPromptStyle = isTestPromptGenerating ? styles.testPromptGenerating : styles.testPrompt;
+  const testPromptContent = testPrompt ? <div className={testPromptStyle}>Testing: "{testPrompt}"</div> : null;
 
   return (
     <div className={styles.promptForm}>
-      <textarea value={promptTemplate} rows={5} placeholder="Enter prompt template here. Use {columnName} syntax to insert row values." onChange={(e) => setPromptTemplate(e.target.value)}></textarea>
+      <textarea 
+        value={promptTemplate} rows={5} 
+        placeholder="Enter prompt template here. Use {columnName} syntax to insert row values." 
+        onChange={(e) => setPromptTemplate(e.target.value)}
+        disabled={isTestPromptGenerating}
+      />
       {testPromptContent}
       <PromptOutputRow sheet={sheet} rowNo={testRowNo} outputValue={lastTestOutput} />
     </div>
@@ -44,15 +51,16 @@ function PromptPane({sheet, className, testRowNo}:Props) {
     setTestRowNameValues(createRowNameValues(sheet, testRowNo-1));
   }, [sheet, testRowNo]);
 
-  const testPrompt = fillTemplate(promptTemplate, testRowNameValues);
+  const testPrompt = fixGrammar(fillTemplate(promptTemplate, testRowNameValues));
 
-  const disablePrompting = !sheet || promptTemplate === '' || isGenerating();
+  const isTestPromptGenerating = isGenerating();
+  const disablePrompting = !sheet || promptTemplate === '' || isTestPromptGenerating;
 
   const buttons:ButtonDefinition[] = [
     { text:`Test Row #${testRowNo}`, onClick:() => {submitPrompt(testPrompt, setLastTestOutput)}, disabled:disablePrompting }, 
     { text:"Execute...", onClick:() => {}, disabled:disablePrompting }];
 
-  const content = _content(sheet, promptTemplate, setPromptTemplate, testPrompt, lastTestOutput, testRowNo);
+  const content = _content(sheet, promptTemplate, setPromptTemplate, testPrompt, lastTestOutput, testRowNo, isTestPromptGenerating);
 
   return (
     <Pane caption="Prompt" className={className} buttons={buttons} comment="Write a prompt to execute against each row of the sheet.">

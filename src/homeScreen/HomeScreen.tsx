@@ -21,7 +21,7 @@ function HomeScreen() {
     init().then(() => { });
   });
 
-  const promptPaneContent = selectedSheet ? <PromptPane sheet={selectedSheet} className={styles.promptPane} testRowNo={1}/> : null;
+  const promptPaneContent = selectedSheet ? <PromptPane sheet={selectedSheet} className={styles.promptPane} testRowNo={4}/> : null;
   
   return (
     <div className={styles.container}>

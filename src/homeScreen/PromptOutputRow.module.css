@@ -29,6 +29,7 @@
 .promptOutputRow tbody td:first-child {
   padding:0;
   margin:0;
+  text-align: center;
 }
 
 .promptOutputRow tbody td:last-child {

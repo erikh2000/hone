@@ -1,3 +1,4 @@
+/* Top-level table or common to multiple parts */
 .sheetTable {
   padding-bottom: .5vh;
   overflow-x: auto; 
@@ -14,22 +15,67 @@
   overflow-x: hidden; 
 }
 
-.sheetTable thead,
-.sheetTable tbody,
-.sheetTable tfoot {
+.sheetTable table thead,
+.sheetTable table tbody,
+.sheetTable table tfoot {
   display: table-row-group;
 }
 
-.sheetTable tbody td {
+.sheetTable table thead th, .sheetTable table tbody td {
+  white-space: nowrap;
+  max-width: 10vh;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Header */
+
+.sheetTable table thead th {
+  background-color: #f2f2f2;
+  padding: 1vh;
+}
+
+.sheetTable table thead th:first-child { /* The row# column */
+  padding:0;
+  margin:0;
+}
+
+/* Body */
+
+.sheetTable table tbody td {
   border-width: .4vh;
   border-style: none solid none none;
   border-color: #f2f2f2;
 }
 
-.sheetTable tbody td:last-child {
+.sheetTable table tbody td:first-child { /* The row# column */
+  padding:0;
+  margin:0;
+  text-align: center;
+}
+
+.sheetTable table tbody td:last-child {
   border-width: 0;
   border-style: none;
 }
+
+.sheetTable table tbody tr:nth-child(even) {
+  background-color: #f2f2f2; 
+}
+
+.sheetTable table tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.sheetTable table tbody tr:hover {
+  background-color: rgb(222, 219, 197);
+}
+
+.sheetTable table tbody td {
+  text-align: left;
+}
+
+/* Footer */
 
 .sheetTable tfoot tr {
   background-color: lightgrey;
@@ -40,25 +86,6 @@
   color: grey;
 }
 
-.sheetTable table th, .sheetTable table td {
-  white-space: nowrap;
-  max-width: 10vh;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
-.sheetTable th {
-  background-color: #f2f2f2;
-  padding: 1vh;
-}
-.sheetTable table tbody tr:nth-child(even) {
-  background-color: #f2f2f2; 
-}
 
-.sheetTable table tbody tr:nth-child(odd) {
-  background-color: #ffffff;
-}
 
-.sheetTable table tbody td {
-  text-align: left;
-}

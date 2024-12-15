@@ -4,7 +4,6 @@ import { MIMETYPE_CSV, MIMETYPE_XLS, MIMETYPE_XLSX } from "@/persistence/mimeTyp
 import { errorToast } from '@/components/toasts/toastUtil';
 import { baseUrl } from '@/common/urlUtil';
 import ImportSheetDialog from '../dialogs/ImportSheetDialog';
-import { createHoneSheet } from '@/sheets/sheetUtil';
 import HoneSheet from '@/sheets/types/HoneSheet';
 
 async function _selectSpreadsheetFileHandle():Promise<FileSystemFileHandle|null> {
