@@ -1,5 +1,8 @@
+
+
 import WaitingEllipsis from "@/components/waitingEllipsis/WaitingEllipsis";
 import {parseSimpleResponse} from "@/common/sloppyJsonUtil";
+import styles from './GeneratedText.module.css';
 
 export const GENERATING = '...';
 
@@ -9,6 +12,8 @@ type Props = {
 }
 
 function GeneratedText({text, className}:Props) {
+  const wasGenerating = true;
+
   const isGenerating = text.trim().endsWith(GENERATING);
   const cleanText = '' + parseSimpleResponse(text.replace(GENERATING, ''));
 
@@ -16,7 +21,8 @@ function GeneratedText({text, className}:Props) {
     const isTrailing = cleanText.length > 0;
     return <span className={className}>{cleanText}<WaitingEllipsis trailing={isTrailing} /></span>;
   }
-  return <span className={className}>{cleanText}</span>;
+  const textStyle = wasGenerating ? `${className} ${styles.textFlash}`.trim() : className;
+  return <span className={textStyle}>{cleanText}</span>;
 }
 
 export default GeneratedText;

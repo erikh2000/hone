@@ -1,0 +1,12 @@
+@keyframes flash {
+  0% {
+    background-color: rgb(255, 247, 212);
+  }
+  100% {
+    background-color: transparent; 
+  }
+}
+
+.textFlash {
+  animation: flash 3s ease-out;
+}
