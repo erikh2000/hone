@@ -73,7 +73,9 @@ export async function generateOllama(connection:LLMConnection, llmMessages:LLMMe
   addUserMessageToChatHistory(llmMessages, prompt);
 
   const options = { // Model-specific options unlike WebLLM.
-    "max_tokens": 10
+    "max_tokens": 10,
+    "temperature": 0.2,
+    "seed": 0
   };
 
   const body = {

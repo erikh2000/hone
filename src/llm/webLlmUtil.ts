@@ -55,9 +55,9 @@ export async function generateWebLLM(connection:LLMConnection, llmMessages:LLMMe
   const request:ChatCompletionRequest = {
     n:1,
     stream: true,
+    seed: 0,
     messages,
-    presence_penalty: .8,
-    frequency_penalty: .8
+    temperature: 0.2
   };
   addUserMessageToChatHistory(llmMessages, prompt);
   
