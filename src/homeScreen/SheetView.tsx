@@ -10,25 +10,34 @@ type Props = {
   sheet: HoneSheet,
   maxRows?:number,
   padToMax?:boolean,
-  generatingColumnName?:string
+  generatingColumnName?:string,
+  selectedRowNo?:number
+  onRowSelect?:(rowNo:number)=>void
 }
 
 function _tableHeaderContent(columns:HoneColumn[]) {
   return <tr><th key={-1}>#</th>{columns.map((column, i) => <th key={i}>{column.name}</th>)}</tr>;
 }
 
-function _tableBodyContent(rows:any[][], generatingColumnI:number) {
+function _tableBodyContent(rows:any[][], generatingColumnI:number, selectedRowNo?:number, onRowSelect?:(rowNo:number)=>void) {
   return rows.map(
     (row:any, rowI:number) => {
+      const isSelected = (selectedRowNo === rowI+1);
+      const rowStyle = isSelected ? styles.selectedRow : '';
+      console.log('rowStyle', rowStyle);
       const cells = row.map((cell:any, columnI:number) => {
         const cellValue = (columnI === generatingColumnI) ? <GeneratedText text={'' + cell}/> : '' + cell;
         return (<td key={columnI}>{cellValue}</td>);
       });
-      return <tr key={rowI}><td key={-1}>{rowI+1}</td>{cells}</tr>
+      return (
+        <tr className={rowStyle} key={rowI} onClick={() => { if (onRowSelect) onRowSelect(rowI+1)} } >
+          <td key={-1}>{rowI+1}</td>{cells}
+        </tr>
+      );
   });
 }
 
-function SheetView({sheet, maxRows, padToMax, generatingColumnName}:Props) {
+function SheetView({sheet, maxRows, padToMax, generatingColumnName, selectedRowNo, onRowSelect}:Props) {
   const [rows, setRows] = useState<any>(null);
   const [generatingColumnI, setGeneratingColumnI] = useState<number>(-1);
 
@@ -48,8 +57,11 @@ function SheetView({sheet, maxRows, padToMax, generatingColumnName}:Props) {
 
   return (
     <div className={styles.sheetTable}>
-      <table><thead>{_tableHeaderContent(sheet.columns)}</thead><tbody>{_tableBodyContent(rows, generatingColumnI)}</tbody>
-      <tfoot><tr><td colSpan={sheet.columns.length+1}><small>{sheet.rows.length} rows</small></td></tr></tfoot></table>
+      <table>
+        <thead>{_tableHeaderContent(sheet.columns)}</thead>
+        <tbody>{_tableBodyContent(rows, generatingColumnI, selectedRowNo, onRowSelect)}</tbody>
+        <tfoot><tr><td colSpan={sheet.columns.length+1}><small>{sheet.rows.length} rows</small></td></tr></tfoot>
+      </table>
     </div>
   );
 }

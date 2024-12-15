@@ -75,6 +75,10 @@
   text-align: left;
 }
 
+.sheetTable table tbody tr.selectedRow {
+  background-color: rgb(222, 219, 197);
+}
+
 /* Footer */
 
 .sheetTable tfoot tr {

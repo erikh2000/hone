@@ -15,13 +15,14 @@ function HomeScreen() {
   const [workbook, setWorkbook] = useState<WorkBook|null>(null);
   const [, setWorkbookName] = useState<string>(''); // TODO - use workbookName later for export.
   const [selectedSheet, setSelectedSheet] = useState<HoneSheet|null>(null);
+  const [selectedRowNo, setSelectedRowNo] = useState<number>(1);
   const [modalDialog, setModalDialog] = useState<string|null>(null);
 
   useEffect(() => {
     init().then(() => { });
   });
 
-  const promptPaneContent = selectedSheet ? <PromptPane sheet={selectedSheet} className={styles.promptPane} testRowNo={4}/> : null;
+  const promptPaneContent = selectedSheet ? <PromptPane sheet={selectedSheet} className={styles.promptPane} testRowNo={selectedRowNo}/> : null;
   
   return (
     <div className={styles.container}>
@@ -29,7 +30,8 @@ function HomeScreen() {
         <h1>Hone</h1>
       </div>
       <SheetPane 
-        workbook={workbook} sheet={selectedSheet} className={styles.sheetPane}
+        workbook={workbook} sheet={selectedSheet} className={styles.sheetPane} selectedRowNo={selectedRowNo} 
+        onRowSelect={setSelectedRowNo}
         onChangeWorkbook={(nextWorkbook, nextWorkbookName) => onChangeWorkbook(nextWorkbook, nextWorkbookName, 
           setWorkbook, setWorkbookName, setSelectedSheet, setModalDialog)}
       />
