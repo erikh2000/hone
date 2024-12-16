@@ -9,6 +9,10 @@ import ImportSheetDialog from "./dialogs/ImportSheetDialog";
 import { onCancelImportSheet, onChangeWorkbook, onSelectSheet } from "./interactions/import";
 import PromptPane from "./PromptPane";
 import HoneSheet from "@/sheets/types/HoneSheet";
+import ExecuteSetupDialog from "./dialogs/ExecuteSetupDialog";
+import { startExecution, setUpExecution } from "./interactions/execute";
+import ExecutionJob from "@/sheets/types/ExecutionJob";
+import ExecuteDialog from "./dialogs/ExecuteDialog";
 
 function HomeScreen() {
   
@@ -16,13 +20,19 @@ function HomeScreen() {
   const [, setWorkbookName] = useState<string>(''); // TODO - use workbookName later for export.
   const [selectedSheet, setSelectedSheet] = useState<HoneSheet|null>(null);
   const [selectedRowNo, setSelectedRowNo] = useState<number>(1);
+  const [job, setJob] = useState<ExecutionJob|null>(null);
   const [modalDialog, setModalDialog] = useState<string|null>(null);
 
   useEffect(() => {
     init().then(() => { });
   });
 
-  const promptPaneContent = selectedSheet ? <PromptPane sheet={selectedSheet} className={styles.promptPane} testRowNo={selectedRowNo}/> : null;
+  const promptPaneContent = selectedSheet ? 
+    <PromptPane 
+      sheet={selectedSheet} className={styles.promptPane} 
+      testRowNo={selectedRowNo} 
+      onExecute={promptTemplate => setUpExecution(selectedSheet, promptTemplate, setJob, setModalDialog)}
+    /> : null;
   
   return (
     <div className={styles.container}>
@@ -36,11 +46,18 @@ function HomeScreen() {
           setWorkbook, setWorkbookName, setSelectedSheet, setModalDialog)}
       />
       {promptPaneContent}
-      <ToastPane/>
       <ImportSheetDialog workbook={workbook} isOpen={modalDialog === ImportSheetDialog.name} 
         onChoose={(sheet) => onSelectSheet(sheet, setSelectedSheet, setModalDialog)} 
         onCancel={() => onCancelImportSheet(setWorkbook, setWorkbookName, setSelectedSheet, setModalDialog)} 
       />
+      <ExecuteSetupDialog isOpen={modalDialog === ExecuteSetupDialog.name} defaultOptions={job}  
+        onExecute={(nextJob) => {startExecution(nextJob, setJob, setModalDialog)}}
+        onCancel={() => {setModalDialog(null)}}
+      />
+      <ExecuteDialog isOpen={modalDialog === ExecuteDialog.name} job={job} 
+        onCancel={() => setModalDialog(null)} onComplete={() => setModalDialog(null)} 
+      />
+      <ToastPane/>
     </div>
   );
 }

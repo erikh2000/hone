@@ -13,7 +13,8 @@ import { fixGrammar } from "@/common/englishGrammarUtil";
 type Props = {
   sheet:HoneSheet,
   className:string,
-  testRowNo:number
+  testRowNo:number,
+  onExecute:(promptTemplate:string) => void
 }
 
 function _noSheetLoadedContent() {
@@ -41,14 +42,14 @@ function _content(sheet:HoneSheet|null, promptTemplate:string, setPromptTemplate
   )
 }
 
-function PromptPane({sheet, className, testRowNo}:Props) {
+function PromptPane({sheet, className, testRowNo, onExecute}:Props) {
   const [promptTemplate, setPromptTemplate] = useState<string>('');
   const [testRowNameValues, setTestRowNameValues] = useState<StringMap>({});
   const [lastTestOutput, setLastTestOutput] = useState<string>('');
 
   useEffect(() => {
     if (!sheet) { setTestRowNameValues({}); return; }
-    setTestRowNameValues(createRowNameValues(sheet, testRowNo-1));
+    setTestRowNameValues(createRowNameValues(sheet, testRowNo));
   }, [sheet, testRowNo]);
 
   const testPrompt = fixGrammar(fillTemplate(promptTemplate, testRowNameValues));
@@ -58,7 +59,7 @@ function PromptPane({sheet, className, testRowNo}:Props) {
 
   const buttons:ButtonDefinition[] = [
     { text:`Test Row #${testRowNo}`, onClick:() => {submitPrompt(testPrompt, setLastTestOutput)}, disabled:disablePrompting }, 
-    { text:"Execute...", onClick:() => {}, disabled:disablePrompting }];
+    { text:"Execute...", onClick:() => {onExecute(promptTemplate)}, disabled:disablePrompting }];
 
   const content = _content(sheet, promptTemplate, setPromptTemplate, testPrompt, lastTestOutput, testRowNo, isTestPromptGenerating);
 

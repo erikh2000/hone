@@ -1,0 +1,20 @@
+.textInputLine {
+    height: 2rem;
+}
+
+.textInputLineValue {
+    border-style: dashed;
+    background-color: #fdfdfd;
+    border-color: #999;
+    padding: 0.2rem .4rem;
+    cursor: text;
+    right: 2rem;
+    position: absolute;
+    min-width: 60%;
+}
+
+.textInputLineLabel {
+    position: relative;
+    top: .2rem;
+    font-size: 1rem;
+}

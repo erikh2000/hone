@@ -24,7 +24,6 @@ function _tableBodyContent(rows:any[][], generatingColumnI:number, selectedRowNo
     (row:any, rowI:number) => {
       const isSelected = (selectedRowNo === rowI+1);
       const rowStyle = isSelected ? styles.selectedRow : '';
-      console.log('rowStyle', rowStyle);
       const cells = row.map((cell:any, columnI:number) => {
         const cellValue = (columnI === generatingColumnI) ? <GeneratedText text={'' + cell}/> : '' + cell;
         return (<td key={columnI}>{cellValue}</td>);

@@ -5,9 +5,10 @@ import HoneSheet from './types/HoneSheet';
 import HoneColumn from './types/HoneColumn';
 
 export function createRowNameValues(sheet:HoneSheet, rowNo:number):StringMap {
+  const rowI = rowNo - 1;
   const rowNameValues:StringMap = {};
   sheet.columns.forEach((column, columnI) => {
-    rowNameValues[column.name] = sheet.rows[rowNo][columnI];
+    rowNameValues[column.name] = sheet.rows[rowI][columnI];
   });
   return rowNameValues;
 }
@@ -39,7 +40,16 @@ export function getSheetRows(sheet:HoneSheet, startRow:number = 0, maxRows:numbe
   return rows;
 }
 
+export function addNewColumn(sheet:HoneSheet, columnName:string) {
+  sheet.columns.push({ name:columnName, isWritable:true });
+  sheet.rows.forEach(row => row.push(''));
+}
+
 export function getColumnNames(sheet:HoneSheet) { return sheet.columns.map(column => column.name); }
+
+export function getWritableColumnNames(sheet:HoneSheet) {
+  return sheet.columns.filter(column => column.isWritable).map(column => column.name);
+}
 
 export function doesSheetHaveWritableColumns(sheet:HoneSheet):boolean {
   return sheet.columns.some(column => column.isWritable);

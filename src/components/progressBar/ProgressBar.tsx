@@ -5,11 +5,11 @@ function _percent(value:number) {
   return `${value}%`;
 }
 
-interface IProps {
+type Props = {
   percentComplete: number
 }
 
-function ProgressBar(props:IProps) {
+function ProgressBar(props:Props) {
   const {percentComplete} = props;
   
   return (

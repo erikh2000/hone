@@ -1,0 +1,19 @@
+.container {
+    height: 2rem;
+}
+
+.value {
+    background-color: #fdfdfd;
+    padding: 0.3rem 0.9rem;
+    cursor: text;
+    right: 2rem;
+    position: absolute;
+    min-width: 60%;
+    font-size: 1rem;
+}
+
+.label {
+    position: relative;
+    top: .2rem;
+    font-size: 1rem;
+}

@@ -6,6 +6,7 @@ import StatusUpdateCallback from "./types/StatusUpdateCallback";
 import { connectToOllama, generateOllama } from "./ollamaUtil";
 import { connectToWebLLM, generateWebLLM } from "./webLlmUtil";
 import { isServingLocally } from "@/developer/devEnvUtil";
+import { updateStatsForPrompt } from "./llmStatsUtil";
 
 let theConnection:LLMConnection = {
   state:LLMConnectionState.UNINITIALIZED,
@@ -70,12 +71,14 @@ export async function generate(prompt:string, onStatusUpdate:StatusUpdateCallbac
   if (!isInitialized()) throw Error('LLM connection is not initialized.');
   if (theConnection.state !== LLMConnectionState.READY) throw Error('LLM is not in ready state.');
   theConnection.state = LLMConnectionState.GENERATING;
+  let promptStartTime = Date.now();
   let message = '';
   switch(theConnection.connectionType) {
     case LLMConnectionType.WEBLLM: message = await generateWebLLM(theConnection, messages, prompt, onStatusUpdate); break;
     case LLMConnectionType.OLLAMA: message = await generateOllama(theConnection, messages, prompt, onStatusUpdate); break;
     default: throw Error('Unexpected');
   }
+  updateStatsForPrompt(Date.now() - promptStartTime);
   theConnection.state = LLMConnectionState.READY;
   return message;
 }

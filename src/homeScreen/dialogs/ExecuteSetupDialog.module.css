@@ -1,0 +1,11 @@
+.jobForm {
+  display: grid;
+  grid-template-columns: '1fr 2fr';
+  gap: 1vh 2vh;
+  align-items: center;
+  width: 100%;
+}
+
+.jobFormRow {
+  display: 'contents';
+}

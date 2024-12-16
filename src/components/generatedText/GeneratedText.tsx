@@ -1,5 +1,3 @@
-
-
 import WaitingEllipsis from "@/components/waitingEllipsis/WaitingEllipsis";
 import {parseSimpleResponse} from "@/common/sloppyJsonUtil";
 import styles from './GeneratedText.module.css';
