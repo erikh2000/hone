@@ -55,7 +55,8 @@ function HomeScreen() {
         onCancel={() => {setModalDialog(null)}}
       />
       <ExecuteDialog isOpen={modalDialog === ExecuteDialog.name} job={job} 
-        onCancel={() => setModalDialog(null)} onComplete={() => setModalDialog(null)} 
+        onCancel={(_sheet, rowsChanged) => { console.log(rowsChanged); setModalDialog(null);}} 
+        onComplete={(nextSheet) => { setSelectedSheet(nextSheet); setModalDialog(null) }} 
       />
       <ToastPane/>
     </div>

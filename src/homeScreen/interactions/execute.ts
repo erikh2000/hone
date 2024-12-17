@@ -3,14 +3,18 @@ import ExecuteSetupDialog from "../dialogs/ExecuteSetupDialog";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import { createExecutionJob, predictExecutionSeconds } from "@/sheets/executionJobUtil";
 import ExecuteDialog from "../dialogs/ExecuteDialog";
-import { addNewColumn, createRowNameValues } from "@/sheets/sheetUtil";
+import { addNewColumn, createRowNameValues, duplicateSheet } from "@/sheets/sheetUtil";
 import { fixGrammar } from "@/common/englishGrammarUtil";
 import { fillTemplate } from "@/persistence/pathUtil";
-import { submitPrompt } from "./prompt";
+import { promptForSimpleResponse } from "./prompt";
 import { isEmpty } from "@/common/stringUtil";
-import { parseSimpleResponse } from "@/common/sloppyJsonUtil";
 import { describeDuration } from "@/common/timeUtil";
 import { errorToast } from "@/components/toasts/toastUtil";
+import { SIMPLE_RESPONSE_SUPPORTED_TYPES } from "@/common/sloppyJsonUtil";
+
+let cancelExecutionRequested = false;
+
+const MAX_PROMPT_ATTEMPTS = 3;
 
 export function setUpExecution(sheet:HoneSheet, promptTemplate:string, setJob:Function, setModalDialog:Function) {
   const nextJob = createExecutionJob(sheet, promptTemplate); // Used as default options.
@@ -23,30 +27,51 @@ export function startExecution(job:ExecutionJob, setJob:Function, setModalDialog
   setModalDialog(ExecuteDialog.name); // Dialog that shows progress during execution. It will call executeJob().
 }
 
-export async function executeJob(job:ExecutionJob, setProcessedRowCount:Function, setTimeRemainingText:Function, setResponseText:Function, onComplete:Function) {
-  const { promptTemplate, sheet, writeStartRowNo, writeEndRowNo, writeColumnName, onlyOverwriteBlanks, writeExisting, unprocessedRowCount } = job;
+export function cancelExecution(setCancelRequestReceived:Function) {
+  setCancelRequestReceived(true);
+  cancelExecutionRequested = true;
+}
+
+export async function executeJob(job:ExecutionJob, setProcessedRowCount:Function, setCurrentPrompt:Function, 
+  setTimeRemainingText:Function, setResponseText:Function, onComplete:Function, onCancel:Function) {
+  const { promptTemplate, writeStartRowNo, writeEndRowNo, writeColumnName, onlyOverwriteBlanks, writeExisting, unprocessedRowCount } = job;
+  cancelExecutionRequested = false;
+
+  const sheet = duplicateSheet(job.sheet);
   const writeColumnI = writeExisting
     ? sheet.columns.findIndex((column) => column.name === writeColumnName)
     : sheet.columns.length;
   if (writeColumnI === -1) throw Error('Unexpected'); // Passed in bad job data.
   if (!writeExisting) addNewColumn(sheet, writeColumnName);
   
-  let processedCount = 0, errorCount = 0;
+  let processedCount = 0;
   
   for(let rowNo = writeStartRowNo; rowNo <= writeEndRowNo; ++rowNo) {
     if (onlyOverwriteBlanks && !isEmpty(sheet.rows[rowNo-1][writeColumnI])) continue;
     const rowNameValues = createRowNameValues(sheet, rowNo);
     const testPrompt = fixGrammar(fillTemplate(promptTemplate, rowNameValues));
-    const response = await submitPrompt(testPrompt, setResponseText); // TODO - add retry logic.
-    if (response === null) ++errorCount;
-    const value = response === null ? '' : parseSimpleResponse(response); // TODO - move parseSimpleResponse() into prompt.ts and out of here and GeneratedText.tsx.
-    sheet.rows[rowNo-1][writeColumnI] = value;
-    setProcessedRowCount(++processedCount);
+    setProcessedRowCount(processedCount);
+    setCurrentPrompt(testPrompt);
     const timeRemainingSeconds = predictExecutionSeconds(unprocessedRowCount - processedCount);
     setTimeRemainingText(describeDuration(timeRemainingSeconds));
+
+    let response:SIMPLE_RESPONSE_SUPPORTED_TYPES = null;
+    let attemptNo = 0;
+    for(; attemptNo < MAX_PROMPT_ATTEMPTS; ++attemptNo) {
+      if (cancelExecutionRequested) { onCancel(sheet, processedCount); return; }
+      try {
+        response = await promptForSimpleResponse(testPrompt, setResponseText);
+        if (response !== null) break;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    const value = response === null ? '' : response;
+    sheet.rows[rowNo-1][writeColumnI] = value;
+    if (attemptNo < MAX_PROMPT_ATTEMPTS) ++processedCount;
   }
 
-  if (errorCount > 0) errorToast(`Due to errors, only ${processedCount} of ${unprocessedRowCount} rows were processed.`);
+  if (processedCount < unprocessedRowCount) errorToast(`Due to errors, only ${processedCount} of ${unprocessedRowCount} rows were processed.`);
 
-  onComplete();
+  onComplete(sheet);
 }

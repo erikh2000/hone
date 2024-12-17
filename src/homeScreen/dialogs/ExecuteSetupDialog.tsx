@@ -127,11 +127,7 @@ function ExecuteSetupDialog({isOpen, defaultOptions, onExecute, onCancel}:Props)
     <ModalDialog isOpen={isOpen} title="Execution Setup" onCancel={onCancel}>
       <p>Get ready to run your prompt across multiple rows of the &quot;{sheet.name}&quot; sheet.</p>
       <div className={styles.jobForm}>
-        <div className={styles.jobRow}>
-          <label>Run prompt:</label>
-          <span>&quot;{promptTemplate}&quot;</span>
-        </div>
-        <Selector label="On" optionNames={['all rows', 'some rows']} selectedOptionNo={rowRangeOptionNo} onChange={setRowRangeOptionNo} />
+        <Selector label="Run prompt on" optionNames={['all rows', 'some rows']} selectedOptionNo={rowRangeOptionNo} onChange={setRowRangeOptionNo} />
         {someRangeOptions}
         {outputToSelector}
         {outputToOptions}

@@ -28,6 +28,12 @@ export function createHoneSheet(workbook:WorkBook, sheetName:string):HoneSheet {
   return { name:sheetName, columns, rows };
 }
 
+export function duplicateSheet(sheet:HoneSheet):HoneSheet {
+  const columns = sheet.columns.map(column => ({ ...column }));
+  const rows = sheet.rows.map(row => row.slice());
+  return { name:sheet.name, columns, rows };
+}
+
 export const HTML_NBSP = '\u00A0'; // Same as "&nbsp;" - useful for padding in tables to keep rows from disappearing.
 export function getSheetRows(sheet:HoneSheet, startRow:number = 0, maxRows:number = 0, padToMax:boolean = false, paddingValue = HTML_NBSP):any[][] {
   let rows = sheet.rows.slice(startRow);

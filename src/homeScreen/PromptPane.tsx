@@ -5,7 +5,7 @@ import Pane, { ButtonDefinition } from "@/components/pane/Pane";
 import { createRowNameValues } from "@/sheets/sheetUtil";
 import styles from './PromptPane.module.css';
 import { fillTemplate } from "@/persistence/pathUtil";
-import { isGenerating, submitPrompt } from "./interactions/prompt";
+import { isGenerating, promptForSimpleResponse } from "./interactions/prompt";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import PromptOutputRow from "./PromptOutputRow";
 import { fixGrammar } from "@/common/englishGrammarUtil";
@@ -58,7 +58,7 @@ function PromptPane({sheet, className, testRowNo, onExecute}:Props) {
   const disablePrompting = !sheet || promptTemplate === '' || isTestPromptGenerating;
 
   const buttons:ButtonDefinition[] = [
-    { text:`Test Row #${testRowNo}`, onClick:() => {submitPrompt(testPrompt, setLastTestOutput)}, disabled:disablePrompting }, 
+    { text:`Test Row #${testRowNo}`, onClick:() => {promptForSimpleResponse(testPrompt, setLastTestOutput)}, disabled:disablePrompting }, 
     { text:"Execute...", onClick:() => {onExecute(promptTemplate)}, disabled:disablePrompting }];
 
   const content = _content(sheet, promptTemplate, setPromptTemplate, testPrompt, lastTestOutput, testRowNo, isTestPromptGenerating);

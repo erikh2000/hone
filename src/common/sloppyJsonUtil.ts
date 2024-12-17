@@ -1,8 +1,8 @@
 import { findNonWhiteSpace } from "./regExUtil";
 
-type SLOPPY_SUPPORTED_TYPES = string|number|boolean|null;
+export type SIMPLE_RESPONSE_SUPPORTED_TYPES = string|number|boolean|null;
 
-function _toSloppySupportedType(value:any):SLOPPY_SUPPORTED_TYPES {
+function _toSloppySupportedType(value:any):SIMPLE_RESPONSE_SUPPORTED_TYPES {
   if (value === null) return null;
   if (typeof value === 'string') return value;
   if (typeof value === 'number') return value;
@@ -17,7 +17,7 @@ function _toSloppySupportedType(value:any):SLOPPY_SUPPORTED_TYPES {
 
 /* There is a "simple response" JSON format this app uses: {"r": "your answer"}. I assume the passed value at least 
    roughly follows that format, but may be malformed due to hallucinations. */
-export function parseSimpleResponse(response:string):SLOPPY_SUPPORTED_TYPES {
+export function parseSimpleResponse(response:string):SIMPLE_RESPONSE_SUPPORTED_TYPES {
   // Try with the JSON parser first, because native code is faster. If it fails, the JSON is malformed and we can try the sloppy parser.
   try {
     const json = JSON.parse(response);

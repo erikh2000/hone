@@ -1,5 +1,4 @@
 import WaitingEllipsis from "@/components/waitingEllipsis/WaitingEllipsis";
-import {parseSimpleResponse} from "@/common/sloppyJsonUtil";
 import styles from './GeneratedText.module.css';
 
 export const GENERATING = '...';
@@ -13,7 +12,7 @@ function GeneratedText({text, className}:Props) {
   const wasGenerating = true;
 
   const isGenerating = text.trim().endsWith(GENERATING);
-  const cleanText = '' + parseSimpleResponse(text.replace(GENERATING, ''));
+  const cleanText = text.replace(GENERATING, '');
 
   if (isGenerating) {
     const isTrailing = cleanText.length > 0;

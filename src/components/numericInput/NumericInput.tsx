@@ -1,5 +1,7 @@
 import { useEffect, useState, CSSProperties } from "react";
 
+// TODO - refactor to sl-react-ui.
+
 type Props = {
   className?: string;
   minValue: number;
