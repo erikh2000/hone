@@ -4,6 +4,7 @@ import ExecutionJob from "./types/ExecutionJob";
 import HoneSheet from "./types/HoneSheet";
 import { getAverageCompletionTime } from "@/llm/llmStatsUtil";
 import { isEmpty } from "@/common/stringUtil";
+import { describeDuration } from "@/common/timeUtil";
 
 const DEFAULT_PROMPT_AVERAGE_MSECS = 5000;
 
@@ -30,32 +31,36 @@ export function createExecutionJob(sheet:HoneSheet, promptTemplate:string):Execu
   const writeStartRowNo = 1;
   const writeEndRowNo = sheet.rows.length;
   const onlyOverwriteBlanks = true;
-  const unprocessedRowCount = countUnprocessedRows(sheet, writeColumnName, writeStartRowNo, writeEndRowNo, onlyOverwriteBlanks)
-  const predictedExecutionSeconds = predictExecutionSeconds(unprocessedRowCount);
+  const jobRowCount = countUnprocessedRows(sheet, writeColumnName, writeStartRowNo, writeEndRowNo, onlyOverwriteBlanks)
+  const timeRemainingText = describeDuration(predictExecutionSeconds(jobRowCount));
   
   return {
     sheet,
-    writeExisting:true,
-    predictedExecutionSeconds,
     promptTemplate,
+    writeExisting:true,
     writeColumnName,
     writeStartRowNo,
     writeEndRowNo,
     onlyOverwriteBlanks,
-    unprocessedRowCount
+    jobRowCount,
+    processedRowCount:0,
+    currentPrompt:'',
+    timeRemainingText
   };
 }
 
-export function copyExecutionJob(from:ExecutionJob):ExecutionJob {
+export function duplicateExecutionJob(from:ExecutionJob):ExecutionJob {
   return {
     sheet:from.sheet, // Note: by reference, because it's wasteful to copy the whole sheet.
-    writeExisting:from.writeExisting,
-    predictedExecutionSeconds:from.predictedExecutionSeconds,
     promptTemplate:from.promptTemplate,
+    writeExisting:from.writeExisting,
     writeColumnName:from.writeColumnName,
     writeStartRowNo:from.writeStartRowNo,
     writeEndRowNo:from.writeEndRowNo,
     onlyOverwriteBlanks:from.onlyOverwriteBlanks,
-    unprocessedRowCount:from.unprocessedRowCount
+    jobRowCount:from.jobRowCount,
+    processedRowCount:from.processedRowCount,
+    currentPrompt:from.currentPrompt,
+    timeRemainingText:from.timeRemainingText
   };
 }

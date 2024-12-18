@@ -1,7 +1,7 @@
 import ExecutionJob from "@/sheets/types/ExecutionJob";
 import ExecuteSetupDialog from "../dialogs/ExecuteSetupDialog";
 import HoneSheet from "@/sheets/types/HoneSheet";
-import { createExecutionJob, predictExecutionSeconds } from "@/sheets/executionJobUtil";
+import { createExecutionJob, duplicateExecutionJob, predictExecutionSeconds } from "@/sheets/executionJobUtil";
 import ExecuteDialog from "../dialogs/ExecuteDialog";
 import { addNewColumn, createRowNameValues, duplicateSheet } from "@/sheets/sheetUtil";
 import { fixGrammar } from "@/common/englishGrammarUtil";
@@ -11,10 +11,11 @@ import { isEmpty } from "@/common/stringUtil";
 import { describeDuration } from "@/common/timeUtil";
 import { errorToast } from "@/components/toasts/toastUtil";
 import { SIMPLE_RESPONSE_SUPPORTED_TYPES } from "@/common/sloppyJsonUtil";
+import KeepPartialDataDialog from "../dialogs/KeepPartialDataDialog";
 
 let cancelExecutionRequested = false;
 
-const MAX_PROMPT_ATTEMPTS = 3;
+const MAX_PROMPT_ATTEMPTS = 2; // Using a seed, so there's just not much hope in trying more than twice.
 
 export function setUpExecution(sheet:HoneSheet, promptTemplate:string, setJob:Function, setModalDialog:Function) {
   const nextJob = createExecutionJob(sheet, promptTemplate); // Used as default options.
@@ -32,46 +33,85 @@ export function cancelExecution(setCancelRequestReceived:Function) {
   cancelExecutionRequested = true;
 }
 
-export async function executeJob(job:ExecutionJob, setProcessedRowCount:Function, setCurrentPrompt:Function, 
-  setTimeRemainingText:Function, setResponseText:Function, onComplete:Function, onCancel:Function) {
-  const { promptTemplate, writeStartRowNo, writeEndRowNo, writeColumnName, onlyOverwriteBlanks, writeExisting, unprocessedRowCount } = job;
-  cancelExecutionRequested = false;
+let isJobExecuting = false;
 
-  const sheet = duplicateSheet(job.sheet);
-  const writeColumnI = writeExisting
-    ? sheet.columns.findIndex((column) => column.name === writeColumnName)
-    : sheet.columns.length;
-  if (writeColumnI === -1) throw Error('Unexpected'); // Passed in bad job data.
-  if (!writeExisting) addNewColumn(sheet, writeColumnName);
-  
-  let processedCount = 0;
-  
-  for(let rowNo = writeStartRowNo; rowNo <= writeEndRowNo; ++rowNo) {
-    if (onlyOverwriteBlanks && !isEmpty(sheet.rows[rowNo-1][writeColumnI])) continue;
-    const rowNameValues = createRowNameValues(sheet, rowNo);
-    const testPrompt = fixGrammar(fillTemplate(promptTemplate, rowNameValues));
-    setProcessedRowCount(processedCount);
-    setCurrentPrompt(testPrompt);
-    const timeRemainingSeconds = predictExecutionSeconds(unprocessedRowCount - processedCount);
-    setTimeRemainingText(describeDuration(timeRemainingSeconds));
+export function isExecuting() { return isJobExecuting; }
 
-    let response:SIMPLE_RESPONSE_SUPPORTED_TYPES = null;
-    let attemptNo = 0;
-    for(; attemptNo < MAX_PROMPT_ATTEMPTS; ++attemptNo) {
-      if (cancelExecutionRequested) { onCancel(sheet, processedCount); return; }
-      try {
-        response = await promptForSimpleResponse(testPrompt, setResponseText);
-        if (response !== null) break;
-      } catch (e) {
-        console.error(e);
+export async function executeJob(startingJob:ExecutionJob, setJob:Function, setResponseText:Function, onComplete:Function, onCancel:Function) {
+  if (isJobExecuting) throw Error('Unexpected'); // Shouldn't be called while another job is executing.
+  isJobExecuting = true;
+
+  try {
+    const { promptTemplate, writeStartRowNo, writeEndRowNo, writeColumnName, onlyOverwriteBlanks, writeExisting, jobRowCount } = startingJob; // read-only values.
+
+    cancelExecutionRequested = false;
+    let job = duplicateExecutionJob(startingJob);
+    job.sheet = duplicateSheet(job.sheet);
+    const writeColumnI = writeExisting
+      ? job.sheet.columns.findIndex((column) => column.name === writeColumnName)
+      : job.sheet.columns.length;
+    if (writeColumnI === -1) throw Error('Unexpected'); // Passed in bad job data.
+    if (!writeExisting) addNewColumn(job.sheet, writeColumnName);
+    
+    for(let rowNo = writeStartRowNo; rowNo <= writeEndRowNo; ++rowNo) {
+      if (onlyOverwriteBlanks && !isEmpty(job.sheet.rows[rowNo-1][writeColumnI])) continue;
+
+      // Update row-specific values of job.
+      const rowNameValues = createRowNameValues(job.sheet, rowNo);
+      job.currentPrompt = fixGrammar(fillTemplate(promptTemplate, rowNameValues));
+      const timeRemainingSeconds = predictExecutionSeconds(jobRowCount - job.processedRowCount);
+      job.timeRemainingText = describeDuration(timeRemainingSeconds);
+
+      setJob(job); // Update any UI with the latest job data.
+      job = duplicateExecutionJob(job); // Fresh instance for update on next iteration.
+
+      let response:SIMPLE_RESPONSE_SUPPORTED_TYPES = null;
+      let attemptI = 0;
+      for(; attemptI < MAX_PROMPT_ATTEMPTS; ++attemptI) {
+        if (cancelExecutionRequested) { onCancel(job); return; }
+        try {
+          response = await promptForSimpleResponse(job.currentPrompt, setResponseText);
+          if (response !== null) break;
+        } catch (e) {
+          console.error(e);
+        }
       }
+      const value = response === null ? '' : response;
+      job.sheet.rows[rowNo-1][writeColumnI] = value;
+      if (attemptI < MAX_PROMPT_ATTEMPTS) ++(job.processedRowCount);
     }
-    const value = response === null ? '' : response;
-    sheet.rows[rowNo-1][writeColumnI] = value;
-    if (attemptNo < MAX_PROMPT_ATTEMPTS) ++processedCount;
+
+    if (job.processedRowCount < jobRowCount) errorToast(`Due to errors, only ${job.processedRowCount} of ${jobRowCount} rows were processed.`);
+
+    setJob(job);
+    onComplete(job);
+  } finally {
+    isJobExecuting = false;
   }
+}
 
-  if (processedCount < unprocessedRowCount) errorToast(`Due to errors, only ${processedCount} of ${unprocessedRowCount} rows were processed.`);
+export function checkForPartialDataAfterCancel(job:ExecutionJob|null, setJob:Function, setModalDialog:Function) {
+  if (!job) throw Error('Unexpected');
+  if (job.processedRowCount) { setModalDialog(KeepPartialDataDialog.name); return; }
+  setJob(null); // No rows changed, but also abandoning any column changes.
+  setModalDialog(null); 
+}
 
-  onComplete(sheet);
+export function completeExecution(job:ExecutionJob|null, setSelectedSheet:Function, setJob:Function, setModalDialog:Function) {
+  if (!job) throw Error('Unexpected');
+  setSelectedSheet(job.sheet);
+  setJob(null);
+  setModalDialog(null);
+}
+
+export function keepPartialDataAfterCancel(job:ExecutionJob|null, setSelectedSheet:Function, setJob:Function, setModalDialog:Function) {
+  if (!job) throw Error('Unexpected');
+  setSelectedSheet(job.sheet);
+  setJob(null);
+  setModalDialog(null);
+}
+
+export function discardPartialDataAfterCancel(setJob:Function, setModalDialog:Function) {
+  setJob(null);
+  setModalDialog(null);
 }

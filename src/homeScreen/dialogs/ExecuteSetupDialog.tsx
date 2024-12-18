@@ -4,7 +4,7 @@ import ExecutionJob from "@/sheets/types/ExecutionJob";
 import ModalDialog from "@/components/modalDialogs/ModalDialog";
 import DialogFooter from "@/components/modalDialogs/DialogFooter";
 import DialogButton from "@/components/modalDialogs/DialogButton";
-import { copyExecutionJob, countUnprocessedRows, predictExecutionSeconds } from "@/sheets/executionJobUtil";
+import { countUnprocessedRows, duplicateExecutionJob, predictExecutionSeconds } from "@/sheets/executionJobUtil";
 import { describeDuration } from "@/common/timeUtil";
 import styles from './ExecuteSetupDialog.module.css';
 import Selector from "@/components/selector/Selector";
@@ -36,8 +36,8 @@ function ExecuteSetupDialog({isOpen, defaultOptions, onExecute, onCancel}:Props)
   const [writeEndRowNo, setWriteEndRowNo] = useState<number>(1);
   const [writableColumnNames, setWritableColumnNames] = useState<string[]>([]);
   const [writableColumnOptionNo, setWritableColumnOptionNo] = useState<number>(0);
-  const [unprocessedRowCount, setUnprocessedRowCount] = useState<number>(0);
-  const [predictedExecutionSeconds, setPredictedExecutionSeconds] = useState<number>(0);
+  const [jobRowCount, setJobRowCount] = useState<number>(0);
+  const [timeRemainingText, setTimeRemainingText] = useState<string>('');
   const [overwriteOptionNo, setOverwriteOptionNo] = useState<number>(OVERWRITE_BLANKS);
 
   useEffect(() => {
@@ -55,8 +55,8 @@ function ExecuteSetupDialog({isOpen, defaultOptions, onExecute, onCancel}:Props)
     }
     setWriteStartRowNo(defaultOptions.writeStartRowNo);
     setWriteEndRowNo(defaultOptions.writeEndRowNo);
-    setUnprocessedRowCount(defaultOptions.unprocessedRowCount);
-    setPredictedExecutionSeconds(defaultOptions.predictedExecutionSeconds);
+    setJobRowCount(defaultOptions.jobRowCount);
+    setTimeRemainingText(defaultOptions.timeRemainingText);
     setOverwriteOptionNo(defaultOptions.onlyOverwriteBlanks ? OVERWRITE_BLANKS : OVERWRITE_ALL);
   }, [isOpen, defaultOptions]);
 
@@ -68,26 +68,25 @@ function ExecuteSetupDialog({isOpen, defaultOptions, onExecute, onCancel}:Props)
     const startRowNo = rowRangeOptionNo === ALL_ROWS ? 1 : writeStartRowNo;
     const endRowNo = rowRangeOptionNo === ALL_ROWS ? defaultOptions.sheet.rows.length : writeEndRowNo;
     const nextUnprocessedRowCount = countUnprocessedRows(defaultOptions.sheet, writeColumnName, startRowNo, endRowNo, onlyOverwriteBlanks);
-    setUnprocessedRowCount(nextUnprocessedRowCount);
-    setPredictedExecutionSeconds(predictExecutionSeconds(nextUnprocessedRowCount));
+    setJobRowCount(nextUnprocessedRowCount);
+    setTimeRemainingText(describeDuration(predictExecutionSeconds(nextUnprocessedRowCount)));
   }, [defaultOptions, rowRangeOptionNo, outputToOptionNo, newColumnName, writeStartRowNo, writeEndRowNo, writableColumnOptionNo, overwriteOptionNo]);
 
   if (!defaultOptions || !isOpen) return null;
 
-  const { promptTemplate, sheet } = defaultOptions;
-  const rowCountText = unprocessedRowCount === 1 ? '1 row' : `${unprocessedRowCount} rows`;
-  const predictedDuration = describeDuration(predictedExecutionSeconds);
+  const { sheet } = defaultOptions;
+  const rowCountText = jobRowCount === 1 ? '1 row' : `${jobRowCount} rows`;
 
   function _handleExecute() {
     if (!defaultOptions) return;
-    const job = copyExecutionJob(defaultOptions);
+    const job = duplicateExecutionJob(defaultOptions);
     job.writeExisting = outputToOptionNo === EXISTING_COLUMN;
     job.writeColumnName = outputToOptionNo === NEW_COLUMN ? newColumnName : writableColumnNames[writableColumnOptionNo];
     job.writeStartRowNo = rowRangeOptionNo === ALL_ROWS ? 1 : writeStartRowNo;
     job.writeEndRowNo = rowRangeOptionNo === ALL_ROWS ? sheet.rows.length : writeEndRowNo;
     job.onlyOverwriteBlanks = overwriteOptionNo === OVERWRITE_BLANKS;
-    job.unprocessedRowCount = unprocessedRowCount;
-    job.predictedExecutionSeconds = predictedExecutionSeconds;
+    job.jobRowCount = jobRowCount;
+    job.timeRemainingText = timeRemainingText;
     onExecute(job);
   }
 
@@ -133,7 +132,7 @@ function ExecuteSetupDialog({isOpen, defaultOptions, onExecute, onCancel}:Props)
         {outputToOptions}
         <div className={styles.jobRow}>
           <label>Predicted time to execute:</label>
-          <span>{predictedDuration}</span>
+          <span>{timeRemainingText}</span>
         </div>
       </div>
       <DialogFooter>

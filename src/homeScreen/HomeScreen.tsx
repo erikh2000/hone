@@ -10,12 +10,20 @@ import { onCancelImportSheet, onChangeWorkbook, onSelectSheet } from "./interact
 import PromptPane from "./PromptPane";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import ExecuteSetupDialog from "./dialogs/ExecuteSetupDialog";
-import { startExecution, setUpExecution } from "./interactions/execute";
+import { 
+  startExecution, 
+  setUpExecution, 
+  checkForPartialDataAfterCancel, 
+  completeExecution, 
+  keepPartialDataAfterCancel, 
+  discardPartialDataAfterCancel 
+} from "./interactions/execute";
 import ExecutionJob from "@/sheets/types/ExecutionJob";
 import ExecuteDialog from "./dialogs/ExecuteDialog";
+import { exportSheet } from "./interactions/export";
+import KeepPartialDataDialog from "./dialogs/KeepPartialDataDialog";
 
 function HomeScreen() {
-  
   const [workbook, setWorkbook] = useState<WorkBook|null>(null);
   const [, setWorkbookName] = useState<string>(''); // TODO - use workbookName later for export.
   const [selectedSheet, setSelectedSheet] = useState<HoneSheet|null>(null);
@@ -44,6 +52,7 @@ function HomeScreen() {
         onRowSelect={setSelectedRowNo}
         onChangeWorkbook={(nextWorkbook, nextWorkbookName) => onChangeWorkbook(nextWorkbook, nextWorkbookName, 
           setWorkbook, setWorkbookName, setSelectedSheet, setModalDialog)}
+        onExportSheet={() => exportSheet(setModalDialog)}
       />
       {promptPaneContent}
       <ImportSheetDialog workbook={workbook} isOpen={modalDialog === ImportSheetDialog.name} 
@@ -54,9 +63,14 @@ function HomeScreen() {
         onExecute={(nextJob) => {startExecution(nextJob, setJob, setModalDialog)}}
         onCancel={() => {setModalDialog(null)}}
       />
-      <ExecuteDialog isOpen={modalDialog === ExecuteDialog.name} job={job} 
-        onCancel={(_sheet, rowsChanged) => { console.log(rowsChanged); setModalDialog(null);}} 
-        onComplete={(nextSheet) => { setSelectedSheet(nextSheet); setModalDialog(null) }} 
+      <ExecuteDialog isOpen={modalDialog === ExecuteDialog.name} job={job} onUpdateJob={setJob}
+        onCancel={(completedJob) => checkForPartialDataAfterCancel(completedJob, setJob, setModalDialog)} 
+        onComplete={(completedJob) => completeExecution(completedJob, setSelectedSheet, setJob, setModalDialog)} 
+      />
+      <KeepPartialDataDialog isOpen={modalDialog === KeepPartialDataDialog.name} 
+        processedRowCount={job?.processedRowCount || 0}
+        onKeep={() => keepPartialDataAfterCancel(job, setSelectedSheet, setJob, setModalDialog)}
+        onDiscard={() => discardPartialDataAfterCancel(setJob, setModalDialog)}
       />
       <ToastPane/>
     </div>

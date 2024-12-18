@@ -14,7 +14,8 @@ type Props = {
   className:string,
   selectedRowNo:number,
   onRowSelect:(rowNo:number)=>void
-  onChangeWorkbook(workbook:WorkBook, workbookName:string):void
+  onChangeWorkbook(workbook:WorkBook, workbookName:string):void,
+  onExportSheet():void
 }
 
 function _noSheetLoadedContent() {
@@ -26,7 +27,7 @@ function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, onRowSelect:(
   return <SheetView sheet={sheet} selectedRowNo={selectedRowNo} onRowSelect={onRowSelect}/>;
 }
 
-function SheetPane({workbook, sheet, className, onChangeWorkbook, selectedRowNo, onRowSelect}:Props) {
+function SheetPane({workbook, sheet, className, onChangeWorkbook, selectedRowNo, onRowSelect, onExportSheet}:Props) {
   useEffect(() => {
     if (!workbook) return;
     if (!workbook.SheetNames.length) errorToast('Workbook has no sheets.');
@@ -35,8 +36,10 @@ function SheetPane({workbook, sheet, className, onChangeWorkbook, selectedRowNo,
   const content = _sheetContent(sheet, selectedRowNo, onRowSelect);
 
   const buttons:ButtonDefinition[] = [
-    { text:'Import...', onClick:() => {importWorkbook(onChangeWorkbook)} }, 
-    { text:"Example", onClick:() => {importExample(onChangeWorkbook)} }];
+    { text:"Example", onClick:() => {importExample(onChangeWorkbook)} },
+    { text:'Import', onClick:() => {importWorkbook(onChangeWorkbook)} }, 
+    { text:'Export', onClick:() => {onExportSheet()}, disabled:sheet===null }, 
+  ];
 
   const comment = getComment(sheet);
   const sheetCaption = sheet ? `Sheet - ${sheet.name}` : 'Sheet';
