@@ -18,7 +18,9 @@ let cancelExecutionRequested = false;
 
 const MAX_PROMPT_ATTEMPTS = 2; // Using a seed, so there's just not much hope in trying more than twice.
 
-export function setUpExecution(existingJob:ExecutionJob|null, sheet:HoneSheet, promptTemplate:string, setJob:Function, setModalDialog:Function) {
+export function setUpExecution(existingJob:ExecutionJob|null, sheet:HoneSheet, promptTemplate:string, setPromptTemplate:Function, setJob:Function, setModalDialog:Function) {
+  setPromptTemplate(promptTemplate);
+
   if (existingJob) { // If there's an existing job, ask the user if they want to resume it.
     setModalDialog(ResumeJobDialog.name);
     return;

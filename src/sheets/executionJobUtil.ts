@@ -37,7 +37,7 @@ export function createExecutionJob(sheet:HoneSheet, promptTemplate:string):Execu
   return {
     sheet,
     promptTemplate,
-    writeExisting:true,
+    writeExisting:false,
     writeColumnName,
     writeStartRowNo,
     writeEndRowNo,

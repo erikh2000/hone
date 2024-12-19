@@ -31,6 +31,7 @@ function HomeScreen() {
   const [selectedRowNo, setSelectedRowNo] = useState<number>(1);
   const [job, setJob] = useState<ExecutionJob|null>(null);
   const [modalDialog, setModalDialog] = useState<string|null>(null);
+  const [promptTemplate, setPromptTemplate] = useState<string>('');
 
   useEffect(() => {
     init().then(() => { });
@@ -40,7 +41,7 @@ function HomeScreen() {
     <PromptPane 
       sheet={selectedSheet} className={styles.promptPane} 
       testRowNo={selectedRowNo} 
-      onExecute={promptTemplate => setUpExecution(job, selectedSheet, promptTemplate, setJob, setModalDialog)}
+      onExecute={promptTemplate => setUpExecution(job, selectedSheet, promptTemplate, setPromptTemplate, setJob, setModalDialog)}
     /> : null;
   
   return (
@@ -64,7 +65,7 @@ function HomeScreen() {
       <ResumeJobDialog isOpen={modalDialog === ResumeJobDialog.name} job={job}  
         onCancel={() => {setModalDialog(null)}}
         onResume={() => {setModalDialog(ExecuteDialog.name)}}
-        onNew={() => {setJob(null); setModalDialog(ExecuteSetupDialog.name)}}
+        onNew={() => {setJob(null); if(selectedSheet) setUpExecution(null, selectedSheet, promptTemplate, setPromptTemplate, setJob, setModalDialog)}} // TODO - either refactor into an interaction or move to your columnwise UI design.
       />
 
       <ExecuteSetupDialog isOpen={modalDialog === ExecuteSetupDialog.name} defaultOptions={job}  
