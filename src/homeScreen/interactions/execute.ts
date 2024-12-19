@@ -12,12 +12,18 @@ import { describeDuration } from "@/common/timeUtil";
 import { errorToast } from "@/components/toasts/toastUtil";
 import { SIMPLE_RESPONSE_SUPPORTED_TYPES } from "@/common/sloppyJsonUtil";
 import KeepPartialDataDialog from "../dialogs/KeepPartialDataDialog";
+import ResumeJobDialog from "../dialogs/ResumeJobDialog";
 
 let cancelExecutionRequested = false;
 
 const MAX_PROMPT_ATTEMPTS = 2; // Using a seed, so there's just not much hope in trying more than twice.
 
-export function setUpExecution(sheet:HoneSheet, promptTemplate:string, setJob:Function, setModalDialog:Function) {
+export function setUpExecution(existingJob:ExecutionJob|null, sheet:HoneSheet, promptTemplate:string, setJob:Function, setModalDialog:Function) {
+  if (existingJob) { // If there's an existing job, ask the user if they want to resume it.
+    setModalDialog(ResumeJobDialog.name);
+    return;
+  }
+  
   const nextJob = createExecutionJob(sheet, promptTemplate); // Used as default options.
   setJob(nextJob);
   setModalDialog(ExecuteSetupDialog.name); // Dialog that allows the user to review and edit job options before starting it.
@@ -47,6 +53,7 @@ export async function executeJob(startingJob:ExecutionJob, setJob:Function, setR
     cancelExecutionRequested = false;
     let job = duplicateExecutionJob(startingJob);
     job.sheet = duplicateSheet(job.sheet);
+    job.writeExisting = true; // If job is canceled, resuming it will need to write to existing column.
     const writeColumnI = writeExisting
       ? job.sheet.columns.findIndex((column) => column.name === writeColumnName)
       : job.sheet.columns.length;
@@ -61,6 +68,7 @@ export async function executeJob(startingJob:ExecutionJob, setJob:Function, setR
       job.currentPrompt = fixGrammar(fillTemplate(promptTemplate, rowNameValues));
       const timeRemainingSeconds = predictExecutionSeconds(jobRowCount - job.processedRowCount);
       job.timeRemainingText = describeDuration(timeRemainingSeconds);
+      job.writeStartRowNo = rowNo; // If job is canceled, this is the row where it stopped.
 
       setJob(job); // Update any UI with the latest job data.
       job = duplicateExecutionJob(job); // Fresh instance for update on next iteration.
@@ -104,10 +112,9 @@ export function completeExecution(job:ExecutionJob|null, setSelectedSheet:Functi
   setModalDialog(null);
 }
 
-export function keepPartialDataAfterCancel(job:ExecutionJob|null, setSelectedSheet:Function, setJob:Function, setModalDialog:Function) {
+export function keepPartialDataAfterCancel(job:ExecutionJob|null, setSelectedSheet:Function, setModalDialog:Function) {
   if (!job) throw Error('Unexpected');
   setSelectedSheet(job.sheet);
-  setJob(null);
   setModalDialog(null);
 }
 

@@ -22,6 +22,7 @@ import ExecutionJob from "@/sheets/types/ExecutionJob";
 import ExecuteDialog from "./dialogs/ExecuteDialog";
 import { exportSheet } from "./interactions/export";
 import KeepPartialDataDialog from "./dialogs/KeepPartialDataDialog";
+import ResumeJobDialog from "./dialogs/ResumeJobDialog";
 
 function HomeScreen() {
   const [workbook, setWorkbook] = useState<WorkBook|null>(null);
@@ -39,7 +40,7 @@ function HomeScreen() {
     <PromptPane 
       sheet={selectedSheet} className={styles.promptPane} 
       testRowNo={selectedRowNo} 
-      onExecute={promptTemplate => setUpExecution(selectedSheet, promptTemplate, setJob, setModalDialog)}
+      onExecute={promptTemplate => setUpExecution(job, selectedSheet, promptTemplate, setJob, setModalDialog)}
     /> : null;
   
   return (
@@ -59,6 +60,13 @@ function HomeScreen() {
         onChoose={(sheet) => onSelectSheet(sheet, setSelectedSheet, setModalDialog)} 
         onCancel={() => onCancelImportSheet(setWorkbook, setWorkbookName, setSelectedSheet, setModalDialog)} 
       />
+      
+      <ResumeJobDialog isOpen={modalDialog === ResumeJobDialog.name} job={job}  
+        onCancel={() => {setModalDialog(null)}}
+        onResume={() => {setModalDialog(ExecuteDialog.name)}}
+        onNew={() => {setJob(null); setModalDialog(ExecuteSetupDialog.name)}}
+      />
+
       <ExecuteSetupDialog isOpen={modalDialog === ExecuteSetupDialog.name} defaultOptions={job}  
         onExecute={(nextJob) => {startExecution(nextJob, setJob, setModalDialog)}}
         onCancel={() => {setModalDialog(null)}}
@@ -69,7 +77,7 @@ function HomeScreen() {
       />
       <KeepPartialDataDialog isOpen={modalDialog === KeepPartialDataDialog.name} 
         processedRowCount={job?.processedRowCount || 0}
-        onKeep={() => keepPartialDataAfterCancel(job, setSelectedSheet, setJob, setModalDialog)}
+        onKeep={() => keepPartialDataAfterCancel(job, setSelectedSheet, setModalDialog)}
         onDiscard={() => discardPartialDataAfterCancel(setJob, setModalDialog)}
       />
       <ToastPane/>

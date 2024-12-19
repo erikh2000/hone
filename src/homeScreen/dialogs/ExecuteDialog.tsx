@@ -45,8 +45,8 @@ function ExecuteDialog({onCancel, isOpen, job, onComplete, onUpdateJob}:Props) {
       <p>Time remaining:{job.timeRemainingText}</p>
     </>
 
-  return (
-    <ModalDialog title="Executing" onCancel={() => cancelExecution(setCancelRequestReceived)} isOpen={isOpen}>
+  return ( // Intentionally not passing "onCancel" to ModalDialog as I don't want a click-away to cancel the job. User must click the "cancel" button.
+    <ModalDialog title="Executing" isOpen={isOpen}>
       {status}
       <div className={styles.progress}>
         <ProgressBar percentComplete={percentComplete} />
