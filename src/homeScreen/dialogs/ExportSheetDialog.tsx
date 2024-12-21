@@ -53,7 +53,12 @@ function ExportSheetDialog({sheet, isOpen, onExport, onCancel}:Props) {
         onChange={includeColumnNos => setExportOptions({...exportOptions, includeColumnNos}) } />
       <DialogFooter>
         <DialogButton text="Cancel" onClick={() => onCancel()} />
-        <DialogButton text="Continue" onClick={() => onExport(sheet, exportOptions)} isPrimary/>
+        <DialogButton 
+          text="Continue" 
+          onClick={() => onExport(sheet, exportOptions)}  
+          disabled={!exportOptions.includeColumnNos.length} 
+          isPrimary
+        />
       </DialogFooter>
     </ModalDialog>
   );
