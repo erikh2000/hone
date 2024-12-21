@@ -53,10 +53,30 @@ export function addNewColumn(sheet:HoneSheet, columnName:string) {
 
 export function getColumnNames(sheet:HoneSheet) { return sheet.columns.map(column => column.name); }
 
+export function getColumnNos(sheet:HoneSheet) { return sheet.columns.map((_, i) => i); }
+
 export function getWritableColumnNames(sheet:HoneSheet) {
   return sheet.columns.filter(column => column.isWritable).map(column => column.name);
 }
 
 export function doesSheetHaveWritableColumns(sheet:HoneSheet):boolean {
   return sheet.columns.some(column => column.isWritable);
+}
+
+export function exportSheetToClipboard(sheet:HoneSheet, includeHeaders:boolean) {
+  let csv;
+  const csvCells = sheet.rows.map(row => row.join('\t')).join('\n');
+  if (includeHeaders) {
+    const csvHeaders = sheet.columns.map(column => column.name).join('\t');
+    csv = `${csvHeaders}\n${csvCells}`;
+  } else {
+    csv = csvCells;
+  }
+  navigator.clipboard.writeText(csv);
+}
+
+export function removeExcludedColumns(sheet:HoneSheet, includeColumnNos:number[]) {
+  const columns = sheet.columns.filter((_, i) => includeColumnNos.includes(i));
+  const rows = sheet.rows.map(row => row.filter((_, i) => includeColumnNos.includes(i)));
+  return { name:sheet.name, columns, rows };
 }

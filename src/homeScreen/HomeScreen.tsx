@@ -20,14 +20,15 @@ import {
 } from "./interactions/execute";
 import ExecutionJob from "@/sheets/types/ExecutionJob";
 import ExecuteDialog from "./dialogs/ExecuteDialog";
-import { exportSheet } from "./interactions/export";
+import { chooseExportType, exportSheet } from "./interactions/export";
 import KeepPartialDataDialog from "./dialogs/KeepPartialDataDialog";
 import ResumeJobDialog from "./dialogs/ResumeJobDialog";
+import ExportSheetDialog from "./dialogs/ExportSheetDialog";
 
 function HomeScreen() {
   const [workbook, setWorkbook] = useState<WorkBook|null>(null);
   const [, setWorkbookName] = useState<string>(''); // TODO - use workbookName later for export.
-  const [selectedSheet, setSelectedSheet] = useState<HoneSheet|null>(null);
+  const [sheet, setSheet] = useState<HoneSheet|null>(null);
   const [selectedRowNo, setSelectedRowNo] = useState<number>(1);
   const [job, setJob] = useState<ExecutionJob|null>(null);
   const [modalDialog, setModalDialog] = useState<string|null>(null);
@@ -37,11 +38,11 @@ function HomeScreen() {
     init().then(() => { });
   });
 
-  const promptPaneContent = selectedSheet ? 
+  const promptPaneContent = sheet ? 
     <PromptPane 
-      sheet={selectedSheet} className={styles.promptPane} 
+      sheet={sheet} className={styles.promptPane} 
       testRowNo={selectedRowNo} 
-      onExecute={promptTemplate => setUpExecution(job, selectedSheet, promptTemplate, setPromptTemplate, setJob, setModalDialog)}
+      onExecute={promptTemplate => setUpExecution(job, sheet, promptTemplate, setPromptTemplate, setJob, setModalDialog)}
     /> : null;
   
   return (
@@ -50,37 +51,47 @@ function HomeScreen() {
         <h1>Hone</h1>
       </div>
       <SheetPane 
-        workbook={workbook} sheet={selectedSheet} className={styles.sheetPane} selectedRowNo={selectedRowNo} 
+        workbook={workbook} sheet={sheet} className={styles.sheetPane} selectedRowNo={selectedRowNo} 
         onRowSelect={setSelectedRowNo}
         onChangeWorkbook={(nextWorkbook, nextWorkbookName) => onChangeWorkbook(nextWorkbook, nextWorkbookName, 
-          setWorkbook, setWorkbookName, setSelectedSheet, setModalDialog)}
-        onExportSheet={() => exportSheet(setModalDialog)}
+          setWorkbook, setWorkbookName, setSheet, setModalDialog)}
+        onExportSheet={() => chooseExportType(setModalDialog)}
       />
       {promptPaneContent}
+
       <ImportSheetDialog workbook={workbook} isOpen={modalDialog === ImportSheetDialog.name} 
-        onChoose={(sheet) => onSelectSheet(sheet, setSelectedSheet, setModalDialog)} 
-        onCancel={() => onCancelImportSheet(setWorkbook, setWorkbookName, setSelectedSheet, setModalDialog)} 
+        onChoose={(sheet) => onSelectSheet(sheet, setSheet, setModalDialog)} 
+        onCancel={() => onCancelImportSheet(setWorkbook, setWorkbookName, setSheet, setModalDialog)} 
       />
       
       <ResumeJobDialog isOpen={modalDialog === ResumeJobDialog.name} job={job}  
         onCancel={() => {setModalDialog(null)}}
         onResume={() => {setModalDialog(ExecuteDialog.name)}}
-        onNew={() => {setJob(null); if(selectedSheet) setUpExecution(null, selectedSheet, promptTemplate, setPromptTemplate, setJob, setModalDialog)}} // TODO - either refactor into an interaction or move to your columnwise UI design.
+        onNew={() => {setJob(null); if(sheet) setUpExecution(null, sheet, promptTemplate, setPromptTemplate, setJob, setModalDialog)}} // TODO - either refactor into an interaction or move to your columnwise UI design.
       />
 
       <ExecuteSetupDialog isOpen={modalDialog === ExecuteSetupDialog.name} defaultOptions={job}  
         onExecute={(nextJob) => {startExecution(nextJob, setJob, setModalDialog)}}
         onCancel={() => {setModalDialog(null)}}
       />
+
       <ExecuteDialog isOpen={modalDialog === ExecuteDialog.name} job={job} onUpdateJob={setJob}
         onCancel={(completedJob) => checkForPartialDataAfterCancel(completedJob, setJob, setModalDialog)} 
-        onComplete={(completedJob) => completeExecution(completedJob, setSelectedSheet, setJob, setModalDialog)} 
+        onComplete={(completedJob) => completeExecution(completedJob, setSheet, setJob, setModalDialog)} 
       />
+
       <KeepPartialDataDialog isOpen={modalDialog === KeepPartialDataDialog.name} 
         processedRowCount={job?.processedRowCount || 0}
-        onKeep={() => keepPartialDataAfterCancel(job, setSelectedSheet, setModalDialog)}
+        onKeep={() => keepPartialDataAfterCancel(job, setSheet, setModalDialog)}
         onDiscard={() => discardPartialDataAfterCancel(setJob, setModalDialog)}
       />
+
+      <ExportSheetDialog 
+        isOpen={modalDialog === ExportSheetDialog.name} sheet={sheet}
+        onExport={(sheetForExport, exportOptions) => exportSheet(sheetForExport, exportOptions, setModalDialog)}
+        onCancel={() => setModalDialog(null)} 
+      />
+
       <ToastPane/>
     </div>
   );

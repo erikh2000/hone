@@ -1,0 +1,39 @@
+@value colors: "@/components/commonPalette.module.css";
+@value button, button-text, button-highlight, button-text-highlight, button-disabled, button-text-disabled from colors;
+
+.checkbox input[type="checkbox"] {
+  position: relative;
+  top: .2vh;
+  left: .2vh;
+  height: 1.4vh;
+  width: 1.4vh;
+  accent-color: button;
+  margin-right: .5vh;
+  cursor: pointer;
+}
+
+.checkbox input[type="checkbox"]:disabled {
+  cursor: default;
+}
+
+label.checkbox {
+  font-size: 1.4vh;
+  padding-left: .5vh;
+  padding-right: .5vh;
+  transition: .2s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+label.checkbox:hover  {
+  background-color: button-highlight;
+  color: button-text-highlight;
+  transition: .2s;
+  cursor: pointer;
+}
+
+label.checkbox:has(input[type="checkbox"]:disabled) {
+  color: button-text-disabled;
+  background-color: transparent;
+  cursor: default;
+}
