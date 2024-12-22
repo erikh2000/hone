@@ -1,8 +1,9 @@
-import { WorkBook, utils } from 'xlsx';
+import { WorkBook, utils, write } from 'xlsx';
 
-import StringMap from '../common/types/StringMap';
+import StringMap from '@/common/types/StringMap';
 import HoneSheet from './types/HoneSheet';
 import HoneColumn from './types/HoneColumn';
+import { rowArrayToCsvUtf8  } from '@/common/csvUtil';
 
 export function createRowNameValues(sheet:HoneSheet, rowNo:number):StringMap {
   const rowI = rowNo - 1;
@@ -63,16 +64,34 @@ export function doesSheetHaveWritableColumns(sheet:HoneSheet):boolean {
   return sheet.columns.some(column => column.isWritable);
 }
 
-export function exportSheetToClipboard(sheet:HoneSheet, includeHeaders:boolean) {
-  let csv;
-  const csvCells = sheet.rows.map(row => row.join('\t')).join('\n');
-  if (includeHeaders) {
-    const csvHeaders = sheet.columns.map(column => column.name).join('\t');
-    csv = `${csvHeaders}\n${csvCells}`;
-  } else {
-    csv = csvCells;
-  }
-  navigator.clipboard.writeText(csv);
+export async function exportSheetToClipboard(sheet:HoneSheet, includeHeaders:boolean) {
+  const fieldNames = getColumnNames(sheet);
+  const rows = sheet.rows;
+  const csvBytes = rowArrayToCsvUtf8(rows, fieldNames, includeHeaders);
+  const plainTextBlob = new Blob([csvBytes], {type:'text/plain'});
+  const clipboardItem = new ClipboardItem({'text/plain':plainTextBlob}); // I wanted to send also 'text/cvs', but Chrome and probably other browsers throw an error.    
+  await navigator.clipboard.write([clipboardItem]);
+}
+
+export async function exportSheetToCsvFile(sheet:HoneSheet, fileHandle:FileSystemFileHandle) {
+  const fieldNames = getColumnNames(sheet);
+  const rows = sheet.rows;
+  const csvBytes = rowArrayToCsvUtf8(rows, fieldNames, true);
+
+  const writable = await fileHandle.createWritable();
+  await writable.write(csvBytes);
+  await writable.close();
+}
+
+export async function exportSheetToXlsxFile(sheet:HoneSheet, fileHandle:FileSystemFileHandle) {
+  const workbook = utils.book_new();
+  const worksheet = utils.aoa_to_sheet([getColumnNames(sheet)].concat(sheet.rows));
+  utils.book_append_sheet(workbook, worksheet, sheet.name);
+  const xlsxBytes = write(workbook, {type:'array', bookType:'xlsx'});
+  
+  const writable = await fileHandle.createWritable();
+  await writable.write(new Uint8Array(xlsxBytes));
+  await writable.close();
 }
 
 export function removeExcludedColumns(sheet:HoneSheet, includeColumnNos:number[]) {

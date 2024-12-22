@@ -1,4 +1,4 @@
-import { createNonGlobalRegex, escapeRegexCharacters, findNonWhiteSpace } from '../regExUtil';
+import { createNonGlobalRegex, escapeRegexCharacters, findNonWhiteSpace, findWhiteSpace } from '../regExUtil';
 
 describe('regExUtil', () => {
   describe('escapeRegexCharacters()', () => {
@@ -92,6 +92,49 @@ describe('regExUtil', () => {
 
     it('fromPos is past end -> -1', () => {
       expect(findNonWhiteSpace('abc', 3)).toBe(-1);
+    });
+  });
+
+  describe('findWhiteSpace()', () => {
+    it('empty string -> -1', () => {
+      expect(findWhiteSpace('')).toBe(-1);
+    });
+
+    it('no whitespace characters -> -1', () => {
+      const text = 'abc';
+      expect(findWhiteSpace(text)).toBe(-1);
+    });
+
+    it('whitespace characters at start -> 0', () => {
+      expect(findWhiteSpace(' abc')).toBe(0);
+    });
+
+    it('whitespace characters in middle -> 1', () => {
+      expect(findWhiteSpace('a c')).toBe(1);
+    });
+
+    it('whitespace characters at end -> 2', () => {
+      expect(findWhiteSpace('ab ')).toBe(2);
+    });
+
+    it('fromPos starts with whitespace character -> fromPos', () => {
+      expect(findWhiteSpace('a c', 1)).toBe(1);
+    });
+
+    it('fromPos starts with non-WS char, followed by whitespace -> next ws', () => {
+      expect(findWhiteSpace('ab c', 1)).toBe(2);
+    });
+
+    it('fromPos starts non-ws, and has no ws chars following -> -1', () => {
+      expect(findWhiteSpace('abc', 1)).toBe(-1);
+    });
+
+    it('fromPos is -1 -> -1', () => {
+      expect(findWhiteSpace('abc', -1)).toBe(-1);
+    });
+
+    it('fromPos is past end -> -1', () => {
+      expect(findWhiteSpace('abc', 3)).toBe(-1);
     });
   });
 });

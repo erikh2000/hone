@@ -9,9 +9,16 @@ export function createNonGlobalRegex(regex:RegExp):RegExp {
 }
 
 // Return index of first non-whitespace char or -1 if no non-whitespace characters found.
-export function findNonWhiteSpace(text:string, fromPos:number = 0): number {
+export function findNonWhiteSpace(text:string, fromPos:number = 0):number {
   for (let i = fromPos; i < text.length; i++) {
     if (/\S/.test(text[i])) return i;
+  }
+  return -1;
+}
+
+export function findWhiteSpace(text:string, fromPos:number = 0):number {
+  for (let i = fromPos; i < text.length; i++) {
+    if (/\s/.test(text[i])) return i;
   }
   return -1;
 }

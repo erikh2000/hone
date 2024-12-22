@@ -9,8 +9,7 @@ import HoneSheet from '@/sheets/types/HoneSheet';
 import Checkbox from '@/components/checkbox/Checkbox';
 import ExportOptions from '../types/ExportOptions';
 import { createExportOptionsForSheet } from '../interactions/export';
-
-
+import ExportType from '../types/ExportType';
 
 const EXPORT_TYPE_OPTIONS:string[] = ['Excel', 'CSV', 'Clipboard'];
 
@@ -38,6 +37,8 @@ function ExportSheetDialog({sheet, isOpen, onExport, onCancel}:Props) {
   if (!isOpen || !sheet || !exportOptions) return null;
 
   const explanation = EXPORT_EXPLANATIONS[exportOptions.exportType];
+  const isContinueDisabled = !exportOptions.includeColumnNos.length || (!exportOptions.includeHeaders && sheet.rows.length === 0);
+  const includeHeaders = exportOptions.exportType === ExportType.CSV ? true : exportOptions.includeHeaders;
 
   return (
     <ModalDialog title="Export Sheet" isOpen={isOpen} onCancel={onCancel}>
@@ -46,19 +47,14 @@ function ExportSheetDialog({sheet, isOpen, onExport, onCancel}:Props) {
       <p className={styles.explanation}>{explanation}</p>
       <label className={styles.exportOptions}>
         Export options:
-        <Checkbox label="Include headers" isChecked={exportOptions.includeHeaders} 
+        <Checkbox label="Include headers" isChecked={includeHeaders} disabled={exportOptions.exportType === ExportType.CSV} 
         onChange={includeHeaders => setExportOptions({...exportOptions, includeHeaders}) } />
       </label>
       <ColumnChecklist sheet={sheet} selectedColumnNos={exportOptions.includeColumnNos} 
         onChange={includeColumnNos => setExportOptions({...exportOptions, includeColumnNos}) } />
       <DialogFooter>
         <DialogButton text="Cancel" onClick={() => onCancel()} />
-        <DialogButton 
-          text="Continue" 
-          onClick={() => onExport(sheet, exportOptions)}  
-          disabled={!exportOptions.includeColumnNos.length} 
-          isPrimary
-        />
+        <DialogButton text="Continue" onClick={() => onExport(sheet, exportOptions)} disabled={isContinueDisabled} isPrimary />
       </DialogFooter>
     </ModalDialog>
   );
