@@ -1,31 +1,10 @@
 import { errorToast, infoToast } from "@/components/toasts/toastUtil";
-import ExportSheetDialog from "@/homeScreen/dialogs/ExportSheetDialog";
+import ExportOptionsDialog from "@/homeScreen/dialogs/ExportOptionsDialog";
 import { exportSheetToClipboard, exportSheetToCsvFile, exportSheetToXlsxFile, getColumnNos, removeExcludedColumns } from "@/sheets/sheetUtil";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import ExportType from "../types/ExportType";
 import ExportOptions from "../types/ExportOptions";
 import { MIMETYPE_CSV, MIMETYPE_XLSX } from "@/persistence/mimeTypes";
-
-async function _selectOpenFilepath():Promise<FileSystemFileHandle|null> {
-    const openFileOptions = {
-        excludeAcceptAllOption: true,
-        multiple:false,
-        types: [{
-            description: 'Excel or CSV files',
-            accept: {
-                [MIMETYPE_XLS]: ['.xls'],
-                [MIMETYPE_XLSX]: ['.xlsx'],
-                [MIMETYPE_CSV]: ['.csv'],
-            }
-        }]
-    };
-    try {
-        const handles:FileSystemFileHandle[] = await ((window as any).showOpenFilePicker(openFileOptions));
-        return handles[0];
-    } catch(_ignoredAbortError) {
-        return null;
-    }
-}
 
 // Same as above but for selecting a filepath to export a CSV.
 async function _selectCsvSaveFilepath():Promise<FileSystemFileHandle|null> {
@@ -66,7 +45,7 @@ async function _selectXlsxSaveFilepath():Promise<FileSystemFileHandle|null> {
 
 
 export function chooseExportType(setModalDialog:Function) {
-  setModalDialog(ExportSheetDialog.name);
+  setModalDialog(ExportOptionsDialog.name);
 }
 
 async function _exportToClipboard(sheet:HoneSheet, options:ExportOptions) {

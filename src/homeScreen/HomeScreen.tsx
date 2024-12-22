@@ -23,7 +23,7 @@ import ExecuteDialog from "./dialogs/ExecuteDialog";
 import { chooseExportType, exportSheet } from "./interactions/export";
 import KeepPartialDataDialog from "./dialogs/KeepPartialDataDialog";
 import ResumeJobDialog from "./dialogs/ResumeJobDialog";
-import ExportSheetDialog from "./dialogs/ExportSheetDialog";
+import ExportOptionsDialog from "./dialogs/ExportOptionsDialog";
 
 function HomeScreen() {
   const [workbook, setWorkbook] = useState<WorkBook|null>(null);
@@ -86,8 +86,8 @@ function HomeScreen() {
         onDiscard={() => discardPartialDataAfterCancel(setJob, setModalDialog)}
       />
 
-      <ExportSheetDialog 
-        isOpen={modalDialog === ExportSheetDialog.name} sheet={sheet}
+      <ExportOptionsDialog 
+        isOpen={modalDialog === ExportOptionsDialog.name} sheet={sheet}
         onExport={(sheetForExport, exportOptions) => exportSheet(sheetForExport, exportOptions, setModalDialog)}
         onCancel={() => setModalDialog(null)} 
       />

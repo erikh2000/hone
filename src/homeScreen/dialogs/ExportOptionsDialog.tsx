@@ -1,4 +1,4 @@
-import styles from './ExportSheetDialog.module.css';
+import styles from './ExportOptionsDialog.module.css';
 import DialogButton from "@/components/modalDialogs/DialogButton";
 import DialogFooter from "@/components/modalDialogs/DialogFooter";
 import ModalDialog from "@/components/modalDialogs/ModalDialog";
@@ -26,7 +26,7 @@ type Props = {
   onCancel():void
 }
 
-function ExportSheetDialog({sheet, isOpen, onExport, onCancel}:Props) {
+function ExportOptionsDialog({sheet, isOpen, onExport, onCancel}:Props) {
   const [exportOptions, setExportOptions] = useState<ExportOptions|null>(null);
 
   useEffect(() => {
@@ -60,4 +60,4 @@ function ExportSheetDialog({sheet, isOpen, onExport, onCancel}:Props) {
   );
 }
 
-export default ExportSheetDialog;
+export default ExportOptionsDialog;
