@@ -51,7 +51,7 @@ export async function importWorkbook(onChangeWorkbook:Function):Promise<void> {
 
 export async function importExample(onChangeWorkbook:Function):Promise<void> {
     try {
-        const response = await fetch(baseUrl('/example/Pets.xlsx'));
+        const response = await fetch(baseUrl('/example/Examples.xlsx'));
         const data = await response.arrayBuffer();
         const workbook:WorkBook = read(new Uint8Array(data), {type: 'array'});
         onChangeWorkbook(workbook, 'Example');
