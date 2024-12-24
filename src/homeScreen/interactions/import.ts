@@ -7,7 +7,8 @@ import ImportSheetDialog from '../dialogs/ImportSheetDialog';
 import HoneSheet from '@/sheets/types/HoneSheet';
 import ImportOptions from '../types/ImportOptions';
 import ImportType from '../types/ImportType';
-import { importSheetFromClipboard } from '@/sheets/sheetUtil';
+import { importSheetFromClipboard, SheetErrorType } from '@/sheets/sheetUtil';
+import { CvsImportErrorType, MAX_FIELD_COUNT } from '@/csv/csvImportUtil';
 
 async function _selectSpreadsheetFileHandle():Promise<FileSystemFileHandle|null> {
     const openFileOptions = {
@@ -83,19 +84,48 @@ export function onSelectSheet(sheet:HoneSheet, setSelectedSheet:Function, setMod
     setModalDialog(null);
 }
 
-async function _importFromClipboard(importOptions:ImportOptions):Promise<HoneSheet> {
-    return await importSheetFromClipboard(importOptions.useFirstRowColumnNames);
+// Can throw CvsImportError.NO_DATA, FIELD_COUNT_MISMATCH, UNSTRUCTURED_DATA, TOO_MANY_FIELDS, 
+//           SheetError.CLIPBOARD_NO_ROWS, NO_CLIPBOARD_ACCESS, UNEXPECTED_CLIPBOARD_ERROR
+async function _importFromClipboard(importOptions:ImportOptions):Promise<HoneSheet|null> {
+    try {
+        return await importSheetFromClipboard(importOptions.useFirstRowColumnNames);
+    } catch(e:any) {
+        const errorName = e.name;
+        switch(errorName) {
+            case SheetErrorType.NO_CLIPBOARD_ACCESS:
+                errorToast('Please allow clipboard access for this website in your browser seetings and try again.');
+                return null;
+            case SheetErrorType.CLIPBOARD_NO_ROWS: case CvsImportErrorType.NO_DATA:
+                errorToast(`The pasted data didn't include any rows. Maybe try copying and pasting the data again?`);
+                return null;
+            case SheetErrorType.UNEXPECTED_CLIPBOARD_ERROR:
+                errorToast(`There was a problem pasting. Please try again.`);
+                return null;
+            case CvsImportErrorType.FIELD_COUNT_MISMATCH: case CvsImportErrorType.UNSTRUCTURED_DATA:
+                errorToast(`Some of the pasted data was in an unexpected format. Maybe try copying and pasting the data again?`);
+                return null;
+            case CvsImportErrorType.TOO_MANY_FIELDS:
+                errorToast(`The pasted data had too many columns. (Max supported is ${MAX_FIELD_COUNT}). Maybe try copying a smaller set of columns?`);
+                return null;
+            default:
+                console.error(e);
+                errorToast(`It didn't work and the reason is unclear. Maybe try again?`);
+                return null;
+        }
+    }
 }
 
 export async function importSheet(importOptions:ImportOptions, setSheet:Function, setModalDialog:Function) {
     switch(importOptions.importType) {
         case ImportType.CLIPBOARD:
             const sheet = await _importFromClipboard(importOptions);
-            setSheet(sheet);
+            if (sheet) { 
+                setSheet(sheet);
+                setModalDialog(null);
+            }
         break;
 
         default:
             throw Error('Unexpected');
     }
-    setModalDialog(null);
 }

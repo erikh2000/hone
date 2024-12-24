@@ -5,6 +5,13 @@ import HoneSheet from './types/HoneSheet';
 import HoneColumn from './types/HoneColumn';
 import { rowArrayToCsvUtf8  } from '@/csv/csvExportUtil';
 import { csvUnicodeToRowArray } from '@/csv/csvImportUtil';
+import AppException from '@/common/types/AppException';
+
+export enum SheetErrorType {
+  CLIPBOARD_NO_ROWS = 'SheetErrorType-CLIPBOARD_NO_ROWS',
+  NO_CLIPBOARD_ACCESS = 'SheetErrorType-NO_CLIPBOARD_ACCESS',
+  UNEXPECTED_CLIPBOARD_ERROR = 'SheetErrorType-UNEXPECTED_CLIPBOARD_ERROR'
+}
 
 export function createRowNameValues(sheet:HoneSheet, rowNo:number):StringMap {
   const rowI = rowNo - 1;
@@ -65,11 +72,24 @@ export function doesSheetHaveWritableColumns(sheet:HoneSheet):boolean {
   return sheet.columns.some(column => column.isWritable);
 }
 
+async function _readClipboardText():Promise<string> {
+  try {
+    const text = await navigator.clipboard.readText();
+    return text;
+  } catch(e:any) {
+    if (e.name === 'NotAllowedError') throw new AppException(SheetErrorType.NO_CLIPBOARD_ACCESS);
+    throw new AppException(SheetErrorType.UNEXPECTED_CLIPBOARD_ERROR, e.message);
+  }
+}
+
+// Can throw CvsImportError.NO_DATA, FIELD_COUNT_MISMATCH, UNSTRUCTURED_DATA, TOO_MANY_FIELDS, 
+//           SheetError.CLIPBOARD_NO_ROWS, NO_CLIPBOARD_ACCESS, UNEXPECTED_CLIPBOARD_ERROR
 export async function importSheetFromClipboard(useFirstRowColumnNames:boolean):Promise<HoneSheet> {
-  const text = await navigator.clipboard.readText();
+  const text = await _readClipboardText();
   let rows = csvUnicodeToRowArray(text, useFirstRowColumnNames);
   const columns = rows[0].map(name => ({ name, isWritable:false }));
   rows = rows.slice(1);
+  if (!rows.length) throw new AppException(SheetErrorType.CLIPBOARD_NO_ROWS, 'No rows found in clipboard data.');
   return { name:'Clipboard', columns, rows };
 }
 

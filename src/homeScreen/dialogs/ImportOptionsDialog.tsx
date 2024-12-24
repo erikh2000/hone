@@ -8,6 +8,8 @@ import ImportOptions from "@/homeScreen/types/ImportOptions";
 import ImportType from "../types/ImportType";
 import Selector from "@/components/selector/Selector";
 import Checkbox from "@/components/checkbox/Checkbox";
+import HoneSheet from "@/sheets/types/HoneSheet";
+import { doesSheetHaveWritableColumns } from "@/sheets/sheetUtil";
 
 const IMPORT_TYPE_OPTIONS:string[] = ['Excel', 'CSV', 'Clipboard'];
 
@@ -19,11 +21,16 @@ const IMPORT_EXPLANATIONS:string[] = [
 
 type Props = {
   isOpen:boolean,
+  sheet:HoneSheet|null,
   onImport(importOptions:ImportOptions):void,
   onCancel():void
 }
 
-function ImportOptionsDialog({isOpen, onImport, onCancel}:Props) {
+function _isModifiedSheet(sheet:HoneSheet|null):boolean {
+  return sheet ? doesSheetHaveWritableColumns(sheet) : false;
+}
+
+function ImportOptionsDialog({isOpen, onImport, onCancel, sheet}:Props) {
   const [importOptions, setImportOptions] = useState<ImportOptions|null>(null);
 
   useEffect(() => {
@@ -33,11 +40,14 @@ function ImportOptionsDialog({isOpen, onImport, onCancel}:Props) {
 
   if (!isOpen || !importOptions) return null;
 
+  const replaceWarning = !_isModifiedSheet(sheet) ? null 
+    : <p className={styles.replaceWarning}><em>Warning:</em> This will replace the current sheet and the columns you added to it.</p>;
   const explanation = IMPORT_EXPLANATIONS[importOptions.importType];
   const importButtonName = importOptions.importType === ImportType.CLIPBOARD ? 'Paste' : 'Choose File';
 
   return (
     <ModalDialog title="Import Sheet" isOpen={isOpen} onCancel={onCancel}>
+      {replaceWarning}
       <Selector label="Import from" optionNames={IMPORT_TYPE_OPTIONS} selectedOptionNo={importOptions.importType} 
         onChange={importType => setImportOptions({...importOptions, importType}) } />
       <p className={styles.explanation}>{explanation}</p>

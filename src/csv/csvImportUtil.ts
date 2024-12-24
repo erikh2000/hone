@@ -1,34 +1,17 @@
 import { decodeUtf8, fillTemplate } from "@/common/stringUtil";
+import AppException from "@/common/types/AppException";
 
 export enum CvsImportErrorType {
-  NO_DATA,              
-  FIELD_COUNT_MISMATCH, 
-  UNSTRUCTURED_DATA,
-  TOO_MANY_FIELDS
+  NO_DATA = 'CvsImportError-NO_DATA',              
+  FIELD_COUNT_MISMATCH = 'CvsImportError-FIELD_COUNT_MISMATCH',
+  UNSTRUCTURED_DATA = 'CvsImportError-UNSTRUCTURED_DATA',
+  TOO_MANY_FIELDS = 'CvsImportError-TOO_MANY_FIELDS'
 }
 
 const COMMA = ',';
 const TAB = '\t';
 export const MAX_FIELD_COUNT = 256; // Well beyond anything reasonable.
 export const MAX_FIELDNAME_LENGTH = 255; // Well beyond anything reasonable.
-
-const ImportErrorMessages = [
-  'No data was provided for import. {context}',
-  'Row #{rowNo} has a different number of fields than the header row. {context}',
-  'The imported data doesn\'t follow an expected CSV structure and appears to be a different format. {context}',
-  'The imported data has more fields than the maximum allowed. {context}'
-]
-
-export class CsvImportError extends Error { 
-  errorType:CvsImportErrorType;
-
-  constructor(errorType:CvsImportErrorType, rowNo?:number, context?:string) {
-    const message = fillTemplate(ImportErrorMessages[errorType], { rowNo, context }).trim();
-    super(message);
-    this.errorType = errorType;
-    this.name = "CvsImportError";
-  }
-}
 
 // fromPos must begin from a position known to be outside of quotes.
 function _findOpenQuote(text:string, fromPos:number) {
@@ -97,7 +80,7 @@ function _findFieldDelimiter(lines:string[]):string {
       if (rowFieldCount !== checkState.firstRowFieldCount) { checkState.failed = true; ++failedCount; }
     }
 
-    if (failedCount === DELIMITER_COUNT) throw new CsvImportError(CvsImportErrorType.UNSTRUCTURED_DATA); // No delimiter works.
+    if (failedCount === DELIMITER_COUNT) throw new AppException(CvsImportErrorType.UNSTRUCTURED_DATA, 'All field delimiter choices result in unparsable data.');
     if (failedCount === 1) return checkStates[0].failed ? TAB : COMMA; // Only one delimiter works.
     
     
@@ -171,7 +154,7 @@ function _splitCsvLines(csvUnicode:string):string[] {
 function _fieldTextToString(text:string, rowNo:number):string { 
   const trimmed = text.trim(); // Forgive whitespace outside quotes.
   if (trimmed.startsWith('"')) {
-    if (!trimmed.endsWith('"')) throw new CsvImportError(CvsImportErrorType.UNSTRUCTURED_DATA, rowNo, 'Field is missing closing quote.');
+    if (!trimmed.endsWith('"')) throw new AppException(CvsImportErrorType.UNSTRUCTURED_DATA, `Field in row #${rowNo} is missing closing quote.`);
     text = trimmed.slice(1, -1);
   }
   return text.replace(/""/g, '"'); // Unescape quotes.
@@ -240,7 +223,7 @@ function _parseHeaderRow(headerLine:string, fieldDelimiter:string):any[] {
   const row = _parseCsvRow(headerLine, fieldDelimiter, 1);
   for(let fieldI = 0; fieldI < row.length; ++fieldI) {
     if (typeof row[fieldI] !== 'string') row[fieldI] = _valueToString(row[fieldI]); // Be forgiving and try to preserve intent.
-    if (row[fieldI].length > MAX_FIELDNAME_LENGTH) throw new CsvImportError(CvsImportErrorType.UNSTRUCTURED_DATA, 0, 'Field name in first row is too long.');
+    if (row[fieldI].length > MAX_FIELDNAME_LENGTH) throw new AppException(CvsImportErrorType.UNSTRUCTURED_DATA, 'Field name in first row is too long.');
   }
   return row;
 }
@@ -274,8 +257,9 @@ function _generateHeaderRow(fieldCount:number):string[] {
   return columnNames;
 }
 
+// Can throw CvsImportError.NO_DATA, FIELD_COUNT_MISMATCH, UNSTRUCTURED_DATA, TOO_MANY_FIELDS 
 export function csvUnicodeToRowArray(csvUnicode:string, includeHeaders:boolean):any[][] {
-  if (csvUnicode.trim() === '') throw new CsvImportError(CvsImportErrorType.NO_DATA);
+  if (csvUnicode.trim() === '') throw new AppException(CvsImportErrorType.NO_DATA, 'No data found in CSV text.');
 
   const lines = _splitCsvLines(csvUnicode);  
   const fieldDelimiter = _findFieldDelimiter(lines);
@@ -283,7 +267,7 @@ export function csvUnicodeToRowArray(csvUnicode:string, includeHeaders:boolean):
   
   let fromRowI = 0;
   const fieldCount = _countFieldsInLine(lines[0], fieldDelimiter);
-  if (fieldCount > MAX_FIELD_COUNT) throw new CsvImportError(CvsImportErrorType.TOO_MANY_FIELDS);
+  if (fieldCount > MAX_FIELD_COUNT) throw new AppException(CvsImportErrorType.TOO_MANY_FIELDS, "Too many fields found in first row.");
   if (includeHeaders) {
     rows.push(_parseHeaderRow(lines[0], fieldDelimiter));
     fromRowI = 1;
@@ -293,13 +277,14 @@ export function csvUnicodeToRowArray(csvUnicode:string, includeHeaders:boolean):
   
   for(let rowI = fromRowI; rowI < lines.length; ++rowI) {
     const row = _parseCsvRow(lines[rowI], fieldDelimiter, rowI+1);
-    if (row.length !== fieldCount) throw new CsvImportError(CvsImportErrorType.FIELD_COUNT_MISMATCH, rowI);
+    if (row.length !== fieldCount) throw new AppException(CvsImportErrorType.FIELD_COUNT_MISMATCH, `Row #${rowI+1} has a different number of fields than the first row.`);
     rows.push(row);
   }
   
   return rows;
 }
 
+// Can throw CvsImportError.NO_DATA, FIELD_COUNT_MISMATCH, UNSTRUCTURED_DATA, TOO_MANY_FIELDS
 export function csvUtf8ToRowArray(csvBytes:Uint8Array, includesHeaders:boolean):any[][] {
   const csvUnicode = decodeUtf8(csvBytes);
   return csvUnicodeToRowArray(csvUnicode, includesHeaders);
