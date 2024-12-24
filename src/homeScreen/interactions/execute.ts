@@ -5,7 +5,7 @@ import { createExecutionJob, duplicateExecutionJob, predictExecutionSeconds } fr
 import ExecuteDialog from "../dialogs/ExecuteDialog";
 import { addNewColumn, createRowNameValues, duplicateSheet } from "@/sheets/sheetUtil";
 import { fixGrammar } from "@/common/englishGrammarUtil";
-import { fillTemplate } from "@/persistence/pathUtil";
+import { fillTemplate } from "@/common/stringUtil";
 import { promptForSimpleResponse } from "./prompt";
 import { isEmpty } from "@/common/stringUtil";
 import { describeDuration } from "@/common/timeUtil";

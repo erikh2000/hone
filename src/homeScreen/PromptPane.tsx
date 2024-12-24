@@ -4,7 +4,7 @@ import StringMap from '@/common/types/StringMap';
 import Pane, { ButtonDefinition } from "@/components/pane/Pane";
 import { createRowNameValues } from "@/sheets/sheetUtil";
 import styles from './PromptPane.module.css';
-import { fillTemplate } from "@/persistence/pathUtil";
+import { fillTemplate } from "@/common/stringUtil";
 import { isGenerating, promptForSimpleResponse } from "./interactions/prompt";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import PromptOutputRow from "./PromptOutputRow";
