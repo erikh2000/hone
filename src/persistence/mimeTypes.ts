@@ -9,6 +9,7 @@ export const MIMETYPE_JSON = 'application/json';
 export const MIMETYPE_XLS = 'application/vnd.ms-excel';
 export const MIMETYPE_XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 export const MIMETYPE_CSV = 'text/csv';
+export const MIMETYPE_TSV = 'text/tsv';
 
 type MimeTypeToExtensionMap = {
   [key:string]:string

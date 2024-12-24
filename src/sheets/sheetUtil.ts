@@ -4,13 +4,14 @@ import StringMap from '@/common/types/StringMap';
 import HoneSheet from './types/HoneSheet';
 import HoneColumn from './types/HoneColumn';
 import { rowArrayToCsvUtf8  } from '@/csv/csvExportUtil';
-import { csvUnicodeToRowArray } from '@/csv/csvImportUtil';
+import { csvUnicodeToRowArray, csvUtf8ToRowArray } from '@/csv/csvImportUtil';
 import AppException from '@/common/types/AppException';
 
 export enum SheetErrorType {
   CLIPBOARD_NO_ROWS = 'SheetErrorType-CLIPBOARD_NO_ROWS',
   NO_CLIPBOARD_ACCESS = 'SheetErrorType-NO_CLIPBOARD_ACCESS',
-  UNEXPECTED_CLIPBOARD_ERROR = 'SheetErrorType-UNEXPECTED_CLIPBOARD_ERROR'
+  UNEXPECTED_CLIPBOARD_ERROR = 'SheetErrorType-UNEXPECTED_CLIPBOARD_ERROR',
+  READ_FILE_ERROR = 'SheetErrorType-READ_FILE_ERROR'
 }
 
 export function createRowNameValues(sheet:HoneSheet, rowNo:number):StringMap {
@@ -82,12 +83,43 @@ async function _readClipboardText():Promise<string> {
   }
 }
 
+function _fileNameToSheetName(filename:string):string {
+  let dotI = filename.lastIndexOf('.');
+  return dotI === -1 ? filename : filename.substring(0, dotI);
+}
+
+function _firstRowToColumns(firstRow:string[]):HoneColumn[] {
+  return firstRow.map(name => ({ name, isWritable:false }));
+}
+
+async function _readFileAsUint8Array(fileHandle:FileSystemFileHandle):Promise<Uint8Array> {
+  try {
+    const file = await fileHandle.getFile();
+    const blob = await file.arrayBuffer();
+    return new Uint8Array(blob);
+  } catch(e:any) {
+    console.error(e);
+    throw new AppException(SheetErrorType.READ_FILE_ERROR, e.message);
+  }
+}
+
+// Can throw CvsImportError.NO_DATA, FIELD_COUNT_MISMATCH, UNSTRUCTURED_DATA, TOO_MANY_FIELDS, 
+//           SheetError.READ_FILE_ERROR
+export async function importSheetFromCsvFile(fileHandle:FileSystemFileHandle, useFirstRowColumnNames:boolean):Promise<HoneSheet> {
+  const csvUtf8 = await _readFileAsUint8Array(fileHandle);
+  const sheetName = _fileNameToSheetName(fileHandle.name);
+  let rows = csvUtf8ToRowArray(csvUtf8, useFirstRowColumnNames);
+  const columns = _firstRowToColumns(rows[0]);
+  rows = rows.slice(1);
+  return { name:sheetName, columns, rows };
+}
+
 // Can throw CvsImportError.NO_DATA, FIELD_COUNT_MISMATCH, UNSTRUCTURED_DATA, TOO_MANY_FIELDS, 
 //           SheetError.CLIPBOARD_NO_ROWS, NO_CLIPBOARD_ACCESS, UNEXPECTED_CLIPBOARD_ERROR
 export async function importSheetFromClipboard(useFirstRowColumnNames:boolean, sheetName:string):Promise<HoneSheet> {
   const text = await _readClipboardText();
   let rows = csvUnicodeToRowArray(text, useFirstRowColumnNames);
-  const columns = rows[0].map(name => ({ name, isWritable:false }));
+  const columns = _firstRowToColumns(rows[0]);
   rows = rows.slice(1);
   if (!rows.length) throw new AppException(SheetErrorType.CLIPBOARD_NO_ROWS, 'No rows found in clipboard data.');
   return { name:sheetName, columns, rows };
