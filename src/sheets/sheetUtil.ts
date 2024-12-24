@@ -84,13 +84,13 @@ async function _readClipboardText():Promise<string> {
 
 // Can throw CvsImportError.NO_DATA, FIELD_COUNT_MISMATCH, UNSTRUCTURED_DATA, TOO_MANY_FIELDS, 
 //           SheetError.CLIPBOARD_NO_ROWS, NO_CLIPBOARD_ACCESS, UNEXPECTED_CLIPBOARD_ERROR
-export async function importSheetFromClipboard(useFirstRowColumnNames:boolean):Promise<HoneSheet> {
+export async function importSheetFromClipboard(useFirstRowColumnNames:boolean, sheetName:string):Promise<HoneSheet> {
   const text = await _readClipboardText();
   let rows = csvUnicodeToRowArray(text, useFirstRowColumnNames);
   const columns = rows[0].map(name => ({ name, isWritable:false }));
   rows = rows.slice(1);
   if (!rows.length) throw new AppException(SheetErrorType.CLIPBOARD_NO_ROWS, 'No rows found in clipboard data.');
-  return { name:'Clipboard', columns, rows };
+  return { name:sheetName, columns, rows };
 }
 
 export async function exportSheetToClipboard(sheet:HoneSheet, includeHeaders:boolean) {

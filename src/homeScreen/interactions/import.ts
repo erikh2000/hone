@@ -88,7 +88,7 @@ export function onSelectSheet(sheet:HoneSheet, setSelectedSheet:Function, setMod
 //           SheetError.CLIPBOARD_NO_ROWS, NO_CLIPBOARD_ACCESS, UNEXPECTED_CLIPBOARD_ERROR
 async function _importFromClipboard(importOptions:ImportOptions):Promise<HoneSheet|null> {
     try {
-        return await importSheetFromClipboard(importOptions.useFirstRowColumnNames);
+        return await importSheetFromClipboard(importOptions.useFirstRowColumnNames, importOptions.sheetName);
     } catch(e:any) {
         const errorName = e.name;
         switch(errorName) {

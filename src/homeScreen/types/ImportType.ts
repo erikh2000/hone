@@ -1,7 +1,8 @@
 enum ImportType {
-  EXCEL = 0,
-  CSV = 1,
-  CLIPBOARD = 2
+  EXAMPLE = 0,
+  EXCEL = 1,
+  CSV = 2,
+  CLIPBOARD = 3
 }
 
 export default ImportType;
