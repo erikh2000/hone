@@ -135,6 +135,9 @@ function _trimTrailingCr(text:string):string {
 const REMOVED = '\u0000'; // This value would never appear in CSV data except for some contrived use case.
 
 function _splitCsvLines(csvUnicode:string):string[] {
+  // If ends in LF, then remove it to simplify parsing.
+  if (csvUnicode.endsWith('\n')) csvUnicode = csvUnicode.slice(0, -1);
+
   // Split first by row delimiter because it's fast compared to other methods. The rest
   // of the algorithm is fixing the mistakes, if any, of this naive approach.
   const lines = csvUnicode.split('\n'); // Calls to _trimTrailingCr() below will handle the case of rows split by CRLF instead of just LF.

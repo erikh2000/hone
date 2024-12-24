@@ -89,6 +89,20 @@ describe('cvsImportUtil', () => {
         const result = importCsvUnicode(text, false);
         expect(result).toEqual(expected);
       });
+
+      it('parses rows with a row delimiter on last row', () => {
+        const text = 'line1\nline2\n';
+        const expected = [['A'], ['line1'], ['line2']];
+        const result = importCsvUnicode(text, false);
+        expect(result).toEqual(expected);
+      });
+
+      it('parses rows with a CRLF on last row', () => {
+        const text = 'line1\r\nline2\r\n';
+        const expected = [['A'], ['line1'], ['line2']];
+        const result = importCsvUnicode(text, false);
+        expect(result).toEqual(expected);
+      });
     });
 
     describe('generating header rows', () => {
@@ -390,7 +404,7 @@ describe('cvsImportUtil', () => {
 
     describe('parsing field values', () => {
       it('parses a value as null for an empty, unquoted string', () => {
-        const text = 'A\n';
+        const text = 'A\n\n';
         const expected = [null];
         const [,result] = importCsvUnicode(text,true);
         expect(result).toEqual(expected);
