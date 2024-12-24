@@ -5,6 +5,8 @@ import { errorToast } from '@/components/toasts/toastUtil';
 import { baseUrl } from '@/common/urlUtil';
 import ImportSheetDialog from '../dialogs/ImportSheetDialog';
 import HoneSheet from '@/sheets/types/HoneSheet';
+import ImportOptions from '../types/ImportOptions';
+import ImportType from '../types/ImportType';
 
 async function _selectSpreadsheetFileHandle():Promise<FileSystemFileHandle|null> {
     const openFileOptions = {
@@ -78,4 +80,21 @@ export function onCancelImportSheet(setWorkbook:Function, setWorkbookName:Functi
 export function onSelectSheet(sheet:HoneSheet, setSelectedSheet:Function, setModalDialog:Function) {
     setSelectedSheet(sheet);
     setModalDialog(null);
+}
+
+async function _importFromClipboard():Promise<HoneSheet> {
+    const text = await navigator.clipboard.readText();
+    console.log('Pasted text:', text);
+    return { name:'Clipboard', columns:[], rows:[] }; // TODO
+}
+
+export function importSheet(importOptions:ImportOptions) {
+    switch(importOptions.importType) {
+        case ImportType.CLIPBOARD:
+            _importFromClipboard();
+        break;
+
+        default:
+            throw Error('Unexpected');
+    }
 }

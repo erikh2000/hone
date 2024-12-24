@@ -6,7 +6,7 @@ import { init } from "./interactions/initialization";
 import ToastPane from "@/components/toasts/ToastPane";
 import SheetPane from "./SheetPane";
 import ImportSheetDialog from "./dialogs/ImportSheetDialog";
-import { onCancelImportSheet, onChangeWorkbook, onSelectSheet } from "./interactions/import";
+import { importSheet, onCancelImportSheet, onChangeWorkbook, onSelectSheet } from "./interactions/import";
 import PromptPane from "./PromptPane";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import ExecuteSetupDialog from "./dialogs/ExecuteSetupDialog";
@@ -24,6 +24,7 @@ import { chooseExportType, exportSheet } from "./interactions/export";
 import KeepPartialDataDialog from "./dialogs/KeepPartialDataDialog";
 import ResumeJobDialog from "./dialogs/ResumeJobDialog";
 import ExportOptionsDialog from "./dialogs/ExportOptionsDialog";
+import ImportOptionsDialog from "./dialogs/ImportOptionsDialog";
 
 function HomeScreen() {
   const [workbook, setWorkbook] = useState<WorkBook|null>(null);
@@ -53,6 +54,7 @@ function HomeScreen() {
       <SheetPane 
         workbook={workbook} sheet={sheet} className={styles.sheetPane} selectedRowNo={selectedRowNo} 
         onRowSelect={setSelectedRowNo}
+        onImportSheet={() => setModalDialog(ImportOptionsDialog.name)}
         onChangeWorkbook={(nextWorkbook, nextWorkbookName) => onChangeWorkbook(nextWorkbook, nextWorkbookName, 
           setWorkbook, setWorkbookName, setSheet, setModalDialog)}
         onExportSheet={() => chooseExportType(setModalDialog)}
@@ -90,6 +92,12 @@ function HomeScreen() {
         isOpen={modalDialog === ExportOptionsDialog.name} sheet={sheet}
         onExport={(sheetForExport, exportOptions) => exportSheet(sheetForExport, exportOptions, setModalDialog)}
         onCancel={() => setModalDialog(null)} 
+      />
+
+      <ImportOptionsDialog 
+        isOpen={modalDialog === ImportOptionsDialog.name} 
+        onImport={(importOptions) => importSheet(importOptions)}
+        onCancel={() => setModalDialog(null)}
       />
 
       <ToastPane/>

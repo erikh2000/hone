@@ -7,15 +7,15 @@ import { useEffect, useState } from "react";
 import ColumnChecklist from '@/components/columnChecklist/ColumnCheckList';
 import HoneSheet from '@/sheets/types/HoneSheet';
 import Checkbox from '@/components/checkbox/Checkbox';
-import ExportOptions from '../types/ExportOptions';
+import ExportOptions from '@/homeScreen/types/ExportOptions';
 import { createExportOptionsForSheet } from '../interactions/export';
-import ExportType from '../types/ExportType';
+import ExportType from '@/homeScreen/types/ExportType';
 
 const EXPORT_TYPE_OPTIONS:string[] = ['Excel', 'CSV', 'Clipboard'];
 
 const EXPORT_EXPLANATIONS:string[] = [
-  'You can save your sheet as an XLSX file to your computer and open it later in Excel or other spreadsheet software.',
-  'You can save your sheet as a CSV file to your computer and open it later in any spreadsheet software.',
+  'You can save your sheet as an XLSX file to your device and open it later in Excel or other spreadsheet software.',
+  'You can save your sheet as a CSV file to your device and open it later in any spreadsheet software.',
   'You can copy your sheet to the clipboard and paste it into any spreadsheet software or text editor.'
 ];
 
@@ -31,7 +31,7 @@ function ExportOptionsDialog({sheet, isOpen, onExport, onCancel}:Props) {
 
   useEffect(() => {
     if (!isOpen || !sheet) return;
-    setExportOptions(createExportOptionsForSheet(sheet));
+    setExportOptions(createExportOptionsForSheet(sheet)); // TODO - retain settings on next visit. Needs some logic around differences in sheets.
   }, [isOpen, sheet]);
 
   if (!isOpen || !sheet || !exportOptions) return null;

@@ -3,7 +3,7 @@ import { WorkBook, utils, write } from 'xlsx';
 import StringMap from '@/common/types/StringMap';
 import HoneSheet from './types/HoneSheet';
 import HoneColumn from './types/HoneColumn';
-import { rowArrayToCsvUtf8  } from '@/common/csvUtil';
+import { rowArrayToCsvUtf8  } from '@/csv/csvExportUtil';
 
 export function createRowNameValues(sheet:HoneSheet, rowNo:number):StringMap {
   const rowI = rowNo - 1;
