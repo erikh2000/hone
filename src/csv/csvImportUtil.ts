@@ -274,7 +274,7 @@ function _generateHeaderRow(fieldCount:number):string[] {
   return columnNames;
 }
 
-export function importCsvUnicode(csvUnicode:string, includeHeaders:boolean):any[][] {
+export function csvUnicodeToRowArray(csvUnicode:string, includeHeaders:boolean):any[][] {
   if (csvUnicode.trim() === '') throw new CsvImportError(CvsImportErrorType.NO_DATA);
 
   const lines = _splitCsvLines(csvUnicode);  
@@ -300,7 +300,7 @@ export function importCsvUnicode(csvUnicode:string, includeHeaders:boolean):any[
   return rows;
 }
 
-export function importCsvUtf8(csvBytes:Uint8Array, includesHeaders:boolean):any[][] {
+export function csvUtf8ToRowArray(csvBytes:Uint8Array, includesHeaders:boolean):any[][] {
   const csvUnicode = decodeUtf8(csvBytes);
-  return importCsvUnicode(csvUnicode, includesHeaders);
+  return csvUnicodeToRowArray(csvUnicode, includesHeaders);
 }

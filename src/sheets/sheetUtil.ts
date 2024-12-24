@@ -4,6 +4,7 @@ import StringMap from '@/common/types/StringMap';
 import HoneSheet from './types/HoneSheet';
 import HoneColumn from './types/HoneColumn';
 import { rowArrayToCsvUtf8  } from '@/csv/csvExportUtil';
+import { csvUnicodeToRowArray } from '@/csv/csvImportUtil';
 
 export function createRowNameValues(sheet:HoneSheet, rowNo:number):StringMap {
   const rowI = rowNo - 1;
@@ -62,6 +63,14 @@ export function getWritableColumnNames(sheet:HoneSheet) {
 
 export function doesSheetHaveWritableColumns(sheet:HoneSheet):boolean {
   return sheet.columns.some(column => column.isWritable);
+}
+
+export async function importSheetFromClipboard(useFirstRowColumnNames:boolean):Promise<HoneSheet> {
+  const text = await navigator.clipboard.readText();
+  let rows = csvUnicodeToRowArray(text, useFirstRowColumnNames);
+  const columns = rows[0].map(name => ({ name, isWritable:false }));
+  rows = rows.slice(1);
+  return { name:'Clipboard', columns, rows };
 }
 
 export async function exportSheetToClipboard(sheet:HoneSheet, includeHeaders:boolean) {

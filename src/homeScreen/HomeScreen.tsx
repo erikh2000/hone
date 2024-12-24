@@ -96,7 +96,7 @@ function HomeScreen() {
 
       <ImportOptionsDialog 
         isOpen={modalDialog === ImportOptionsDialog.name} 
-        onImport={(importOptions) => importSheet(importOptions)}
+        onImport={(importOptions) => importSheet(importOptions, setSheet, setModalDialog)}
         onCancel={() => setModalDialog(null)}
       />
 

@@ -7,6 +7,7 @@ import ImportSheetDialog from '../dialogs/ImportSheetDialog';
 import HoneSheet from '@/sheets/types/HoneSheet';
 import ImportOptions from '../types/ImportOptions';
 import ImportType from '../types/ImportType';
+import { importSheetFromClipboard } from '@/sheets/sheetUtil';
 
 async function _selectSpreadsheetFileHandle():Promise<FileSystemFileHandle|null> {
     const openFileOptions = {
@@ -82,19 +83,19 @@ export function onSelectSheet(sheet:HoneSheet, setSelectedSheet:Function, setMod
     setModalDialog(null);
 }
 
-async function _importFromClipboard():Promise<HoneSheet> {
-    const text = await navigator.clipboard.readText();
-    console.log('Pasted text:', text);
-    return { name:'Clipboard', columns:[], rows:[] }; // TODO
+async function _importFromClipboard(importOptions:ImportOptions):Promise<HoneSheet> {
+    return await importSheetFromClipboard(importOptions.useFirstRowColumnNames);
 }
 
-export function importSheet(importOptions:ImportOptions) {
+export async function importSheet(importOptions:ImportOptions, setSheet:Function, setModalDialog:Function) {
     switch(importOptions.importType) {
         case ImportType.CLIPBOARD:
-            _importFromClipboard();
+            const sheet = await _importFromClipboard(importOptions);
+            setSheet(sheet);
         break;
 
         default:
             throw Error('Unexpected');
     }
+    setModalDialog(null);
 }
