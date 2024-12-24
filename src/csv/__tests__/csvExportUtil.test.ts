@@ -1,6 +1,6 @@
-import { COMMA, rowArrayToCsvUnicode, rowArrayToCsvUtf8, TAB } from "../csvUtil";
+import { COMMA, rowArrayToCsvUnicode, rowArrayToCsvUtf8, TAB } from "../csvExportUtil";
 
-describe('csvUtil', () => {
+describe('csvExportUtil', () => {
   describe('rowArrayToCsvUnicode()', () => {
     describe('error checking', () => {
       // Need a control test for any throws beneath to be meaningful.

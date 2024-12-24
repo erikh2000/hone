@@ -8,15 +8,7 @@ export function keyToName(key:string):string {
   return key.substring(pathEnd);
 }
 
-export function fillTemplate(template:string, variables:any):string {
-  let filled = template;
-  const variableNames = Object.keys(variables);
-  variableNames.forEach(variableName => {
-    const variableValue = variables[variableName];
-    filled = filled.replaceAll('{' + variableName + '}', variableValue);
-  });
-  return filled;
-}
+
 
 export function splitFilenameAndExtension(filenameWithExtension:string):[filename:string, extension:string] {
   if (filenameWithExtension === '') return ['', ''];

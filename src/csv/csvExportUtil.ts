@@ -1,19 +1,20 @@
-import { encodeUtf8 } from "./stringUtil";
+import { encodeUtf8 } from "@/common/stringUtil";
 
 export const TAB = '\t';
 export const COMMA = ',';
-const DEFAULT_FIELD_DELIMITER = TAB; // Ironically, tabs are are way more widely supported than the comma in Comma-Separated Values (CSV).
+const DEFAULT_FIELD_DELIMITER = TAB;
 const ROW_DELIMITER = '\r\n';
 
 /*
-   Here's the best practices for writing CSV likely to be read by a variety of apps.
+   Here's the best practices for writing CSV so it's likely to be compatible with a variety of apps.
    
    1. File Encoding: Use UTF-8 to support international characters.
-   2. Column Delimiter: Use commas (,) as the standard delimiter.
-   3. Text Qualifier: Enclose text fields with double quotes (") when necessary.
+   2. Column Delimiter: Use tabs as the standard delimiter. (Google Sheets uses tabs and not commas for clipboard. Numbers works with tabs. TODO test with Excel)
+   3. Text Qualifier: Enclose text fields with quotes (") when necessary.
    4. Line Breaks: Use CRLF (\r\n) for maximum compatibility.
    
    -5. Header Row: Include a header row with column names in snake_case or camelCase.-
+
    I intentionally decided against this in the interest of supporting any column name. including 
    those with spaces, special characters, non-latin alphabets, etc. My understanding is that popular,
    modern spreadsheet software will handle this fine. Can revisit if it becomes a problem.
@@ -32,7 +33,7 @@ function _doesCellTextNeedQuoting(text:string, fieldDelimiter:string):boolean {
 
 function _textCellValue(text:string, fieldDelimiter:string):string {
   if (!_doesCellTextNeedQuoting(text, fieldDelimiter)) return text;
-  if (text.includes('"')) text = text.replace(/"/g, '""'); // quotes escaped to double-quotes.
+  if (text.includes('"')) text = text.replace(/"/g, '""'); // quotes escaped to two quotes.
   return `"${text}"`;
 }
 
