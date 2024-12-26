@@ -15,14 +15,14 @@ import DialogTextInput from "@/components/modalDialogs/DialogTextInput";
 const IMPORT_TYPE_OPTIONS:string[] = ['Example', 'Excel', 'CSV', 'Clipboard'];
 
 const IMPORT_EXPLANATIONS:string[] = [
-  'You can import one of the available example sheets - a good option for trying out Hone quickly!',
+  'You can import one of the available example sheets - a good option to play with data quickly.',
   'You can import your sheet from an Excel file on your device.',
   'You can import your sheet from a CSV file on your device.',
   'You can copy cells from other spreadsheet software and paste them here.'
 ];
 
 const IMPORT_BUTTON_NAMES:string[] = [
-  'Choose Example', 'Choose File', 'Choose File', 'Paste'
+  'Choose', 'Choose File', 'Choose File', 'Paste'
 ];
 
 type Props = {
