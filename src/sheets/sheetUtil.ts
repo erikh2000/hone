@@ -7,6 +7,7 @@ import { rowArrayToCsvUtf8  } from '@/csv/csvExportUtil';
 import { csvUnicodeToRowArray, csvUtf8ToRowArray } from '@/csv/csvImportUtil';
 import AppException from '@/common/types/AppException';
 import Rowset from './types/Rowset';
+import { generateColumnNames } from './columnUtil';
 
 export enum SheetErrorType {
   CLIPBOARD_NO_ROWS = 'SheetErrorType-CLIPBOARD_NO_ROWS',
@@ -14,7 +15,6 @@ export enum SheetErrorType {
   UNEXPECTED_CLIPBOARD_ERROR = 'SheetErrorType-UNEXPECTED_CLIPBOARD_ERROR',
   READ_FILE_ERROR = 'SheetErrorType-READ_FILE_ERROR',
   XLS_FORMAT_ERROR = 'SheetErrorType-XLS_FORMAT_ERROR',
-  XLS_FIELD_COUNT_MISMATCH = 'SheetErrorType-FIELD_COUNT_MISMATCH',
   XLS_NOT_ENOUGH_ROWS = 'SheetErrorType-NO_DATA'
 }
 
@@ -27,41 +27,77 @@ export function createRowNameValues(sheet:HoneSheet, rowNo:number):StringMap {
   return rowNameValues;
 }
 
-export function _findRowWithMismatchedFieldCount(rows:Rowset):number {
-  const fieldCount = rows[0].length;
+// Returns the count of fields in the row with the most fields or -1 if all rows have same field count
+function _findLongestFieldCount(rows:Rowset):number {
+  let longestFieldCount = rows[0].length, foundMismatch = false;
   for (let i = 1; i < rows.length; i++) {
-    if (rows[i].length !== fieldCount) return i + 1;
+    foundMismatch ||= rows[i].length !== longestFieldCount;
+    if (rows[i].length > longestFieldCount) longestFieldCount = rows[i].length;
   }
-  return -1;
+  return longestFieldCount;
 }
 
-function _createSheetset(workbook:WorkBook):HoneSheet[] {
+function _fixMismatchedFieldCounts(rows:Rowset) {
+  let longestFieldCount = _findLongestFieldCount(rows);
+  if (longestFieldCount === -1) return; // All rows have the same field count.
+
+  // Pad header as needed.
+  const headerAddFieldCount = longestFieldCount - rows[0].length;
+  if (headerAddFieldCount) {
+    const columnsToAdd = generateColumnNames(headerAddFieldCount);
+    rows[0] = rows[0].concat(columnsToAdd);
+  }
+
+  // Pad each row with NULL-value cells to have the same number of fields as the longest row.
+  for (let i = 1; i < rows.length; i++) {
+    const addFieldCount = longestFieldCount - rows[i].length;
+    if (addFieldCount) rows[i] = rows[i].concat(new Array(addFieldCount).fill(null));
+  }
+}
+
+function _createColumns(rows:Rowset):HoneColumn[] {
+  if (!rows.length) throw Error('Unexpected');
+  const headerRow = [...rows[0]];
+  const uniqueColumnNames = new Set<string>();
+  headerRow.forEach((columnValue, columnI) => {
+    let columnName = '' + columnValue;
+    if (uniqueColumnNames.has(columnName)) {
+      let i = 1;
+      while (uniqueColumnNames.has(columnName + i)) ++i;
+      columnName += i;
+    }
+    uniqueColumnNames.add(columnName);
+    headerRow[columnI] = columnName
+  });
+  return headerRow.map(name => ({ name, isWritable:false }));
+}
+
+function _createSheetset(workbook:WorkBook, onSkipSheetError:(message:string) => void):HoneSheet[] {
   const sheets:HoneSheet[] = [];
   workbook.SheetNames.forEach(sheetName => {
     try {
       const sheet = createHoneSheet(workbook, sheetName);
       sheets.push(sheet);
-    } catch(_ignored) {}
+    } catch(e:any) {
+      const message = `"${sheetName}" sheet is not importable: ${e.message}`;
+      onSkipSheetError(message);
+    }
   });
   return sheets;
 }
 
-// Can throw SheetErrorType.XLS_NOT_ENOUGH_ROWS, SheetErrorType.XLS_FIELD_COUNT_MISMATCH
+// Can throw SheetErrorType.XLS_NOT_ENOUGH_ROWS
 export function createHoneSheet(workbook:WorkBook, sheetName:string):HoneSheet {
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) throw Error('Unexpected');
   const ref = sheet['!ref'];
-  if (!ref) return { name:sheetName, columns:[], rows:[] };
+  if (!ref) throw new AppException(SheetErrorType.XLS_NOT_ENOUGH_ROWS, 'Sheet needs at least two rows - one for headers and one for data.');
 
   const rowsWithHeader = utils.sheet_to_json(sheet, {header:1}) as Rowset;
   if (rowsWithHeader.length < 2) throw new AppException(SheetErrorType.XLS_NOT_ENOUGH_ROWS, 'Sheet needs at least two rows - one for headers and one for data.');
-  const mismatchRowNo = _findRowWithMismatchedFieldCount(rowsWithHeader);;
-  if (mismatchRowNo !== -1) throw new AppException(SheetErrorType.XLS_FIELD_COUNT_MISMATCH, `Row ${mismatchRowNo} has a different number of fields than the header row.`);
-  const columnNames = rowsWithHeader[0] as string[];
-  const columns:HoneColumn[] = columnNames.map((cellValue) => ({ name:'' + cellValue, isWritable:false }));
-  
+  _fixMismatchedFieldCounts(rowsWithHeader);
+  const columns:HoneColumn[] = _createColumns(rowsWithHeader);
   const rows = rowsWithHeader.slice(1) as Rowset;
-
   return { name:sheetName, columns, rows };
 }
 
@@ -130,8 +166,9 @@ export async function readFileAsUint8Array(fileHandle:FileSystemFileHandle):Prom
   }
 }
 
-// Can throw SheetErrorType.XLS_FORMAT_ERROR, SheetErrorType.READ_FILE_ERROR
-export async function importSheetsFromXlsBytes(data:Uint8Array):Promise<HoneSheet[]> {
+// Can throw SheetErrorType.XLS_FORMAT_ERROR, SheetErrorType.READ_FILE_ERROR Additional 
+// per-sheet errors that exclude sheets will be passed to onImportErrorMessage.
+export async function importSheetsFromXlsBytes(data:Uint8Array, onSkipSheetError:(message:string) => void):Promise<HoneSheet[]> {
   let workbook:WorkBook;
   try {
     workbook = read(data, {type: 'array'});
@@ -139,13 +176,14 @@ export async function importSheetsFromXlsBytes(data:Uint8Array):Promise<HoneShee
     throw new AppException(SheetErrorType.XLS_FORMAT_ERROR, e.message);
   }
   if (!workbook.SheetNames.length) return [];
-  return _createSheetset(workbook);
+  return _createSheetset(workbook, onSkipSheetError);
 }
 
-// Can throw SheetErrorType.XLS_FORMAT_ERROR, SheetErrorType.READ_FILE_ERROR
-export async function importSheetsFromXlsFile(fileHandle:FileSystemFileHandle):Promise<HoneSheet[]> {
+// Can throw SheetErrorType.XLS_FORMAT_ERROR, SheetErrorType.READ_FILE_ERROR. Additional 
+// per-sheet errors that exclude sheets will be passed to onImportErrorMessage.
+export async function importSheetsFromXlsFile(fileHandle:FileSystemFileHandle, onSkipSheetError:(message:string) => void):Promise<HoneSheet[]> {
   const data = await readFileAsUint8Array(fileHandle);
-  return importSheetsFromXlsBytes(data);
+  return importSheetsFromXlsBytes(data, onSkipSheetError);
 }
 
 // Can throw CvsImportError.NO_DATA, FIELD_COUNT_MISMATCH, UNSTRUCTURED_DATA, TOO_MANY_FIELDS, 

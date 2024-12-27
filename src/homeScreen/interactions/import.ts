@@ -117,7 +117,7 @@ async function _importFromExcel(setAvailableSheets:Function, setSheet:Function, 
     try {
         const fileHandle = await _selectExcelFileHandle();
         if (!fileHandle) { setModalDialog(null); return; } // Not an error, user canceled.
-        const sheets:HoneSheet[] = await importSheetsFromXlsFile(fileHandle);
+        const sheets:HoneSheet[] = await importSheetsFromXlsFile(fileHandle, errorToast);
         if (sheets.length === 0) {
             errorToast('The Excel file didn\'t have any usable sheets.'); // TODO I need to think about giving enough information for the user to diagnose the problem. Also, some kinds of errors should have recoverability.
             return;
@@ -148,10 +148,10 @@ async function _importFromExcel(setAvailableSheets:Function, setSheet:Function, 
 }
 
 async function _importExample(setAvailableSheets:Function, setModalDialog:Function):Promise<void> {
-    try { // TODO correct error handling below.
+    try {
         const response = await fetch(baseUrl('/example/Examples.xlsx'));
         const data = new Uint8Array(await response.arrayBuffer());
-        const sheets:HoneSheet[] = await importSheetsFromXlsBytes(data);
+        const sheets:HoneSheet[] = await importSheetsFromXlsBytes(data, skipSheetErrorMessage => console.error(skipSheetErrorMessage)); // Any import error is unexpected debug error.
         if (sheets.length < 1) throw Error('Unexpected');
         setAvailableSheets(sheets);
         setModalDialog(ImportSheetDialog.name);
