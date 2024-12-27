@@ -52,7 +52,7 @@ function ImportOptionsDialog({isOpen, onImport, onCancel, sheet}:Props) {
   const importButtonName = IMPORT_BUTTON_NAMES[importOptions.importType];
   const sheetNameInput = importOptions.importType !== ImportType.CLIPBOARD ? null
     : <DialogTextInput labelText="Sheet Name:" value={importOptions.sheetName} onChangeText={sheetName => setImportOptions({...importOptions, sheetName})} />;
-  const useFirstRowColumnNames = importOptions.importType === ImportType.EXAMPLE ? null
+  const useFirstRowColumnNames = importOptions.importType === ImportType.EXAMPLE || importOptions.importType === ImportType.EXCEL ? null
     :  <Checkbox label="Use first row as column names" isChecked={importOptions.useFirstRowColumnNames}  
     onChange={useFirstRowColumnNames => setImportOptions({...importOptions, useFirstRowColumnNames}) } />
   const importOptionsSection = sheetNameInput === null && useFirstRowColumnNames === null ? null 

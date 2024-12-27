@@ -1,4 +1,5 @@
 import { encodeUtf8 } from "@/common/stringUtil";
+import Rowset from "@/sheets/types/Rowset";
 
 export const TAB = '\t';
 export const COMMA = ',';
@@ -50,11 +51,11 @@ function _cellValue(value:any, fieldDelimiter:string):string {
   return value.toString();
 }
 
-function _doAnyRowsHaveDifferentFieldCount(rowArray:any[][], fieldCount:number):boolean {
+function _doAnyRowsHaveDifferentFieldCount(rowArray:Rowset, fieldCount:number):boolean {
   return rowArray.some(row => row.length !== fieldCount);
 }
 
-export function rowArrayToCsvUnicode(rowArray:any[][], fieldNames:string[], addHeaders:boolean, fieldDelimiter:string = DEFAULT_FIELD_DELIMITER):string {
+export function rowArrayToCsvUnicode(rowArray:Rowset, fieldNames:string[], addHeaders:boolean, fieldDelimiter:string = DEFAULT_FIELD_DELIMITER):string {
   let csv:string = addHeaders ? _concatHeaderRow(fieldNames, fieldDelimiter) : '';
   if (fieldNames.length === 0) throw new Error('fieldNames must have at least one element.');
   if (_doAnyRowsHaveDifferentFieldCount(rowArray, fieldNames.length)) throw new Error('All rows must have the same number of fields as fieldNames.');
@@ -67,7 +68,7 @@ export function rowArrayToCsvUnicode(rowArray:any[][], fieldNames:string[], addH
   return csv;
 }
 
-export function rowArrayToCsvUtf8(rowArray:any[][], fieldNames:string[], addHeaders:boolean, fieldDelimiter:string = DEFAULT_FIELD_DELIMITER):Uint8Array {
+export function rowArrayToCsvUtf8(rowArray:Rowset, fieldNames:string[], addHeaders:boolean, fieldDelimiter:string = DEFAULT_FIELD_DELIMITER):Uint8Array {
   let csvUnicode:string = rowArrayToCsvUnicode(rowArray, fieldNames, addHeaders, fieldDelimiter);
   return encodeUtf8(csvUnicode);
 }

@@ -5,6 +5,7 @@ import HoneSheet from "@/sheets/types/HoneSheet";
 import HoneColumn from "@/sheets/types/HoneColumn";
 import { getSheetRows } from "@/sheets/sheetUtil";
 import GeneratedText from "@/components/generatedText/GeneratedText";
+import Rowset from "@/sheets/types/Rowset";
 
 type Props = {
   sheet: HoneSheet,
@@ -19,7 +20,7 @@ function _tableHeaderContent(columns:HoneColumn[]) {
   return <tr><th key={-1}>#</th>{columns.map((column, i) => <th key={i}>{column.name}</th>)}</tr>;
 }
 
-function _tableBodyContent(rows:any[][], generatingColumnI:number, selectedRowNo?:number, onRowSelect?:(rowNo:number)=>void) {
+function _tableBodyContent(rows:Rowset, generatingColumnI:number, selectedRowNo?:number, onRowSelect?:(rowNo:number)=>void) {
   return rows.map(
     (row:any, rowI:number) => {
       const isSelected = (selectedRowNo === rowI+1);

@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { WorkBook } from 'xlsx';
 
 import styles from './HomeScreen.module.css';
 import { init } from "./interactions/initialization";
 import ToastPane from "@/components/toasts/ToastPane";
 import SheetPane from "./SheetPane";
 import ImportSheetDialog from "./dialogs/ImportSheetDialog";
-import { importSheet, onCancelImportSheet, onChangeWorkbook, onSelectSheet } from "./interactions/import";
+import { importSheet, onSelectSheet } from "./interactions/import";
 import PromptPane from "./PromptPane";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import ExecuteSetupDialog from "./dialogs/ExecuteSetupDialog";
@@ -27,9 +26,8 @@ import ExportOptionsDialog from "./dialogs/ExportOptionsDialog";
 import ImportOptionsDialog from "./dialogs/ImportOptionsDialog";
 
 function HomeScreen() {
-  const [workbook, setWorkbook] = useState<WorkBook|null>(null);
-  const [, setWorkbookName] = useState<string>(''); // TODO - use workbookName later for export.
   const [sheet, setSheet] = useState<HoneSheet|null>(null);
+  const [availableSheets, setAvailableSheets] = useState<HoneSheet[]>([]);
   const [selectedRowNo, setSelectedRowNo] = useState<number>(1);
   const [job, setJob] = useState<ExecutionJob|null>(null);
   const [modalDialog, setModalDialog] = useState<string|null>(null);
@@ -52,18 +50,16 @@ function HomeScreen() {
         <h1>Hone</h1>
       </div>
       <SheetPane 
-        workbook={workbook} sheet={sheet} className={styles.sheetPane} selectedRowNo={selectedRowNo} 
+        sheet={sheet} className={styles.sheetPane} selectedRowNo={selectedRowNo} 
         onRowSelect={setSelectedRowNo}
         onImportSheet={() => setModalDialog(ImportOptionsDialog.name)}
-        onChangeWorkbook={(nextWorkbook, nextWorkbookName) => onChangeWorkbook(nextWorkbook, nextWorkbookName, 
-          setWorkbook, setWorkbookName, setSheet, setModalDialog)}
         onExportSheet={() => chooseExportType(setModalDialog)}
       />
       {promptPaneContent}
 
-      <ImportSheetDialog workbook={workbook} isOpen={modalDialog === ImportSheetDialog.name} 
-        onChoose={(sheet) => onSelectSheet(sheet, setSheet, setModalDialog)} 
-        onCancel={() => onCancelImportSheet(setWorkbook, setWorkbookName, setSheet, setModalDialog)} 
+      <ImportSheetDialog availableSheets={availableSheets} isOpen={modalDialog === ImportSheetDialog.name} 
+        onChoose={(sheet) => onSelectSheet(sheet, setAvailableSheets, setSheet, setModalDialog)} 
+        onCancel={() => setModalDialog(null)} 
       />
       
       <ResumeJobDialog isOpen={modalDialog === ResumeJobDialog.name} job={job}  
@@ -95,8 +91,8 @@ function HomeScreen() {
       />
 
       <ImportOptionsDialog 
-        isOpen={modalDialog === ImportOptionsDialog.name} 
-        onImport={(importOptions) => importSheet(importOptions, setSheet, setModalDialog)}
+        isOpen={modalDialog === ImportOptionsDialog.name} sheet={sheet}
+        onImport={(importOptions) => importSheet(importOptions, setAvailableSheets, setSheet, setModalDialog)}
         onCancel={() => setModalDialog(null)}
       />
 

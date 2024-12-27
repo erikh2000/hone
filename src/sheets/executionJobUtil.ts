@@ -5,6 +5,7 @@ import HoneSheet from "./types/HoneSheet";
 import { getAverageCompletionTime } from "@/llm/llmStatsUtil";
 import { isEmpty } from "@/common/stringUtil";
 import { describeDuration } from "@/common/timeUtil";
+import Row from "./types/Row";
 
 const DEFAULT_PROMPT_AVERAGE_MSECS = 5000;
 
@@ -19,7 +20,7 @@ export function countUnprocessedRows(sheet:HoneSheet, writeColumnName:string, wr
   
   let unprocessedRowCount = 0;
   for (let i = writeStartRowNo; i < writeEndRowNo; i++) {
-    const row:any[] = sheet.rows[i-1];
+    const row:Row = sheet.rows[i-1];
     const cellValue:any = row[writeColumnI];
     if (isEmpty(cellValue)) unprocessedRowCount++;
   }

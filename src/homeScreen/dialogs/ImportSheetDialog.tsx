@@ -1,5 +1,4 @@
-import { WorkBook } from 'xlsx';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import ModalDialog from '@/components/modalDialogs/ModalDialog';
 import DialogFooter from '@/components/modalDialogs/DialogFooter';
@@ -7,40 +6,37 @@ import DialogButton from '@/components/modalDialogs/DialogButton';
 import SheetSelector from './SheetSelector';
 import SheetView from '../SheetView';
 import HoneSheet from '@/sheets/types/HoneSheet';
-import { createHoneSheet } from '@/sheets/sheetUtil';
 
 type Props = {
-  workbook:WorkBook|null,
+  availableSheets:HoneSheet[],
   isOpen:boolean,
   onChoose(sheet:HoneSheet):void,
   onCancel():void
 }
 
-function ImportSheetDialog({workbook, isOpen, onChoose, onCancel}:Props) {
+function ImportSheetDialog({availableSheets, isOpen, onChoose, onCancel}:Props) {
   const [selectedSheetName, setSelectedSheetName] = useState<string|null>(null);
-  const [selectedSheet, setSelectedSheet] = useState<HoneSheet>();
 
   useEffect(() => {
     if (!isOpen) { setSelectedSheetName(''); return; }
-    if (!workbook || !workbook.SheetNames.length) throw Error('Unexpected');
-    setSelectedSheetName(workbook.SheetNames[0]);
-  }, [isOpen, workbook]);
+    if (!availableSheets.length) throw Error('Unexpected');
+    setSelectedSheetName(availableSheets[0].name);
+  }, [isOpen, availableSheets]);
 
-  useEffect(() => {
-    if (!workbook || !selectedSheetName) return;
-    const nextSheet = createHoneSheet(workbook, selectedSheetName);
-    setSelectedSheet(nextSheet);
-  }, [selectedSheetName, workbook]);
+  const selectedSheet:HoneSheet|null = useMemo(
+    () => availableSheets.find(sheet => sheet.name === selectedSheetName) ?? null, [availableSheets, selectedSheetName]);
 
-  const sheetPreview = selectedSheet ? <SheetView sheet={selectedSheet} maxRows={5} padToMax={true}/> : null;
+  const availableSheetNames = useMemo(() => availableSheets.map(sheet => sheet.name), [availableSheets]);
+  
+  if (!isOpen || !selectedSheet) return null;
 
   return (
     <ModalDialog isOpen={isOpen} onCancel={onCancel} title="Select Sheet to Import">
-      <SheetSelector sheetNames={workbook?.SheetNames || []} selectedSheetName={selectedSheetName ?? ''} onChange={setSelectedSheetName} />
-      {sheetPreview}
+      <SheetSelector sheetNames={availableSheetNames} selectedSheetName={selectedSheetName ?? ''} onChange={setSelectedSheetName} />
+      <SheetView sheet={selectedSheet} maxRows={5} padToMax={true}/>
       <DialogFooter>
         <DialogButton text="Cancel" onClick={onCancel} />
-        <DialogButton text="Import" onClick={() => { if (selectedSheet) onChoose(selectedSheet)}} isPrimary disabled={selectedSheet===null}/>
+        <DialogButton text="Import" onClick={() => { if (selectedSheet) onChoose(selectedSheet)}} isPrimary/>
       </DialogFooter>
     </ModalDialog>
   );

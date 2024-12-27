@@ -1,5 +1,7 @@
-import { decodeUtf8, fillTemplate } from "@/common/stringUtil";
+import { decodeUtf8 } from "@/common/stringUtil";
 import AppException from "@/common/types/AppException";
+import Row from "@/sheets/types/Row";
+import Rowset from "@/sheets/types/Rowset";
 
 export enum CvsImportErrorType {
   NO_DATA = 'CvsImportError-NO_DATA',              
@@ -193,7 +195,7 @@ function _fieldTextToValue(text:string, rowNo:number):any {
   return _fieldTextToString(text, rowNo);
 }
 
-function _parseCsvRow(row:string, fieldDelimiter:string, rowNo:number):any[] {
+function _parseCsvRow(row:string, fieldDelimiter:string, rowNo:number):Row {
   // Similar to splitting rows, I'll split fields first by the delimiter because it's fast, and then fix mistakes, if any.
   let fields = row.split(fieldDelimiter);
   let wereAnyFieldsRemoved = false;
@@ -219,7 +221,7 @@ function _valueToString(value:any):string {
   return (value === null) ? '' : value.toString();
 }
 
-function _parseHeaderRow(headerLine:string, fieldDelimiter:string):any[] {
+function _parseHeaderRow(headerLine:string, fieldDelimiter:string):Row {
   const row = _parseCsvRow(headerLine, fieldDelimiter, 1);
   for(let fieldI = 0; fieldI < row.length; ++fieldI) {
     if (typeof row[fieldI] !== 'string') row[fieldI] = _valueToString(row[fieldI]); // Be forgiving and try to preserve intent.
@@ -258,12 +260,12 @@ function _generateHeaderRow(fieldCount:number):string[] {
 }
 
 // Can throw CvsImportError.NO_DATA, FIELD_COUNT_MISMATCH, UNSTRUCTURED_DATA, TOO_MANY_FIELDS 
-export function csvUnicodeToRowArray(csvUnicode:string, includeHeaders:boolean):any[][] {
+export function csvUnicodeToRowArray(csvUnicode:string, includeHeaders:boolean):Rowset {
   if (csvUnicode.trim() === '') throw new AppException(CvsImportErrorType.NO_DATA, 'No data found in CSV text.');
 
   const lines = _splitCsvLines(csvUnicode);  
   const fieldDelimiter = _findFieldDelimiter(lines);
-  const rows:any[][] = [];
+  const rows:Rowset = [];
   
   let fromRowI = 0;
   const fieldCount = _countFieldsInLine(lines[0], fieldDelimiter);
@@ -285,7 +287,7 @@ export function csvUnicodeToRowArray(csvUnicode:string, includeHeaders:boolean):
 }
 
 // Can throw CvsImportError.NO_DATA, FIELD_COUNT_MISMATCH, UNSTRUCTURED_DATA, TOO_MANY_FIELDS
-export function csvUtf8ToRowArray(csvBytes:Uint8Array, includesHeaders:boolean):any[][] {
+export function csvUtf8ToRowArray(csvBytes:Uint8Array, includesHeaders:boolean):Rowset {
   const csvUnicode = decodeUtf8(csvBytes);
   return csvUnicodeToRowArray(csvUnicode, includesHeaders);
 }

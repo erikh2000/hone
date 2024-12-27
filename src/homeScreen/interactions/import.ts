@@ -1,13 +1,11 @@
-import { read, WorkBook } from 'xlsx';
-
 import { MIMETYPE_CSV, MIMETYPE_TSV, MIMETYPE_XLS, MIMETYPE_XLSX } from "@/persistence/mimeTypes";
 import { errorToast } from '@/components/toasts/toastUtil';
 import { baseUrl } from '@/common/urlUtil';
-import ImportSheetDialog from '../dialogs/ImportSheetDialog';
+import ImportSheetDialog from '@/homeScreen/dialogs/ImportSheetDialog';
 import HoneSheet from '@/sheets/types/HoneSheet';
-import ImportOptions from '../types/ImportOptions';
-import ImportType from '../types/ImportType';
-import { importSheetFromClipboard, importSheetFromCsvFile, SheetErrorType } from '@/sheets/sheetUtil';
+import ImportOptions from '@/homeScreen/types/ImportOptions';
+import ImportType from '@/homeScreen/types/ImportType';
+import { importSheetFromClipboard, importSheetFromCsvFile, importSheetsFromXlsBytes, importSheetsFromXlsFile, SheetErrorType } from '@/sheets/sheetUtil';
 import { CvsImportErrorType, MAX_FIELD_COUNT } from '@/csv/csvImportUtil';
 
 async function _selectExcelFileHandle():Promise<FileSystemFileHandle|null> {
@@ -50,56 +48,9 @@ async function _selectCsvFileHandle():Promise<FileSystemFileHandle|null> {
     }
 }
 
-function _filenameToWorkbookName(filename:string):string {
-    const parts = filename.split('.');
-    parts.pop();
-    return parts.join('.');
-}
-
-export async function importWorkbook(onChangeWorkbook:Function):Promise<void> {
-    const fileHandle = await _selectExcelFileHandle();
-    if (!fileHandle) return;
-    try {
-        const file = await fileHandle.getFile();
-        const blob = await file.arrayBuffer();
-        const data = new Uint8Array(blob);
-        const workbook:WorkBook = read(data, {type: 'array'});
-        const workbookName = _filenameToWorkbookName(file.name);
-        onChangeWorkbook(workbook, workbookName);
-    } catch(e) {
-        console.error(e);
-        errorToast('Failed to import workbook from provided file.');
-    }
-}
-
-export async function importExample(onChangeWorkbook:Function):Promise<void> {
-    try {
-        const response = await fetch(baseUrl('/example/Examples.xlsx'));
-        const data = await response.arrayBuffer();
-        const workbook:WorkBook = read(new Uint8Array(data), {type: 'array'});
-        onChangeWorkbook(workbook, 'Example');
-    } catch(e) {
-        console.error(e);
-        errorToast('Failed to import example workbook.');
-    }
-}
-
-export function onChangeWorkbook(workbook:WorkBook, workbookName:string, setWorkbook:Function, setWorkbookName:Function, setSelectedSheet:Function, setModalDialog:Function) {
-    setWorkbook(workbook);
-    setWorkbookName(workbookName);
-    setSelectedSheet(null);
-    if (workbook !== null) setModalDialog(ImportSheetDialog.name);
-  }
-
-export function onCancelImportSheet(setWorkbook:Function, setWorkbookName:Function, setSelectedSheet:Function, setModalDialog:Function) {
-    setWorkbook(null);
-    setWorkbookName('');
-    setSelectedSheet(null);
-    setModalDialog(null);
-  }
-
-export function onSelectSheet(sheet:HoneSheet, setSelectedSheet:Function, setModalDialog:Function) {
-    setSelectedSheet(sheet);
+export function onSelectSheet(sheet:HoneSheet, setAvailableSheets:Function, setSheet:Function, setModalDialog:Function) {
+    setAvailableSheets([]);
+    setSheet(sheet);
     setModalDialog(null);
 }
 
@@ -127,7 +78,7 @@ async function _importFromClipboard(importOptions:ImportOptions, setSheet:Functi
                 return;
             default:
                 console.error(e);
-                errorToast(`It didn't work and the reason is unclear. Maybe try again?`);
+                errorToast(`There was an unexpected error importing the pasted data.`);
                 return;
         }
     }
@@ -156,13 +107,61 @@ async function _importFromCsv(importOptions:ImportOptions, setSheet:Function, se
                 return;
             default:
                 console.error(e);
-                errorToast(`It didn't work, and the reason is unclear. I'm sorry I can't give a better explanation.`);
+                errorToast(`There was an unexpected error importing the CSV file.`);
                 return;
         }
     }
 }
 
-export async function importSheet(importOptions:ImportOptions, setSheet:Function, setModalDialog:Function) {
+async function _importFromExcel(setAvailableSheets:Function, setSheet:Function, setModalDialog:Function) {
+    try {
+        const fileHandle = await _selectExcelFileHandle();
+        if (!fileHandle) { setModalDialog(null); return; } // Not an error, user canceled.
+        const sheets:HoneSheet[] = await importSheetsFromXlsFile(fileHandle);
+        if (sheets.length === 0) {
+            errorToast('The Excel file didn\'t have any usable sheets.'); // TODO I need to think about giving enough information for the user to diagnose the problem. Also, some kinds of errors should have recoverability.
+            return;
+        }
+        if (sheets.length === 1) { // If only one sheet, import it directly.
+            setSheet(sheets[0]);
+            setAvailableSheets([]);
+            setModalDialog(null);
+            return;
+        }
+        setAvailableSheets(sheets); //Otherwise, need to let user choose a sheet.
+        setSheet(null);
+        setModalDialog(ImportSheetDialog.name);
+    } catch(e:any) {
+        switch(e.name) {
+            case SheetErrorType.READ_FILE_ERROR:
+                errorToast('There was a problem reading the file itself - maybe permission-related.');
+                return;
+            case SheetErrorType.XLS_FORMAT_ERROR:
+                errorToast(`The Excel file was in an unexpected format, so I couldn't use it.`);
+                return;
+            default:
+                console.error(e);
+                errorToast(`There was an unexpected error importing the Excel file.`);
+                return;
+        }
+    }
+}
+
+async function _importExample(setAvailableSheets:Function, setModalDialog:Function):Promise<void> {
+    try { // TODO correct error handling below.
+        const response = await fetch(baseUrl('/example/Examples.xlsx'));
+        const data = new Uint8Array(await response.arrayBuffer());
+        const sheets:HoneSheet[] = await importSheetsFromXlsBytes(data);
+        if (sheets.length < 1) throw Error('Unexpected');
+        setAvailableSheets(sheets);
+        setModalDialog(ImportSheetDialog.name);
+    } catch(e) {
+        console.error(e);
+        errorToast('There was an unexpected error importing the example file.');
+    }
+}
+
+export async function importSheet(importOptions:ImportOptions, setAvailableSheets:Function, setSheet:Function, setModalDialog:Function) {
     switch(importOptions.importType) {
         case ImportType.CLIPBOARD:
             await _importFromClipboard(importOptions, setSheet, setModalDialog);
@@ -170,6 +169,14 @@ export async function importSheet(importOptions:ImportOptions, setSheet:Function
 
         case ImportType.CSV:
             await _importFromCsv(importOptions, setSheet, setModalDialog);
+        return;
+
+        case ImportType.EXCEL:
+            await _importFromExcel(setAvailableSheets, setSheet, setModalDialog);
+        return;
+
+        case ImportType.EXAMPLE:
+            await _importExample(setAvailableSheets, setModalDialog);
         return;
 
         default:

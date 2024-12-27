@@ -4,6 +4,7 @@ import HoneColumn from "@/sheets/types/HoneColumn";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import styles from './PromptOutputRow.module.css';
 import GeneratedText from "@/components/generatedText/GeneratedText";
+import Row from "@/sheets/types/Row";
 
 type Props = {
   sheet:HoneSheet;
@@ -15,7 +16,7 @@ function _tableHeaderContent(columns:HoneColumn[]) {
   return <tr><th key={-1}>#</th>{columns.map((column, i) => <th key={i}>{column.name}</th>)}</tr>;
 }
 
-function _tableBodyContent(row:any[], rowNo:number) {
+function _tableBodyContent(row:Row, rowNo:number) {
   const cells = row.map((cell:any, columnI:number) => {
     const cellValue = (columnI === row.length - 1) ? <GeneratedText text={'' + cell}/> : '' + cell;
     return (<td key={columnI}>{cellValue}</td>);
@@ -25,7 +26,7 @@ function _tableBodyContent(row:any[], rowNo:number) {
 
 function PromptOutputRow({sheet, rowNo, outputValue}: Props) {
   const [columns, setColumns] = useState<HoneColumn[]>([]);
-  const [row, setRow] = useState<any[]>([]);
+  const [row, setRow] = useState<Row>([]);
 
   useEffect(() => {
     if (!sheet) { setColumns([]); setRow([]); return; }

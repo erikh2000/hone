@@ -1,19 +1,13 @@
-import { WorkBook } from "xlsx";
-import { useEffect } from "react";
-
 import SheetView from "./SheetView";
-import { errorToast } from "@/components/toasts/toastUtil";
 import Pane, { ButtonDefinition } from "@/components/pane/Pane";
 import { getComment } from "./interactions/comment";
 import HoneSheet from "@/sheets/types/HoneSheet";
 
 type Props = {
   sheet: HoneSheet|null,
-  workbook: WorkBook|null,
   className:string,
   selectedRowNo:number,
   onRowSelect:(rowNo:number)=>void
-  onChangeWorkbook(workbook:WorkBook, workbookName:string):void,
   onExportSheet():void,
   onImportSheet():void
 }
@@ -27,12 +21,7 @@ function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, onRowSelect:(
   return <SheetView sheet={sheet} selectedRowNo={selectedRowNo} onRowSelect={onRowSelect}/>;
 }
 
-function SheetPane({workbook, sheet, className, onImportSheet, selectedRowNo, onRowSelect, onExportSheet}:Props) {
-  useEffect(() => {
-    if (!workbook) return;
-    if (!workbook.SheetNames.length) errorToast('Workbook has no sheets.');
-  }, [workbook]);
-
+function SheetPane({sheet, className, onImportSheet, selectedRowNo, onRowSelect, onExportSheet}:Props) {
   const content = _sheetContent(sheet, selectedRowNo, onRowSelect);
 
   const buttons:ButtonDefinition[] = [

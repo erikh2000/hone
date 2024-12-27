@@ -1,3 +1,4 @@
+import Rowset from "@/sheets/types/Rowset";
 import { COMMA, rowArrayToCsvUnicode, rowArrayToCsvUtf8, TAB } from "../csvExportUtil";
 
 describe('csvExportUtil', () => {
@@ -29,7 +30,7 @@ describe('csvExportUtil', () => {
       });
 
       it('throws if fieldNames is empty', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames:string[] = [];
         expect(() => rowArrayToCsvUnicode(rowArray, fieldNames, false)).toThrow();
       });
@@ -37,7 +38,7 @@ describe('csvExportUtil', () => {
 
     describe('datasets with no rows', () => {
       it('encodes an empty string when addHeader is false and row array is empty', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['one', 'two', 'three'];
         const addHeaders = false;
         const expected = '';
@@ -45,7 +46,7 @@ describe('csvExportUtil', () => {
       });
 
       it('encodes an array of header names when addHeader is true and row array is empty', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['one', 'two', 'three'];
         const addHeaders = true;
         const expected = 'one\ttwo\tthree\r\n';
@@ -97,7 +98,7 @@ describe('csvExportUtil', () => {
 
     describe('headings', () => {
       it('encodes a heading preserving lower and upper case', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['One'];
         const addHeaders = true;
         const expected = 'One\r\n';
@@ -105,7 +106,7 @@ describe('csvExportUtil', () => {
       });
 
       it('encodes a heading preserving interior whitespace', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['One Two'];
         const addHeaders = true;
         const expected = `One Two\r\n`;
@@ -113,7 +114,7 @@ describe('csvExportUtil', () => {
       });
 
       it('encodes a heading trimming leading whitespace', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = [' One'];
         const addHeaders = true;
         const expected = 'One\r\n';
@@ -121,7 +122,7 @@ describe('csvExportUtil', () => {
       });
 
       it('encodes a heading trimming trailing whitespace', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['One '];
         const addHeaders = true;
         const expected = 'One\r\n';
@@ -129,7 +130,7 @@ describe('csvExportUtil', () => {
       });
 
       it('encodes a heading preserving non-alphanumeric ASCII characters', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['One!@#$%^&*()_+'];
         const addHeaders = true;
         const expected = `One!@#$%^&*()_+\r\n`;
@@ -137,7 +138,7 @@ describe('csvExportUtil', () => {
       });
 
       it('encodes a heading preserving quote characters', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['One"'];
         const addHeaders = true;
         const expected = `"One"""\r\n`;
@@ -145,7 +146,7 @@ describe('csvExportUtil', () => {
       });
 
       it('encodes a heading preserving field delimiter characters when delimiter is comma', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['One,'];
         const addHeaders = true;
         const expected = `"One,"\r\n`;
@@ -153,7 +154,7 @@ describe('csvExportUtil', () => {
       });
 
       it('encodes a heading preserving field delimiter characters when delimiter is tab', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['One\tTwo'];
         const addHeaders = true;
         const expected = `"One\tTwo"\r\n`;
@@ -161,7 +162,7 @@ describe('csvExportUtil', () => {
       });
 
       it('encodes a heading preserving row delimeter characters', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['One\rTwo\nThree\r\nFour'];
         const addHeaders = true;
         const expected = `"One\rTwo\nThree\r\nFour"\r\n`;
@@ -169,7 +170,7 @@ describe('csvExportUtil', () => {
       });
 
       it('encodes a heading preserving Unicode (non-ASCII) characters', () => {
-        const rowArray:any[][] = [];
+        const rowArray:Rowset = [];
         const fieldNames = ['One😀'];
         const addHeaders = true;
         const expected = 'One😀\r\n';
