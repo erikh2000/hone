@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import styles from './HomeScreen.module.css';
-import { init } from "./interactions/initialization";
+import { deinit, init } from "./interactions/initialization";
 import ToastPane from "@/components/toasts/ToastPane";
 import SheetPane from "./SheetPane";
 import ImportSheetDialog from "./dialogs/ImportSheetDialog";
@@ -24,6 +24,7 @@ import KeepPartialDataDialog from "./dialogs/KeepPartialDataDialog";
 import ResumeJobDialog from "./dialogs/ResumeJobDialog";
 import ExportOptionsDialog from "./dialogs/ExportOptionsDialog";
 import ImportOptionsDialog from "./dialogs/ImportOptionsDialog";
+import ConfirmSheetPasteDialog from "./dialogs/ConfirmSheetPasteDialog";
 
 function HomeScreen() {
   const [sheet, setSheet] = useState<HoneSheet|null>(null);
@@ -34,8 +35,9 @@ function HomeScreen() {
   const [promptTemplate, setPromptTemplate] = useState<string>('');
 
   useEffect(() => {
-    init().then(() => { });
-  });
+    init(setAvailableSheets, setModalDialog).then(() => { });
+    return deinit;
+  }, []);
 
   const promptPaneContent = sheet ? 
     <PromptPane 
@@ -93,6 +95,14 @@ function HomeScreen() {
       <ImportOptionsDialog 
         isOpen={modalDialog === ImportOptionsDialog.name} sheet={sheet}
         onImport={(importOptions) => importSheet(importOptions, setAvailableSheets, setSheet, setModalDialog)}
+        onCancel={() => setModalDialog(null)}
+      />
+
+      <ConfirmSheetPasteDialog
+        isOpen={modalDialog === ConfirmSheetPasteDialog.name}
+        pastedSheet={availableSheets[0]}
+        existingSheet={sheet}
+        onConfirm={(pastedSheet) => onSelectSheet(pastedSheet, setAvailableSheets, setSheet, setModalDialog)}
         onCancel={() => setModalDialog(null)}
       />
 

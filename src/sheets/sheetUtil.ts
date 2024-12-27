@@ -4,7 +4,7 @@ import StringMap from '@/common/types/StringMap';
 import HoneSheet from './types/HoneSheet';
 import HoneColumn from './types/HoneColumn';
 import { rowArrayToCsvUtf8  } from '@/csv/csvExportUtil';
-import { csvUnicodeToRowArray, csvUtf8ToRowArray } from '@/csv/csvImportUtil';
+import { csvUnicodeToRowArray, csvUtf8ToRowArray, MAX_FIELDNAME_LENGTH } from '@/csv/csvImportUtil';
 import AppException from '@/common/types/AppException';
 import Rowset from './types/Rowset';
 import { generateColumnNames } from './columnUtil';
@@ -146,12 +146,21 @@ async function _readClipboardText():Promise<string> {
   }
 }
 
+async function _readDataTransferText(dataTransfer:DataTransfer):Promise<string> {
+  try {
+    const text = await dataTransfer.getData('text/plain');
+    return text;
+  } catch(e:any) {
+    throw new AppException(SheetErrorType.UNEXPECTED_CLIPBOARD_ERROR, e.message);
+  }
+}
+
 function _fileNameToSheetName(filename:string):string {
   let dotI = filename.lastIndexOf('.');
   return dotI === -1 ? filename : filename.substring(0, dotI);
 }
 
-function _firstRowToColumns(firstRow:string[]):HoneColumn[] {
+function _rowToColumns(firstRow:string[]):HoneColumn[] {
   return firstRow.map(name => ({ name, isWritable:false }));
 }
 
@@ -192,7 +201,7 @@ export async function importSheetFromCsvFile(fileHandle:FileSystemFileHandle, us
   const csvUtf8 = await readFileAsUint8Array(fileHandle);
   const sheetName = _fileNameToSheetName(fileHandle.name);
   let rows = csvUtf8ToRowArray(csvUtf8, useFirstRowColumnNames);
-  const columns = _firstRowToColumns(rows[0]);
+  const columns = _rowToColumns(rows[0]);
   rows = rows.slice(1);
   return { name:sheetName, columns, rows };
 }
@@ -202,9 +211,29 @@ export async function importSheetFromCsvFile(fileHandle:FileSystemFileHandle, us
 export async function importSheetFromClipboard(useFirstRowColumnNames:boolean, sheetName:string):Promise<HoneSheet> {
   const text = await _readClipboardText();
   let rows = csvUnicodeToRowArray(text, useFirstRowColumnNames);
-  const columns = _firstRowToColumns(rows[0]);
+  const columns = _rowToColumns(rows[0]);
   rows = rows.slice(1);
   if (!rows.length) throw new AppException(SheetErrorType.CLIPBOARD_NO_ROWS, 'No rows found in clipboard data.');
+  return { name:sheetName, columns, rows };
+}
+
+function _doesRowLookLikeColumnNames(row:string[]):boolean {
+  if (!row.length) return false;
+  return !row.some(
+      fieldValue => typeof fieldValue !== 'string' 
+      || fieldValue.length > MAX_FIELDNAME_LENGTH 
+      || fieldValue === ''
+    );
+}
+
+export async function importSheetFromClipboardData(clipboardData:DataTransfer, sheetName:string):Promise<HoneSheet> {
+  const text = await _readDataTransferText(clipboardData);
+  let rows = csvUnicodeToRowArray(text, false);
+  if (rows.length === 1) throw new AppException(SheetErrorType.CLIPBOARD_NO_ROWS, 'No rows found in clipboard data.');
+  const headerRowI = (_doesRowLookLikeColumnNames(rows[1])) ? 1 : 0;
+  if (rows.length === 2 && headerRowI === 1) throw new AppException(SheetErrorType.CLIPBOARD_NO_ROWS, 'No data rows found in clipboard data.');
+  const columns = _rowToColumns(rows[headerRowI]);
+  rows = rows.slice(headerRowI + 1);
   return { name:sheetName, columns, rows };
 }
 

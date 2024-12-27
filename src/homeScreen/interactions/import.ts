@@ -5,8 +5,9 @@ import ImportSheetDialog from '@/homeScreen/dialogs/ImportSheetDialog';
 import HoneSheet from '@/sheets/types/HoneSheet';
 import ImportOptions from '@/homeScreen/types/ImportOptions';
 import ImportType from '@/homeScreen/types/ImportType';
-import { importSheetFromClipboard, importSheetFromCsvFile, importSheetsFromXlsBytes, importSheetsFromXlsFile, SheetErrorType } from '@/sheets/sheetUtil';
+import { importSheetFromClipboard, importSheetFromClipboardData, importSheetFromCsvFile, importSheetsFromXlsBytes, importSheetsFromXlsFile, SheetErrorType } from '@/sheets/sheetUtil';
 import { CvsImportErrorType, MAX_FIELD_COUNT } from '@/csv/csvImportUtil';
+import ConfirmSheetPasteDialog from "../dialogs/ConfirmSheetPasteDialog";
 
 async function _selectExcelFileHandle():Promise<FileSystemFileHandle|null> {
     const openFileOptions = {
@@ -79,6 +80,35 @@ async function _importFromClipboard(importOptions:ImportOptions, setSheet:Functi
             default:
                 console.error(e);
                 errorToast(`There was an unexpected error importing the pasted data.`);
+                return;
+        }
+    }
+}
+
+export async function importFromPasteEvent(event:ClipboardEvent, setAvailableSheets:Function, setModalDialog:Function) {
+    const clipboardData = event.clipboardData;
+    if (!clipboardData) return;
+
+    try {
+      const honeSheet = await importSheetFromClipboardData(clipboardData, 'Pasted');
+      setAvailableSheets([honeSheet]);
+      setModalDialog(ConfirmSheetPasteDialog.name);
+    } catch(e:any) {
+        setModalDialog(null);
+        switch(e.name) {
+            // Most errors will be quietly ignored because the user might have accidentally tried to paste something that wasn't a table.
+            // They can use the "import" feature to express their intent more clearly and get more feedback on import problems.
+            case SheetErrorType.CLIPBOARD_NO_ROWS: case CvsImportErrorType.NO_DATA:
+            case SheetErrorType.UNEXPECTED_CLIPBOARD_ERROR:
+            case CvsImportErrorType.FIELD_COUNT_MISMATCH: case CvsImportErrorType.UNSTRUCTURED_DATA:
+                return;
+            
+            case CvsImportErrorType.TOO_MANY_FIELDS:
+                errorToast(`The pasted data had too many columns. (Max supported is ${MAX_FIELD_COUNT}). Maybe try copying a smaller set of columns?`);
+                return;
+            
+            default:
+                console.error(e); // Debug error probably.
                 return;
         }
     }
