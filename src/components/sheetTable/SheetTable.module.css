@@ -1,10 +1,32 @@
-.scrollContainer {
+@value colors: "@/components/commonPalette.module.css";
+@value button from colors;
+
+.headerScrollContainer {
   width: 90vw; /* I honestly don't understand why 90vw works and 100vw doesn't. Seems fragile. */
-  overflow-x: auto;
+  overflow-x: clip;
+}
+
+.rowsScrollContainer {
+  width: 90vw;
   overflow-y: auto;
+  overflow-x: auto;
+  display: inline-block;
+}
+
+.rowsScrollContainer:hover {
+  scrollbar-color: button white;
+}
+
+.rowsInnerContainer {
+  display: inline-block;
 }
 
 .sheetTable {
   width: max-content;
   display: inline-block;
+  background-color: lightgrey;
+  border-color: lightgrey;
+  border-style: solid;
+  border-width: .5vh .5vh 1vh .5vh;
+  border-radius: 1vh;
 }

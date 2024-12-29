@@ -1,14 +1,17 @@
+import { forwardRef } from 'react';
+
 import HoneColumn from '@/sheets/types/HoneColumn';
 import styles from './SheetHeader.module.css';
 
 type Props = {
   columns:HoneColumn[],
-  columnWidths:number[],
+  columnWidths:number[]
 }
 
-function SheetHeader({columns, columnWidths}:Props) {
+function SheetHeader(props:Props, ref:React.Ref<HTMLDivElement>) {
+  const {columns, columnWidths} = props;
   const cells = columns.map((column, columnI) => {
-    const style = columnWidths[columnI] ? {width:columnWidths[columnI]} : {};
+    const style = columnWidths[columnI] ? {minWidth:columnWidths[columnI]} : {};
     return (
       <span key={columnI} style={style}>
         {column.name}
@@ -18,10 +21,10 @@ function SheetHeader({columns, columnWidths}:Props) {
 
   const className = styles.sheetHeader;
   return (
-    <div className={className}>
+    <div className={className} style={{width:"200vw"}} ref={ref}>
       {cells}
     </div>
   );
 }
 
-export default SheetHeader;
+export default forwardRef(SheetHeader);

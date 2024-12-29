@@ -18,7 +18,8 @@ class DOMTextMeasurer {
   private _className:string;
   private _measureElement:HTMLElement|null;
   private _isInitialized:boolean;
-  private _wordWidths:Record<string,number> = {};
+  private _wordWidths:Record<string,number>;
+  private _lineHeight:number;
   
   // Measurement will be based on styles inherited from both parentElement and className.
   constructor(parentElement:HTMLElement, className:string) {
@@ -26,6 +27,8 @@ class DOMTextMeasurer {
     this._className = className;
     this._measureElement = null;
     this._isInitialized = false;
+    this._wordWidths = {};
+    this._lineHeight = 0;
   }
 
   private _initializeAsNeeded() {
@@ -38,6 +41,11 @@ class DOMTextMeasurer {
     this._measureElement.style.pointerEvents = 'none';
     this._parentElement.appendChild(this._measureElement);
     this._wordWidths = _getOrCreateWordWidths(this._className);
+
+    this._measureElement.textContent = 'M';
+    this._lineHeight = this._measureElement.offsetHeight;
+    console.log('DOMTextMeasurer lineHeight', this._lineHeight);
+    this._measureElement.textContent = '';
 
     this._isInitialized = true;
   }
@@ -63,6 +71,11 @@ class DOMTextMeasurer {
     
     this._measureElement.textContent = '';
     return totalWidth;
+  }
+
+  public getLineHeight():number {
+    this._initializeAsNeeded();
+    return this._lineHeight;
   }
 }
 

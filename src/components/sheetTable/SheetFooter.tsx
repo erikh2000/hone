@@ -5,11 +5,7 @@ type Props = {
 }
 
 function SheetFooter({text}:Props) {
-  return (
-    <div className={styles.footer}>
-      {text}
-    </div>
-  );
+  return (<div className={styles.footer}>{text}</div>);
 }
 
 export default SheetFooter;

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, RefObject, CSSProperties } from 'react';
 
 import styles from './SheetTable.module.css';
 import rowStyles from './SheetRow.module.css';
@@ -7,14 +7,22 @@ import SheetHeader from './SheetHeader';
 import HoneSheet from '@/sheets/types/HoneSheet';
 import SheetFooter from './SheetFooter';
 import DOMTextMeasurer from './DOMTextMeasurer';
+import { plural } from '@/common/englishGrammarUtil';
+
+export enum GeneratedFooterText {
+  ROW_COUNT = 0,
+}
 
 type Props = {
   sheet:HoneSheet,
-  footerText?:string
+  displayRowCount?:number,
+  footerText?:string|GeneratedFooterText
 }
 
+type DivRef = RefObject<HTMLDivElement>;
+
 function _measureColumnWidths(sheetTableElement:HTMLDivElement, sheet:HoneSheet):number[] {
-  const measurer = new DOMTextMeasurer(sheetTableElement, rowStyles.sheetRowCell);
+  const measurer = new DOMTextMeasurer(sheetTableElement, rowStyles.measureCellText);
   const widths = sheet.columns.map(column => measurer.measureTextWidth(column.name));
   for(let rowI = 0; rowI < sheet.rows.length; rowI++) {
     const row = sheet.rows[rowI];
@@ -26,8 +34,32 @@ function _measureColumnWidths(sheetTableElement:HTMLDivElement, sheet:HoneSheet)
   return widths;
 }
 
-function SheetTable({sheet, footerText}:Props) {
+function _getFooterText(footerText:string|GeneratedFooterText|undefined, sheet:HoneSheet):string {
+  if (footerText === undefined) return '';
+  if (footerText === GeneratedFooterText.ROW_COUNT) return `${sheet.rows.length} ${plural('row', sheet.rows.length)}`;
+  return footerText;
+}
+
+function _syncScrollableElements(headerInnerElement:DivRef, rowsScrollElement:DivRef) {
+  console.log('syncing scrollable elements');
+  if (!headerInnerElement.current || !rowsScrollElement.current) return;
+  console.log('scrolling');
+  const scrollLeft = rowsScrollElement.current.scrollLeft;
+  headerInnerElement.current.style.transform = `translateX(-${scrollLeft}px)`;
+}
+
+function _getRowScrollContainerStyle(displayRowCount:number|undefined, parentElement:HTMLDivElement|null):CSSProperties {
+  if (!displayRowCount || !parentElement) return {};
+  const measurer = new DOMTextMeasurer(parentElement, rowStyles.measureCellText);
+  const lineHeight = measurer.getLineHeight();
+  console.log('lineHeight', lineHeight);
+  return {maxHeight:displayRowCount * lineHeight + 'px'};
+}
+
+function SheetTable({sheet, footerText, displayRowCount}:Props) {
   const sheetTableElement = useRef<HTMLDivElement>(null);
+  const headerInnerElement = useRef<HTMLDivElement>(null);
+  const rowsScrollElement = useRef<HTMLDivElement>(null);
   const [columnWidths, setColumnWidths] = useState<number[]>([]);
 
   useEffect(() => {
@@ -36,17 +68,23 @@ function SheetTable({sheet, footerText}:Props) {
     setColumnWidths(nextColumnWidths);
   }, [sheet, sheet.rows]);
 
+  const rowCount = sheet.rows.length;
   const rowsContent = columnWidths.length === 0 ? null : sheet.rows.map((row, rowI) => 
-    <SheetRow key={rowI} row={row} rowNo={rowI+1} columnWidths={columnWidths} />
+    <SheetRow key={rowI} row={row} rowNo={rowI+1} rowCount={rowCount} columnWidths={columnWidths} />
   );
   
+  const rowScrollContainerStyle = useMemo(() => _getRowScrollContainerStyle(displayRowCount, rowsScrollElement.current), [displayRowCount]);
+  const displayFooterText = _getFooterText(footerText, sheet);
   return (
-    <div className={styles.scrollContainer}>
-      <div className={styles.sheetTable} ref={sheetTableElement}>
-        <SheetHeader columns={sheet.columns} columnWidths={columnWidths} />
-        {rowsContent}
-        <SheetFooter text={footerText ?? ''}/>
+    <div className={styles.sheetTable} ref={sheetTableElement}>
+      <div className={styles.headerScrollContainer}>
+        <SheetHeader columns={sheet.columns} columnWidths={columnWidths} ref={headerInnerElement}/>
       </div>
+      <div className={styles.rowsScrollContainer} style={rowScrollContainerStyle} ref={rowsScrollElement} onScroll={() => _syncScrollableElements(headerInnerElement, rowsScrollElement)}>
+        <div className={styles.rowsInnerContainer}>
+        {rowsContent}
+        </div>
+      </div><SheetFooter text={displayFooterText}/>
     </div>
   );
 }
