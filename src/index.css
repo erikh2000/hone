@@ -8,7 +8,10 @@
   font-family: 'jellee', serif;
 }
 
-html, body { height: 100vh; }
+html, body { 
+  height: 100vh; 
+  overflow: hidden;
+}
 
 p, a, ul, ol, li {
   padding: .5rem;
