@@ -1,0 +1,12 @@
+.outer {
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  background-color: blue;
+}
+
+.inner {
+  width: 2000px;
+  height: 2000px;
+  background-color: red;
+}
