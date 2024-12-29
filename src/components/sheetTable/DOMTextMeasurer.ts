@@ -1,9 +1,26 @@
+const MEASURABLE_SPACE = ' \u200B'; // Adding Unicode zero-width character to end will cause the browser to measure the preceding space.
+
+type WordWidths = Record<string,number>;
+type WordWidthsCache = Record<string,WordWidths>; 
+
+// Shared per-layout word widths across all instances of DOMTextMeasurer.
+const theWordWidthsCache:WordWidthsCache = {};
+
+// Use classname as key to cache word widths specific to that layout. 
+// Still possible to have collisions if two different layouts use the same classname. If you have that problem, you can create a separate className for each layout.
+function _getOrCreateWordWidths(className:string):WordWidths {
+  if (theWordWidthsCache[className]) return theWordWidthsCache[className];
+  return theWordWidthsCache[className] = {};
+}
+
 class DOMTextMeasurer {
   private _parentElement:HTMLElement;
   private _className:string;
   private _measureElement:HTMLElement|null;
   private _isInitialized:boolean;
+  private _wordWidths:Record<string,number> = {};
   
+  // Measurement will be based on styles inherited from both parentElement and className.
   constructor(parentElement:HTMLElement, className:string) {
     this._parentElement = parentElement;
     this._className = className;
@@ -20,6 +37,7 @@ class DOMTextMeasurer {
     this._measureElement.style.visibility = 'hidden';
     this._measureElement.style.pointerEvents = 'none';
     this._parentElement.appendChild(this._measureElement);
+    this._wordWidths = _getOrCreateWordWidths(this._className);
 
     this._isInitialized = true;
   }
@@ -27,10 +45,24 @@ class DOMTextMeasurer {
   public measureTextWidth(text:string):number {
     this._initializeAsNeeded();
     if (!this._measureElement) throw 'Unexpected';
-    this._measureElement.textContent = text;
-    const width = this._measureElement.offsetWidth;
-    this._measureElement.textContent = ''; // Save memory.
-    return width;
+    
+    let totalWidth = 0;
+    const words = text.split(' ');
+    for(let i = 0; i < words.length; i++) {
+      const word = words[i] + (i < words.length - 1 ? MEASURABLE_SPACE : '');
+      if (this._wordWidths[word]) {
+        totalWidth += this._wordWidths[word];
+        continue;
+      }
+      
+      this._measureElement.textContent = word;
+      const width = this._measureElement.offsetWidth;
+      this._wordWidths[word] = width;
+      totalWidth += width;
+    }
+    
+    this._measureElement.textContent = '';
+    return totalWidth;
   }
 }
 

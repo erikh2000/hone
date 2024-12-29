@@ -1,28 +1,17 @@
 import Row from "@/sheets/types/Row"
 import styles from './SheetRow.module.css';
-import { useRef, useEffect } from "react";
 
 type Props = {
   row:Row,
   rowNo:number,
-  columnWidths:number[],
-  onMeasureColumns:(columnWidths:number[])=>void
+  columnWidths:number[]
 }
 
-function SheetRow({row, rowNo, columnWidths, onMeasureColumns}:Props) {
-  const spansRef = useRef<(HTMLSpanElement|null)[]>([]);
-
-  useEffect(() => {
-    if (columnWidths.length === row.length) return; // No new columns to measure.
-    console.log('Measuring columns...');
-    const measuredWidths = spansRef.current.map(span => span ? span.offsetWidth : 0);
-    onMeasureColumns(measuredWidths);
-  }, [row, columnWidths, onMeasureColumns]);
-
+function SheetRow({row, rowNo, columnWidths}:Props) {
   const cells = row.map((cell, cellI) => {
     const style = columnWidths[cellI] ? {width:columnWidths[cellI]} : {};
     return (
-      <span key={cellI} ref={el => spansRef.current[cellI] = el} style={style}>
+      <span key={cellI} style={style}>
         {cell}
       </span>
     );

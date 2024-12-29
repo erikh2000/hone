@@ -7,7 +7,7 @@
   border-color: lightgrey;
 }
 
-.sheetRow span {
+.sheetCell, .sheetRow span {
   display: inline-block;
   white-space: nowrap;
   margin-left: .5rem;
