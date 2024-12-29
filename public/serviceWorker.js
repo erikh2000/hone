@@ -35,7 +35,6 @@ async function _getAssetsToCache() {
 
 async function _onInstall() {
   const assetsToCache = await _getAssetsToCache();
-  console.log('Caching the following assets:', assetsToCache);
   const cache = await caches.open(CACHE_NAME);
   await cache.addAll(assetsToCache);
 }

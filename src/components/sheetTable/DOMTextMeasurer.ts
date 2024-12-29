@@ -44,7 +44,6 @@ class DOMTextMeasurer {
 
     this._measureElement.textContent = 'M';
     this._lineHeight = this._measureElement.offsetHeight;
-    console.log('DOMTextMeasurer lineHeight', this._lineHeight);
     this._measureElement.textContent = '';
 
     this._isInitialized = true;

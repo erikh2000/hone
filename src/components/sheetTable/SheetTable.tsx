@@ -41,9 +41,7 @@ function _getFooterText(footerText:string|GeneratedFooterText|undefined, sheet:H
 }
 
 function _syncScrollableElements(headerInnerElement:DivRef, rowsScrollElement:DivRef) {
-  console.log('syncing scrollable elements');
   if (!headerInnerElement.current || !rowsScrollElement.current) return;
-  console.log('scrolling');
   const scrollLeft = rowsScrollElement.current.scrollLeft;
   headerInnerElement.current.style.transform = `translateX(-${scrollLeft}px)`;
 }
@@ -52,7 +50,6 @@ function _getRowScrollContainerStyle(displayRowCount:number|undefined, parentEle
   if (!displayRowCount || !parentElement) return {};
   const measurer = new DOMTextMeasurer(parentElement, rowStyles.measureCellText);
   const lineHeight = measurer.getLineHeight();
-  console.log('lineHeight', lineHeight);
   return {maxHeight:displayRowCount * lineHeight + 'px'};
 }
 
