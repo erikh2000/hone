@@ -16,9 +16,10 @@ function _noSheetLoadedContent() {
   return <div>No sheet loaded.</div>;
 }
 
-function _sheetContent(sheet:HoneSheet|null, _selectedRowNo:number, _onRowSelect:(rowNo:number)=>void) {
+function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, _onRowSelect:(rowNo:number)=>void) {
   if (!sheet) return _noSheetLoadedContent();
-  return <SheetTable sheet={sheet} footerText={GeneratedFooterText.ROW_COUNT} displayRowCount={10} />;
+  const onSelectCell = (_colNo:number, rowNo:number) => _onRowSelect(rowNo);
+  return <SheetTable selectedRowNo={selectedRowNo} sheet={sheet} footerText={GeneratedFooterText.ROW_COUNT} onSelectCell={onSelectCell} displayRowCount={10} />;
 }
 
 function SheetPane({sheet, className, onImportSheet, selectedRowNo, onRowSelect, onExportSheet}:Props) {

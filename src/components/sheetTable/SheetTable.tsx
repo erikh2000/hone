@@ -16,6 +16,9 @@ export enum GeneratedFooterText {
 type Props = {
   sheet:HoneSheet,
   displayRowCount?:number,
+  selectedColNo?:number,
+  selectedRowNo?:number,
+  onSelectCell?:(colNo:number, rowNo:number)=>void,
   footerText?:string|GeneratedFooterText
 }
 
@@ -53,7 +56,7 @@ function _getRowScrollContainerStyle(displayRowCount:number|undefined, parentEle
   return {maxHeight:displayRowCount * lineHeight + 'px'};
 }
 
-function SheetTable({sheet, footerText, displayRowCount}:Props) {
+function SheetTable({sheet, footerText, displayRowCount, selectedRowNo, onSelectCell}:Props) {
   const sheetTableElement = useRef<HTMLDivElement>(null);
   const headerInnerElement = useRef<HTMLDivElement>(null);
   const rowsScrollElement = useRef<HTMLDivElement>(null);
@@ -67,7 +70,8 @@ function SheetTable({sheet, footerText, displayRowCount}:Props) {
 
   const rowCount = sheet.rows.length;
   const rowsContent = columnWidths.length === 0 ? null : sheet.rows.map((row, rowI) => 
-    <SheetRow key={rowI} row={row} rowNo={rowI+1} rowCount={rowCount} columnWidths={columnWidths} />
+    <SheetRow key={rowI} row={row} rowNo={rowI+1} rowCount={rowCount} columnWidths={columnWidths} 
+      isSelected={rowI+1===selectedRowNo} onSelectCell={onSelectCell} />
   );
   
   const rowScrollContainerStyle = useMemo(() => _getRowScrollContainerStyle(displayRowCount, rowsScrollElement.current), [displayRowCount]);
