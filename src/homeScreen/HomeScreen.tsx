@@ -39,12 +39,12 @@ function HomeScreen() {
     return deinit;
   }, []);
 
-  const promptPaneContent = sheet ? 
+  const promptPaneContent = null; /* sheet ? 
     <PromptPane 
       sheet={sheet} className={styles.promptPane} 
       testRowNo={selectedRowNo} 
       onExecute={promptTemplate => setUpExecution(job, sheet, promptTemplate, setPromptTemplate, setJob, setModalDialog)}
-    /> : null;
+    /> : null; */
   
   return (
     <div className={styles.container}>

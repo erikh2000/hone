@@ -1,0 +1,18 @@
+.sheetHeader {
+  overflow-y: hidden;
+  overflow-x: hidden;
+  display: flex;
+  background-color: lightgrey;
+  border-style: solid;
+  border-width: 1vh 1vh 0 1vh;
+  border-color: lightgrey;
+  border-top-left-radius: 1vh;
+  border-top-right-radius: 1vh;
+}
+
+.sheetHeader span {
+  display: inline-block;
+  white-space: nowrap;
+  margin-left: .5rem;
+  margin-right: .5rem;
+}

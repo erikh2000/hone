@@ -1,0 +1,10 @@
+.scrollContainer {
+  width: 90vw; /* I honestly don't understand why 90vw works and 100vw doesn't. Seems fragile. */
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.sheetTable {
+  width: max-content;
+  display: inline-block;
+}

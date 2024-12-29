@@ -1,0 +1,9 @@
+.footer {
+  width:auto;
+  background-color: lightgrey;
+  border-style: solid;
+  border-width: 0 1vh 1vh 1vh;
+  border-color: lightgrey;
+  border-bottom-left-radius: 1vh;
+  border-bottom-right-radius: 1vh;
+}

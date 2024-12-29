@@ -1,7 +1,8 @@
-import SheetView from "./SheetView";
+// import SheetView from "./SheetView";
 import Pane, { ButtonDefinition } from "@/components/pane/Pane";
 import { getComment } from "./interactions/comment";
 import HoneSheet from "@/sheets/types/HoneSheet";
+import SheetTable from "@/components/sheetTable/SheetTable";
 
 type Props = {
   sheet: HoneSheet|null,
@@ -16,9 +17,10 @@ function _noSheetLoadedContent() {
   return <div>No sheet loaded.</div>;
 }
 
-function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, onRowSelect:(rowNo:number)=>void) {
+function _sheetContent(sheet:HoneSheet|null, _selectedRowNo:number, _onRowSelect:(rowNo:number)=>void) {
   if (!sheet) return _noSheetLoadedContent();
-  return <SheetView sheet={sheet} selectedRowNo={selectedRowNo} onRowSelect={onRowSelect}/>;
+  // return <SheetView sheet={sheet} selectedRowNo={selectedRowNo} onRowSelect={onRowSelect}/>;
+  return <SheetTable sheet={sheet} />;
 }
 
 function SheetPane({sheet, className, onImportSheet, selectedRowNo, onRowSelect, onExportSheet}:Props) {
