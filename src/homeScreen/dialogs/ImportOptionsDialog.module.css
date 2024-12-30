@@ -14,3 +14,7 @@ label.importOptions {
   display: block;
   margin: .5vh;
 }
+
+.constantSpacer {
+  min-height: 15vh;
+}

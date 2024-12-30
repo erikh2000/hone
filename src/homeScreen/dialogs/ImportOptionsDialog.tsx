@@ -10,7 +10,6 @@ import Selector from "@/components/selector/Selector";
 import Checkbox from "@/components/checkbox/Checkbox";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import { doesSheetHaveWritableColumns } from "@/sheets/sheetUtil";
-import DialogTextInput from "@/components/modalDialogs/DialogTextInput";
 
 const IMPORT_TYPE_OPTIONS:string[] = ['Example', 'Excel', 'CSV', 'Clipboard'];
 
@@ -36,6 +35,11 @@ function _isModifiedSheet(sheet:HoneSheet|null):boolean {
   return sheet ? doesSheetHaveWritableColumns(sheet) : false;
 }
 
+function _handleImport(importOptions:ImportOptions, onImport:(importOptions:ImportOptions) => void) {
+  if (importOptions.importType === ImportType.CLIPBOARD) importOptions.sheetName = 'Pasted';
+  onImport(importOptions);
+}
+
 function ImportOptionsDialog({isOpen, onImport, onCancel, sheet}:Props) {
   const [importOptions, setImportOptions] = useState<ImportOptions|null>(null);
 
@@ -50,16 +54,13 @@ function ImportOptionsDialog({isOpen, onImport, onCancel, sheet}:Props) {
     : <p className={styles.replaceWarning}><em>Warning:</em> This will replace the current sheet and the columns you added to it.</p>;
   const explanation = IMPORT_EXPLANATIONS[importOptions.importType];
   const importButtonName = IMPORT_BUTTON_NAMES[importOptions.importType];
-  const sheetNameInput = importOptions.importType !== ImportType.CLIPBOARD ? null
-    : <DialogTextInput labelText="Sheet Name:" value={importOptions.sheetName} onChangeText={sheetName => setImportOptions({...importOptions, sheetName})} />;
   const useFirstRowColumnNames = importOptions.importType === ImportType.EXAMPLE || importOptions.importType === ImportType.EXCEL ? null
     :  <Checkbox label="Use first row as column names" isChecked={importOptions.useFirstRowColumnNames}  
     onChange={useFirstRowColumnNames => setImportOptions({...importOptions, useFirstRowColumnNames}) } />
-  const importOptionsSection = sheetNameInput === null && useFirstRowColumnNames === null ? null 
+  const importOptionsSection = useFirstRowColumnNames === null ? null 
     : (
     <label className={styles.importOptions}>
       Import options:
-      {sheetNameInput}
       {useFirstRowColumnNames}
     </label>);
 
@@ -68,11 +69,13 @@ function ImportOptionsDialog({isOpen, onImport, onCancel, sheet}:Props) {
       {replaceWarning}
       <Selector label="Import from" optionNames={IMPORT_TYPE_OPTIONS} selectedOptionNo={importOptions.importType} 
         onChange={importType => setImportOptions({...importOptions, importType}) } />
-      <p className={styles.explanation}>{explanation}</p>
-      {importOptionsSection}
+      <div className={styles.constantSpacer}>
+        <p className={styles.explanation}>{explanation}</p>
+        {importOptionsSection}
+      </div>
       <DialogFooter>
         <DialogButton text="Cancel" onClick={() => onCancel()} />
-        <DialogButton text={importButtonName} onClick={() => {if (importOptions) onImport(importOptions)}} isPrimary />
+        <DialogButton text={importButtonName} onClick={() => _handleImport(importOptions, onImport)} isPrimary />
       </DialogFooter>
     </ModalDialog>
   );

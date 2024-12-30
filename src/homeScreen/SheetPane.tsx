@@ -21,7 +21,7 @@ function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, _onRowSelect:
   const onSelectCell = (_colNo:number, rowNo:number) => _onRowSelect(rowNo);
   return <SheetTable 
     selectedRowNo={selectedRowNo} sheet={sheet} footerText={GeneratedFooterText.ROW_COUNT} 
-    onSelectCell={onSelectCell} displayRowCount={10} showRowNumbers/>;
+    onSelectCell={onSelectCell} displayRowCount={20} />;
 }
 
 function SheetPane({sheet, className, onImportSheet, selectedRowNo, onRowSelect, onExportSheet}:Props) {

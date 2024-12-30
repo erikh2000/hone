@@ -9,6 +9,7 @@
 .measureCellText {
   display: inline-block;
   white-space: nowrap;
+  font-size: 1.5vh;
   padding-left: .5rem;
   padding-right: .5rem;
 }
@@ -17,6 +18,7 @@
   composes: disableSelect;
   display: inline-block;
   white-space: nowrap;
+  font-size: 1.5vh;
   padding-left: .5rem;
   padding-right: .5rem;
   background-color: #f2f2f2;

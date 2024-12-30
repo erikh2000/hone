@@ -5,15 +5,15 @@
 
 .dialogButton {
     composes: disableSelect;
-    flex-basis: 10rem;
+    flex-basis: 10vh;
     justify-content: center;
     background-color: button;
     border-style: none;
     background-position: center;
     transition: background 0.2s;
     cursor: pointer;
-    margin-right: .1rem;
-    margin-bottom: .1rem;
+    margin-right: .1vh;
+    margin-bottom: .1vh;
 }
 
 .dialogButton:hover {
@@ -26,8 +26,8 @@
 }
 
 .dialogButtonText {
-    letter-spacing: .1rem;
-    font-size: 1.5rem;
+    letter-spacing: .1vh;
+    font-size: 1.4vh;
     color: button-text;
 }
 
@@ -50,7 +50,7 @@
     composes: dialogButton;
     background-color: button-primary;
     border-style: solid;
-    border-width: 0.1rem;
+    border-width: 0.vh;
     border-color: button-border-primary;
     box-sizing: border-box;
 }
