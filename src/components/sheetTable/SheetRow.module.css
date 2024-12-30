@@ -1,3 +1,5 @@
+@value disableSelect from "@/components/commonStyles.module.css";
+
 .sheetRow {
   position: relative;
   border-bottom: 1px solid #e0e0e0;
@@ -12,6 +14,7 @@
 }
 
 .sheetCell {
+  composes: disableSelect;
   display: inline-block;
   white-space: nowrap;
   padding-left: .5rem;

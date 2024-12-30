@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, RefObject, CSSProperties } from 'react';
+import { useState, useRef, useEffect, RefObject, CSSProperties } from 'react';
 
 import styles from './SheetTable.module.css';
 import rowStyles from './SheetRow.module.css';
@@ -115,14 +115,15 @@ function SheetTable({sheet, footerText, displayRowCount, selectedRowNo, onSelect
       isSelected={rowI+1===selectedRowNo} onSelectCell={onSelectCell} generatedColNo={generatedColNo}/>
   );
   
-  const rowScrollContainerStyle = useMemo(() => _getRowScrollContainerStyle(displayRowCount, rowsScrollElement.current), [displayRowCount]);
+  const rowScrollContainerStyle = _getRowScrollContainerStyle(displayRowCount, rowsScrollElement.current);
   const displayFooterText = _getFooterText(footerText, sheet);
   return (
     <div className={styles.sheetTable} ref={sheetTableElement}>
       <div className={styles.headerScrollContainer}>
         <SheetHeader columns={sheet.columns} columnWidths={columnWidths} ref={headerInnerElement}/>
       </div>
-      <div className={styles.rowsScrollContainer} style={rowScrollContainerStyle} ref={rowsScrollElement} onScroll={() => _syncScrollableElements(headerInnerElement, rowsScrollElement)}>
+      <div className={styles.rowsScrollContainer} style={rowScrollContainerStyle} ref={rowsScrollElement} 
+          onScroll={() => _syncScrollableElements(headerInnerElement, rowsScrollElement)}>
         <div className={styles.rowsInnerContainer}>
           {rowsContent}
         </div>

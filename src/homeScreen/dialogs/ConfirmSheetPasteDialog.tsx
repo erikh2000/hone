@@ -1,9 +1,9 @@
 import ModalDialog from '@/components/modalDialogs/ModalDialog';
 import DialogFooter from '@/components/modalDialogs/DialogFooter';
 import DialogButton from '@/components/modalDialogs/DialogButton';
-import SheetView from '../SheetView';
 import HoneSheet from '@/sheets/types/HoneSheet';
 import { doesSheetHaveWritableColumns } from '@/sheets/sheetUtil';
+import SheetTable, { GeneratedFooterText } from '@/components/sheetTable/SheetTable';
 
 type Props = {
   pastedSheet:HoneSheet|null,
@@ -28,7 +28,7 @@ function ConfirmSheetPasteDialog({pastedSheet, existingSheet, isOpen, onConfirm,
   return (
     <ModalDialog isOpen={isOpen} onCancel={onCancel} title="Confirm Sheet Paste">
       <p>{description}</p>
-      <SheetView sheet={pastedSheet} maxRows={5} padToMax={true}/>
+      <SheetTable sheet={pastedSheet} displayRowCount={5} footerText={GeneratedFooterText.ROW_COUNT}/>
       <DialogFooter>
         <DialogButton text="Cancel" onClick={onCancel} />
         <DialogButton text={confirmButtonText} onClick={() => { if (pastedSheet) onConfirm(pastedSheet)}} isPrimary/>

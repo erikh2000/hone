@@ -2,12 +2,12 @@
 @value button from colors;
 
 .headerScrollContainer {
-  width: 90vw; /* I honestly don't understand why 90vw works and 100vw doesn't. Seems fragile. */
+  width: 100%; /* I honestly don't understand why 90vw works and 100vw doesn't. Seems fragile. */
   overflow-x: clip;
 }
 
 .rowsScrollContainer {
-  width: 90vw;
+  width: 100%;
   overflow-y: auto;
   overflow-x: auto;
   display: inline-block;
@@ -24,7 +24,7 @@
 }
 
 .sheetTable {
-  width: max-content;
+  width: 100%;
   display: inline-block;
   background-color: lightgrey;
   border-color: lightgrey;

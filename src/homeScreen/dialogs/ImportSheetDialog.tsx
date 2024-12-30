@@ -4,8 +4,8 @@ import ModalDialog from '@/components/modalDialogs/ModalDialog';
 import DialogFooter from '@/components/modalDialogs/DialogFooter';
 import DialogButton from '@/components/modalDialogs/DialogButton';
 import SheetSelector from './SheetSelector';
-import SheetView from '../SheetView';
 import HoneSheet from '@/sheets/types/HoneSheet';
+import SheetTable, { GeneratedFooterText } from '@/components/sheetTable/SheetTable';
 
 type Props = {
   availableSheets:HoneSheet[],
@@ -33,7 +33,7 @@ function ImportSheetDialog({availableSheets, isOpen, onChoose, onCancel}:Props) 
   return (
     <ModalDialog isOpen={isOpen} onCancel={onCancel} title="Select Sheet to Import">
       <SheetSelector sheetNames={availableSheetNames} selectedSheetName={selectedSheetName ?? ''} onChange={setSelectedSheetName} />
-      <SheetView sheet={selectedSheet} maxRows={5} padToMax={true}/>
+      <SheetTable sheet={selectedSheet} displayRowCount={5} footerText={GeneratedFooterText.ROW_COUNT}/>
       <DialogFooter>
         <DialogButton text="Cancel" onClick={onCancel} />
         <DialogButton text="Import" onClick={() => { if (selectedSheet) onChoose(selectedSheet)}} isPrimary/>

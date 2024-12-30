@@ -21,7 +21,7 @@ function SheetHeader(props:Props, ref:React.Ref<HTMLDivElement>) {
 
   const className = styles.sheetHeader;
   return (
-    <div className={className} style={{width:"200vw"}} ref={ref}>
+    <div className={className} ref={ref}>
       {cells}
     </div>
   );
