@@ -13,12 +13,27 @@ export enum GeneratedFooterText {
   ROW_COUNT = 0,
 }
 
+export enum HorizontalScroll {
+  CLEAR = 0,
+  LEFT,
+  RIGHT
+}
+
+export enum VerticalScroll {
+  CLEAR = 0,
+  TOP,
+  BOTTOM
+}
+
 type Props = {
   sheet:HoneSheet,
   displayRowCount?:number,
   selectedColNo?:number,
   selectedRowNo?:number,
+  horizontalScroll?:HorizontalScroll,
+  verticalScroll?:VerticalScroll,
   onSelectCell?:(colNo:number, rowNo:number)=>void,
+  generatedColNo?:number,
   footerText?:string|GeneratedFooterText
 }
 
@@ -56,7 +71,7 @@ function _getRowScrollContainerStyle(displayRowCount:number|undefined, parentEle
   return {maxHeight:displayRowCount * lineHeight + 'px'};
 }
 
-function SheetTable({sheet, footerText, displayRowCount, selectedRowNo, onSelectCell}:Props) {
+function SheetTable({sheet, footerText, displayRowCount, selectedRowNo, onSelectCell, generatedColNo, horizontalScroll, verticalScroll}:Props) {
   const sheetTableElement = useRef<HTMLDivElement>(null);
   const headerInnerElement = useRef<HTMLDivElement>(null);
   const rowsScrollElement = useRef<HTMLDivElement>(null);
@@ -68,10 +83,28 @@ function SheetTable({sheet, footerText, displayRowCount, selectedRowNo, onSelect
     setColumnWidths(nextColumnWidths);
   }, [sheet, sheet.rows]);
 
+  useEffect(() => {
+    if (horizontalScroll === HorizontalScroll.CLEAR || rowsScrollElement.current === null) return;
+    if (horizontalScroll === HorizontalScroll.LEFT) {
+      rowsScrollElement.current.scrollLeft = 0;
+    } else if (horizontalScroll === HorizontalScroll.RIGHT) {
+      rowsScrollElement.current.scrollLeft = rowsScrollElement.current.scrollWidth;
+    }
+  }, [horizontalScroll]);
+
+  useEffect(() => {
+    if (verticalScroll === VerticalScroll.CLEAR || rowsScrollElement.current === null) return;
+    if (verticalScroll === VerticalScroll.TOP) {
+      rowsScrollElement.current.scrollTop = 0;
+    } else if (verticalScroll === VerticalScroll.BOTTOM) {
+      rowsScrollElement.current.scrollTop = rowsScrollElement.current.scrollHeight;
+    }
+  }, [verticalScroll]);
+
   const rowCount = sheet.rows.length;
   const rowsContent = columnWidths.length === 0 ? null : sheet.rows.map((row, rowI) => 
     <SheetRow key={rowI} row={row} rowNo={rowI+1} rowCount={rowCount} columnWidths={columnWidths} 
-      isSelected={rowI+1===selectedRowNo} onSelectCell={onSelectCell} />
+      isSelected={rowI+1===selectedRowNo} onSelectCell={onSelectCell} generatedColNo={generatedColNo}/>
   );
   
   const rowScrollContainerStyle = useMemo(() => _getRowScrollContainerStyle(displayRowCount, rowsScrollElement.current), [displayRowCount]);
@@ -83,7 +116,7 @@ function SheetTable({sheet, footerText, displayRowCount, selectedRowNo, onSelect
       </div>
       <div className={styles.rowsScrollContainer} style={rowScrollContainerStyle} ref={rowsScrollElement} onScroll={() => _syncScrollableElements(headerInnerElement, rowsScrollElement)}>
         <div className={styles.rowsInnerContainer}>
-        {rowsContent}
+          {rowsContent}
         </div>
       </div><SheetFooter text={displayFooterText}/>
     </div>

@@ -17,6 +17,7 @@
   padding-left: .5rem;
   padding-right: .5rem;
   background-color: #f2f2f2;
+  border-style: hidden;
 }
 
 .selected {
@@ -45,26 +46,18 @@
   background-color: #ffffff;
 }
 
-.sheetCellTopLeft {
-  composes: sheetCell;
-  border-style: hidden;
+.topLeft {
   border-top-left-radius: 1vh;
 }
 
-.sheetCellTopRight {
-  composes: sheetCell;
-  border-style: hidden;
+.topRight {
   border-top-right-radius: 1vh;
 }
 
-.sheetCellBottomLeft {
-  composes: sheetCell;
-  border-style: hidden;
+.bottomLeft {
   border-bottom-left-radius: 1vh;
 }
 
-.sheetCellBottomRight {
-  composes: sheetCell;
-  border-style: hidden;
+.bottomRight {
   border-bottom-right-radius: 1vh;
 }

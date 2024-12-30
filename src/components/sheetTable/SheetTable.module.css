@@ -11,6 +11,8 @@
   overflow-y: auto;
   overflow-x: auto;
   display: inline-block;
+  padding-bottom: .5vh;
+  padding-right: .5vh;
 }
 
 .rowsScrollContainer:hover {
