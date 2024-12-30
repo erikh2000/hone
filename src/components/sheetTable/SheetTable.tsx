@@ -71,6 +71,24 @@ function _getRowScrollContainerStyle(displayRowCount:number|undefined, parentEle
   return {maxHeight:displayRowCount * lineHeight + 'px'};
 }
 
+function _setHorizontalScroll(rowsScrollElement:DivRef, horizontalScroll?:HorizontalScroll) {
+  if (horizontalScroll === undefined || horizontalScroll === HorizontalScroll.CLEAR || rowsScrollElement.current === null) return;
+  if (horizontalScroll === HorizontalScroll.LEFT) {
+    rowsScrollElement.current.scrollLeft = 0;
+  } else if (horizontalScroll === HorizontalScroll.RIGHT) {
+    rowsScrollElement.current.scrollLeft = rowsScrollElement.current.scrollWidth;
+  }
+}
+
+function _setVerticalScroll(rowsScrollElement:DivRef, verticalScroll?:VerticalScroll) {
+  if (verticalScroll === undefined || verticalScroll === VerticalScroll.CLEAR || rowsScrollElement.current === null) return;
+  if (verticalScroll === VerticalScroll.TOP) {
+    rowsScrollElement.current.scrollTop = 0;
+  } else if (verticalScroll === VerticalScroll.BOTTOM) {
+    rowsScrollElement.current.scrollTop = rowsScrollElement.current.scrollHeight;
+  }
+}
+
 function SheetTable({sheet, footerText, displayRowCount, selectedRowNo, onSelectCell, generatedColNo, horizontalScroll, verticalScroll}:Props) {
   const sheetTableElement = useRef<HTMLDivElement>(null);
   const headerInnerElement = useRef<HTMLDivElement>(null);
@@ -84,21 +102,11 @@ function SheetTable({sheet, footerText, displayRowCount, selectedRowNo, onSelect
   }, [sheet, sheet.rows]);
 
   useEffect(() => {
-    if (horizontalScroll === HorizontalScroll.CLEAR || rowsScrollElement.current === null) return;
-    if (horizontalScroll === HorizontalScroll.LEFT) {
-      rowsScrollElement.current.scrollLeft = 0;
-    } else if (horizontalScroll === HorizontalScroll.RIGHT) {
-      rowsScrollElement.current.scrollLeft = rowsScrollElement.current.scrollWidth;
-    }
+    _setHorizontalScroll(rowsScrollElement, horizontalScroll);
   }, [horizontalScroll]);
 
   useEffect(() => {
-    if (verticalScroll === VerticalScroll.CLEAR || rowsScrollElement.current === null) return;
-    if (verticalScroll === VerticalScroll.TOP) {
-      rowsScrollElement.current.scrollTop = 0;
-    } else if (verticalScroll === VerticalScroll.BOTTOM) {
-      rowsScrollElement.current.scrollTop = rowsScrollElement.current.scrollHeight;
-    }
+    _setVerticalScroll(rowsScrollElement, verticalScroll);
   }, [verticalScroll]);
 
   const rowCount = sheet.rows.length;
