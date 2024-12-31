@@ -7,6 +7,7 @@ import { connectToOllama, generateOllama } from "./ollamaUtil";
 import { connectToWebLLM, generateWebLLM } from "./webLlmUtil";
 import { isServingLocally } from "@/developer/devEnvUtil";
 import { updateStatsForPrompt } from "./llmStatsUtil";
+import { getCachedPromptResponse, setCachedPromptResponse } from "./promptCache";
 
 let theConnection:LLMConnection = {
   state:LLMConnectionState.UNINITIALIZED,
@@ -68,6 +69,12 @@ export function clearChatHistory() {
 }
 
 export async function generate(prompt:string, onStatusUpdate:StatusUpdateCallback):Promise<string> {
+  const cachedResponse = getCachedPromptResponse(prompt);
+  if (cachedResponse) {
+    onStatusUpdate(cachedResponse, 100);
+    return cachedResponse;
+  }
+
   if (!isInitialized()) throw Error('LLM connection is not initialized.');
   if (theConnection.state !== LLMConnectionState.READY) throw Error('LLM is not in ready state.');
   theConnection.state = LLMConnectionState.GENERATING;
@@ -78,6 +85,7 @@ export async function generate(prompt:string, onStatusUpdate:StatusUpdateCallbac
     case LLMConnectionType.OLLAMA: message = await generateOllama(theConnection, messages, prompt, onStatusUpdate); break;
     default: throw Error('Unexpected');
   }
+  setCachedPromptResponse(prompt, message);
   updateStatsForPrompt(Date.now() - promptStartTime);
   theConnection.state = LLMConnectionState.READY;
   return message;
