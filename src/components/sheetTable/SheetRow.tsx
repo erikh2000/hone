@@ -1,6 +1,7 @@
 import Row from "@/sheets/types/Row"
 import styles from './SheetRow.module.css';
 import GeneratedText from "../generatedText/GeneratedText";
+import { cellValueToText } from "./sheetTableUtil";
 
 type Props = {
   row:Row,
@@ -34,8 +35,8 @@ function SheetRow({row, rowNo, rowCount, columnWidths, isSelected, onSelectCell,
   const cells = row.map((cell, cellI) => {
     const style = columnWidths[cellI] ? {minWidth:columnWidths[cellI]} : {};
     const className = _classNameForCell(cellI+1, rowNo, colCount, rowCount, isSelected === true, onSelectCell !== undefined);
-    const cellText = '' + cell;
-    const cellContent = cellI+1 === generatedColNo ? <GeneratedText text={'' + cell} /> : cellText;
+    const cellText = cellValueToText(cell);
+    const cellContent = cellI+1 === generatedColNo ? <GeneratedText text={cellText} /> : cellText;
     return (
       <span key={cellI} className={className} style={style} onClick={onSelectCell ? () => onSelectCell(cellI+1, rowNo) : undefined}>
         {cellContent}
