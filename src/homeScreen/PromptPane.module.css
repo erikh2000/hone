@@ -1,8 +1,15 @@
+@value colors: "@/components/commonPalette.module.css";
+@value button from colors;
+
 .promptForm textarea {
   width: 100%;
   resize: none;
   font-size: 1vh;
   padding: .3vh;
+}
+
+textarea:focus {
+  outline: .2vh solid button;
 }
 
 .testPrompt {
