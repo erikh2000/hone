@@ -15,6 +15,7 @@ textarea:focus {
 .testPrompt {
   font-size: 1vh;
   padding: 1vh;
+  min-height: 6vh;
 }
 
 @keyframes shimmer {

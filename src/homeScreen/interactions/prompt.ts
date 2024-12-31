@@ -47,3 +47,62 @@ export function insertFieldNameIntoPromptTemplate(fieldName:string, textAreaElem
   textAreaElement.focus();
   textAreaElement.selectionStart = textAreaElement.selectionEnd = insertionPos + insertionText.length;
 }
+
+function _doesPromptTemplateContainFields(promptTemplate:string):boolean {
+  const leftBraceI = promptTemplate.indexOf('{');
+  const rightBraceI = promptTemplate.indexOf('}', leftBraceI+1);
+  return (leftBraceI !== -1 && rightBraceI !== -1);
+}
+
+const MAX_FIELDNAME_DISPLAY_LENGTH = 15;
+
+function _truncateText(text:string, maxLength:number):string {
+  return text.length <= maxLength ? text : text.substring(0, maxLength-3) + '...';
+}
+
+function _findMalformedField(promptTemplate:string):string|null {
+  let leftBraceI = promptTemplate.indexOf('{');;
+  while(leftBraceI !== -1) {
+    const rightBraceI = promptTemplate.indexOf('}', leftBraceI+1);
+    if (rightBraceI === -1) return _truncateText(promptTemplate.substring(leftBraceI), MAX_FIELDNAME_DISPLAY_LENGTH);
+    const nextLeftBraceI = promptTemplate.indexOf('{', leftBraceI+1);
+    if (nextLeftBraceI !== -1 && nextLeftBraceI < rightBraceI) {
+      return _truncateText(promptTemplate.substring(leftBraceI, nextLeftBraceI+1), MAX_FIELDNAME_DISPLAY_LENGTH);
+    }
+    leftBraceI = nextLeftBraceI;
+  }
+  return null;
+}
+
+// Function assumes no malformed fields are in the prompt template.
+function _findMissingField(promptTemplate:string, columnNames:string[]):string|null {
+  let leftBraceI = promptTemplate.indexOf('{');;
+  while(leftBraceI !== -1) {
+    const rightBraceI = promptTemplate.indexOf('}', leftBraceI+1);
+    const fieldName = promptTemplate.substring(leftBraceI+1, rightBraceI);  
+    if (!columnNames.includes(fieldName)) return _truncateText(fieldName, MAX_FIELDNAME_DISPLAY_LENGTH);
+    leftBraceI = promptTemplate.indexOf('{', rightBraceI+1);
+  }
+  return null;
+}
+
+export function isPromptTemplateReady(promptTemplate:string, columnNames:string[]):boolean {
+  if (promptTemplate === '') return false;
+  if (!_doesPromptTemplateContainFields(promptTemplate)) return false;
+  const malformedField = _findMalformedField(promptTemplate);
+  if (malformedField) return false;
+  const missingField = _findMissingField(promptTemplate, columnNames);
+  if (missingField) return false;
+  return true;
+}
+
+export function getComment(promptTemplate:string, columnNames:string[], lastTestOutput:string):string {
+  if (promptTemplate === '') return "Write a prompt to execute against each row of the sheet.";
+  if (!_doesPromptTemplateContainFields(promptTemplate)) return "The prompt template doesn't contain any fields yet.";
+  const malformedField = _findMalformedField(promptTemplate);
+  if (malformedField) return `The prompt template contains a malformed field around "${malformedField}".`;
+  const missingField = _findMissingField(promptTemplate, columnNames);
+  if (missingField) return `The prompt template references a "${missingField}" field that doesn't exist in the sheet.`;
+  if (lastTestOutput !== '') return "Keep testing the prompt against different rows, and execute it against all rows when you're ready.";
+  return 'You can test this prompt on one row to see how it does.';
+}

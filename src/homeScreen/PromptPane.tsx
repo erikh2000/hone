@@ -5,7 +5,7 @@ import Pane, { ButtonDefinition } from "@/components/pane/Pane";
 import { createRowNameValues } from "@/sheets/sheetUtil";
 import styles from './PromptPane.module.css';
 import { fillTemplate } from "@/common/stringUtil";
-import { insertFieldNameIntoPromptTemplate, isGenerating, promptForSimpleResponse } from "./interactions/prompt";
+import { getComment, insertFieldNameIntoPromptTemplate, isGenerating, isPromptTemplateReady, promptForSimpleResponse } from "./interactions/prompt";
 import HoneSheet from "@/sheets/types/HoneSheet";
 import PromptOutputRow from "./PromptOutputRow";
 import { fixGrammar } from "@/common/englishGrammarUtil";
@@ -28,6 +28,7 @@ function PromptPane({sheet, className, testRowNo, onExecute, defaultPromptTempla
   useEffect(() => {
     if (!sheet) { setTestRowNameValues({}); return; }
     setTestRowNameValues(createRowNameValues(sheet, testRowNo));
+    setLastTestOutput('');
   }, [sheet, testRowNo]);
 
   useEffect(() => {
@@ -37,7 +38,8 @@ function PromptPane({sheet, className, testRowNo, onExecute, defaultPromptTempla
   if (!sheet) return null;
 
   const isTestPromptGenerating = isGenerating();
-  const disablePrompting = !sheet || promptTemplate === '' || isTestPromptGenerating;
+  const disablePrompting = !sheet || promptTemplate === '' || isTestPromptGenerating || 
+      !isPromptTemplateReady(promptTemplate, sheet.columns.map(column => column.name));
 
   const buttons:ButtonDefinition[] = [
     { text:`Test One Row`, onClick:() => {promptForSimpleResponse(testPrompt, setLastTestOutput)}, disabled:disablePrompting }, 
@@ -47,9 +49,10 @@ function PromptPane({sheet, className, testRowNo, onExecute, defaultPromptTempla
   const testPromptStyle = isTestPromptGenerating ? styles.testPromptGenerating : styles.testPrompt;
   const testPromptContent = testPrompt ? <div className={testPromptStyle}>Testing row #{testRowNo}: "{testPrompt}"</div> : null;
   const columnNames = useMemo(() => sheet.columns.map(column => column.name), [sheet.columns]);
+  const comment = getComment(promptTemplate, columnNames, lastTestOutput);
 
   return (
-    <Pane caption="Prompt" className={className} buttons={buttons} comment="Write a prompt to execute against each row of the sheet.">
+    <Pane caption="Prompt" className={className} buttons={buttons} comment={comment}>
       <div className={styles.promptForm}>
       <FieldInsertionList 
         columnNames={columnNames} 
