@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 
 import styles from './HomeScreen.module.css';
 import { deinit, init } from "./interactions/initialization";
@@ -26,6 +27,8 @@ import ExportOptionsDialog from "./dialogs/ExportOptionsDialog";
 import ImportOptionsDialog from "./dialogs/ImportOptionsDialog";
 import ConfirmSheetPasteDialog from "./dialogs/ConfirmSheetPasteDialog";
 import ImportExampleDialog from "./dialogs/ImportExampleDialog";
+import LLMDevPauseDialog from "@/homeScreen/dialogs/LLMDevPauseDialog";
+import { LOAD_URL } from "@/common/urlUtil";
 
 function HomeScreen() {
   const [sheet, setSheet] = useState<HoneSheet|null>(null);
@@ -34,9 +37,10 @@ function HomeScreen() {
   const [job, setJob] = useState<ExecutionJob|null>(null);
   const [modalDialog, setModalDialog] = useState<string|null>(null);
   const [promptTemplate, setPromptTemplate] = useState<string>('');
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
-    init(setAvailableSheets, setModalDialog).then(() => { });
+    init(setAvailableSheets, setModalDialog, setLocation).then(() => { });
     return deinit;
   }, []);
 
@@ -60,6 +64,10 @@ function HomeScreen() {
         onExportSheet={() => chooseExportType(setModalDialog)}
       />
       {promptPaneContent}
+
+      <LLMDevPauseDialog isOpen={modalDialog === LLMDevPauseDialog.name}
+        onConfirm={() => setLocation(LOAD_URL)} onCancel={() => setModalDialog(null)} 
+      />
 
       <ImportSheetDialog availableSheets={availableSheets} isOpen={modalDialog === ImportSheetDialog.name} 
         onChoose={(nextSheet, nextPromptTemplate) => onSelectSheet(nextSheet, nextPromptTemplate, setAvailableSheets, setSheet, setPromptTemplate, setModalDialog)} 
@@ -109,7 +117,7 @@ function HomeScreen() {
         isOpen={modalDialog === ConfirmSheetPasteDialog.name}
         pastedSheet={availableSheets[0]}
         existingSheet={sheet}
-        onConfirm={(pastedSheet) => onSelectSheet(pastedSheet, setAvailableSheets, setSheet, setModalDialog)}
+        onConfirm={(pastedSheet) => onSelectSheet(pastedSheet, '', setAvailableSheets, setSheet, setPromptTemplate, setModalDialog)}
         onCancel={() => setModalDialog(null)}
       />
 

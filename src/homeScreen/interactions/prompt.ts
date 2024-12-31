@@ -14,7 +14,7 @@ export async function promptForSimpleResponse(prompt:string, setResponseText:Fun
   clearChatHistory();
   setResponseText(GENERATING);
   try {
-    if (!isLlmConnected()) { errorToast('LLM is not connected. This happens in dev environments with hot reload. You can reload from the start URL.'); return null; }
+    if (!isLlmConnected()) { errorToast('LLM is not connected. This happens in dev environments with hot reload. You can refresh the page to load the LLM.'); return null; }
     const finalResponse = await generate(prompt, (status:string) => setResponseText(`${parseSimpleResponse(status)}...`));
     const simpleResponse = '' + parseSimpleResponse(finalResponse);
     setResponseText(simpleResponse);

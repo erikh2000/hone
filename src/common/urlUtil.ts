@@ -1,6 +1,5 @@
-export const START_URL = baseUrl('/');
+export const HOME_URL = baseUrl('/');
 export const LOAD_URL = baseUrl('/load');
-export const HOME_URL = baseUrl('/home');
 export const TEST_URL = baseUrl('/test');
 
 export function baseUrl(path: string) {

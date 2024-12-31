@@ -1,6 +1,9 @@
-import { setSystemMessage } from "@/llm/llmUtil";
+import { isLlmConnected, setSystemMessage } from "@/llm/llmUtil";
 import { SYSTEM_MESSAGE } from "./prompt";
 import { importFromPasteEvent } from "./import";
+import { isServingLocally } from "@/developer/devEnvUtil";
+import LLMDevPauseDialog from "@/homeScreen/dialogs/LLMDevPauseDialog";
+import { LOAD_URL } from "@/common/urlUtil";
 
 type PasteHandlerFunction = (event:ClipboardEvent) => void;
 
@@ -20,12 +23,20 @@ function _handlePaste(clipboardEvent:ClipboardEvent, setAvailableSheets:Function
   importFromPasteEvent(clipboardEvent, setAvailableSheets, setModalDialog);
 }
 
-export async function init(setAvailableSheets:Function, setModalDialog:Function) {
+export async function init(setAvailableSheets:Function, setModalDialog:Function, setLocation:Function) {
   setSystemMessage(SYSTEM_MESSAGE);
   
   if (pasteHandler) document.removeEventListener('paste', pasteHandler);
   pasteHandler = clipboardEvent => _handlePaste(clipboardEvent, setAvailableSheets, setModalDialog);
   document.addEventListener('paste', pasteHandler);
+
+  if (!isLlmConnected()) {
+    if (isServingLocally()) {
+      setModalDialog(LLMDevPauseDialog.name); // Probably a hot reload on a dev server - ask user if should load LLM.
+      return;
+    }
+    setLocation(LOAD_URL); // First arrival to screen with LLM not loaded. Go load it and come back.
+  }
 }
 
 export function deinit() {
