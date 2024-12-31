@@ -10,7 +10,7 @@ import SheetTable, { GeneratedFooterText } from '@/components/sheetTable/SheetTa
 type Props = {
   availableSheets:HoneSheet[],
   isOpen:boolean,
-  onChoose(sheet:HoneSheet):void,
+  onChoose(sheet:HoneSheet, defaultPromptTemplate:string):void,
   onCancel():void
 }
 
@@ -36,7 +36,7 @@ function ImportSheetDialog({availableSheets, isOpen, onChoose, onCancel}:Props) 
       <SheetTable sheet={selectedSheet} displayRowCount={5} footerText={GeneratedFooterText.ROW_COUNT}/>
       <DialogFooter>
         <DialogButton text="Cancel" onClick={onCancel} />
-        <DialogButton text="Import" onClick={() => { if (selectedSheet) onChoose(selectedSheet)}} isPrimary/>
+        <DialogButton text="Import" onClick={() => { if (selectedSheet) onChoose(selectedSheet, '')}} isPrimary/>
       </DialogFooter>
     </ModalDialog>
   );

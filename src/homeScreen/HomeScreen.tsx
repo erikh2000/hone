@@ -25,6 +25,7 @@ import ResumeJobDialog from "./dialogs/ResumeJobDialog";
 import ExportOptionsDialog from "./dialogs/ExportOptionsDialog";
 import ImportOptionsDialog from "./dialogs/ImportOptionsDialog";
 import ConfirmSheetPasteDialog from "./dialogs/ConfirmSheetPasteDialog";
+import ImportExampleDialog from "./dialogs/ImportExampleDialog";
 
 function HomeScreen() {
   const [sheet, setSheet] = useState<HoneSheet|null>(null);
@@ -42,7 +43,8 @@ function HomeScreen() {
   const promptPaneContent = !sheet ? null : 
     <PromptPane 
       sheet={sheet} className={styles.promptPane} 
-      testRowNo={selectedRowNo} 
+      testRowNo={selectedRowNo}
+      defaultPromptTemplate={promptTemplate} 
       onExecute={promptTemplate => setUpExecution(job, sheet, promptTemplate, setPromptTemplate, setJob, setModalDialog)}
     />;
   
@@ -60,7 +62,12 @@ function HomeScreen() {
       {promptPaneContent}
 
       <ImportSheetDialog availableSheets={availableSheets} isOpen={modalDialog === ImportSheetDialog.name} 
-        onChoose={(sheet) => onSelectSheet(sheet, setAvailableSheets, setSheet, setModalDialog)} 
+        onChoose={(nextSheet, nextPromptTemplate) => onSelectSheet(nextSheet, nextPromptTemplate, setAvailableSheets, setSheet, setPromptTemplate, setModalDialog)} 
+        onCancel={() => setModalDialog(null)} 
+      />
+
+      <ImportExampleDialog availableSheets={availableSheets} isOpen={modalDialog === ImportExampleDialog.name} 
+        onChoose={(nextSheet, nextPromptTemplate) => onSelectSheet(nextSheet, nextPromptTemplate, setAvailableSheets, setSheet, setPromptTemplate, setModalDialog)} 
         onCancel={() => setModalDialog(null)} 
       />
       

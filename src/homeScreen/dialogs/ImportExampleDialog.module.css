@@ -1,0 +1,11 @@
+.explanation {
+  background-color:#eaeae9;
+  min-height: 8vh;
+  font-size: 1.2rem;
+  padding: 1vh;
+  margin: 1vh;
+  display: flex;
+  border-radius: 1vh;
+  justify-content: center;
+  align-items: center;
+}

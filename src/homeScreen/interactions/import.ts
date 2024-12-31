@@ -8,6 +8,7 @@ import ImportType from '@/homeScreen/types/ImportType';
 import { importSheetFromClipboard, importSheetFromClipboardData, importSheetFromCsvFile, importSheetsFromXlsBytes, importSheetsFromXlsFile, SheetErrorType } from '@/sheets/sheetUtil';
 import { CvsImportErrorType, MAX_FIELD_COUNT } from '@/csv/csvImportUtil';
 import ConfirmSheetPasteDialog from "../dialogs/ConfirmSheetPasteDialog";
+import ImportExampleDialog from "../dialogs/ImportExampleDialog";
 
 async function _selectExcelFileHandle():Promise<FileSystemFileHandle|null> {
     const openFileOptions = {
@@ -49,9 +50,10 @@ async function _selectCsvFileHandle():Promise<FileSystemFileHandle|null> {
     }
 }
 
-export function onSelectSheet(sheet:HoneSheet, setAvailableSheets:Function, setSheet:Function, setModalDialog:Function) {
+export function onSelectSheet(sheet:HoneSheet, promptTemplate:string, setAvailableSheets:Function, setSheet:Function, setPromptTemplate:Function, setModalDialog:Function) {
     setAvailableSheets([]);
     setSheet(sheet);
+    setPromptTemplate(promptTemplate);
     setModalDialog(null);
 }
 
@@ -184,7 +186,7 @@ async function _importExample(setAvailableSheets:Function, setModalDialog:Functi
         const sheets:HoneSheet[] = await importSheetsFromXlsBytes(data, skipSheetErrorMessage => console.error(skipSheetErrorMessage)); // Any import error is unexpected debug error.
         if (sheets.length < 1) throw Error('Unexpected');
         setAvailableSheets(sheets);
-        setModalDialog(ImportSheetDialog.name);
+        setModalDialog(ImportExampleDialog.name);
     } catch(e) {
         console.error(e);
         errorToast('There was an unexpected error importing the example file.');

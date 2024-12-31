@@ -14,6 +14,7 @@ type Props = {
   sheet:HoneSheet,
   className:string,
   testRowNo:number,
+  defaultPromptTemplate:string,
   onExecute:(promptTemplate:string) => void
 }
 
@@ -42,7 +43,7 @@ function _content(sheet:HoneSheet|null, promptTemplate:string, setPromptTemplate
   )
 }
 
-function PromptPane({sheet, className, testRowNo, onExecute}:Props) {
+function PromptPane({sheet, className, testRowNo, onExecute, defaultPromptTemplate}:Props) {
   const [promptTemplate, setPromptTemplate] = useState<string>('');
   const [testRowNameValues, setTestRowNameValues] = useState<StringMap>({});
   const [lastTestOutput, setLastTestOutput] = useState<string>('');
@@ -50,7 +51,12 @@ function PromptPane({sheet, className, testRowNo, onExecute}:Props) {
   useEffect(() => {
     if (!sheet) { setTestRowNameValues({}); return; }
     setTestRowNameValues(createRowNameValues(sheet, testRowNo));
+    
   }, [sheet, testRowNo]);
+
+  useEffect(() => {
+    setPromptTemplate(defaultPromptTemplate);
+  }, [defaultPromptTemplate]);
 
   const testPrompt = fixGrammar(fillTemplate(promptTemplate, testRowNameValues));
 
@@ -58,8 +64,8 @@ function PromptPane({sheet, className, testRowNo, onExecute}:Props) {
   const disablePrompting = !sheet || promptTemplate === '' || isTestPromptGenerating;
 
   const buttons:ButtonDefinition[] = [
-    { text:`Test Row #${testRowNo}`, onClick:() => {promptForSimpleResponse(testPrompt, setLastTestOutput)}, disabled:disablePrompting }, 
-    { text:"Execute...", onClick:() => {onExecute(promptTemplate)}, disabled:disablePrompting }];
+    { text:`Test One Row`, onClick:() => {promptForSimpleResponse(testPrompt, setLastTestOutput)}, disabled:disablePrompting }, 
+    { text:"Execute All Rows", onClick:() => {onExecute(promptTemplate)}, disabled:disablePrompting }];
 
   const content = _content(sheet, promptTemplate, setPromptTemplate, testPrompt, lastTestOutput, testRowNo, isTestPromptGenerating);
 

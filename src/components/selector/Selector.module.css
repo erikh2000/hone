@@ -23,7 +23,8 @@
     composes: disableSelect;
     justify-content: center;
     background-color: button;
-    border-style: none;
+    border-style: none solid none none;
+    border-color: #aa6226;
     background-position: center;
     transition: background 0.2s;
     cursor: pointer;
