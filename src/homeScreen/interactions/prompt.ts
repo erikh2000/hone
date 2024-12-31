@@ -32,3 +32,18 @@ export async function promptForSimpleResponse(prompt:string, setResponseText:Fun
 // For React components that call this in rendering function, consider that some prop/state change must happen before the component will re-render. The
 // setResponseText() calls in promptForSimpleResponse() will probably generating rendering calls as needed.
 export function isGenerating():boolean { return _isGenerating; }
+
+function _isInsertionPosAtLineStart(insertionPos:number, promptTemplate:string):boolean {
+  return insertionPos === 0 || promptTemplate[insertionPos - 1] === '\n';
+}
+
+export function insertFieldNameIntoPromptTemplate(fieldName:string, textAreaElement:HTMLTextAreaElement, promptTemplate:string, setPromptTemplate:Function) {
+  let insertionText = `{${fieldName}}`;
+  const insertionPos = textAreaElement.selectionStart;
+  const insertionEnd = textAreaElement.selectionEnd;
+  if (_isInsertionPosAtLineStart(insertionPos, promptTemplate)) insertionText = `${fieldName}:${insertionText}\n`;
+  const nextPromptTemplate = promptTemplate.slice(0, insertionPos) + insertionText + promptTemplate.slice(insertionEnd);
+  setPromptTemplate(nextPromptTemplate);
+  textAreaElement.focus();
+  textAreaElement.selectionStart = textAreaElement.selectionEnd = insertionPos + insertionText.length;
+}

@@ -8,8 +8,8 @@ interface IProps {
 
 function ContentButton(props:IProps) {
   const { text, onClick, disabled } = props;
-  const buttonClass = disabled ? styles.contentPaneButtonDisabled : styles.contentPaneButton;
-  const textClass = disabled ? styles.contentPaneButtonTextDisabled : styles.contentPaneButtonText;
+  const buttonClass = disabled ? styles.contentButtonDisabled : styles.contentButton;
+  const textClass = disabled ? styles.contentButtonTextDisabled : styles.contentButtonText;
   return (
     <button className={buttonClass} onClick={onClick} disabled={disabled}>
       <span className={textClass}>{text}</span>

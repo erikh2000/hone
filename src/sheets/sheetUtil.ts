@@ -119,15 +119,6 @@ export function getSheetRows(sheet:HoneSheet, startRow:number = 0, maxRows:numbe
   return rows;
 }
 
-export function cellValueToText(cellValue:any):string {
-  if (cellValue === null || cellValue === undefined) return '';
-  if (typeof cellValue === 'string') return cellValue;
-  if (typeof cellValue === 'number') return '' + cellValue;
-  if (typeof cellValue === 'boolean') return cellValue ? 'true' : 'false';
-  if (cellValue instanceof Date) return cellValue.toISOString();
-  return '' + cellValue;
-}
-
 export function addNewColumn(sheet:HoneSheet, columnName:string) {
   sheet.columns.push({ name:columnName, isWritable:true });
   sheet.rows.forEach(row => row.push(''));

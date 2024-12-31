@@ -1,6 +1,6 @@
 .promptForm textarea {
   width: 100%;
-  height: 4vh;
+  resize: none;
   font-size: 1vh;
   padding: .3vh;
 }
