@@ -17,7 +17,7 @@ function _noSheetLoadedContent() {
   return <div>No sheet loaded.</div>;
 }
 
-function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, _onRowSelect:(rowNo:number)=>void, horizontalScroll) {
+function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, _onRowSelect:(rowNo:number)=>void, horizontalScroll:HorizontalScroll) {
   if (!sheet) return _noSheetLoadedContent();
   const onSelectCell = (_colNo:number, rowNo:number) => _onRowSelect(rowNo);
   return <SheetTable 
