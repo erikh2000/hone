@@ -11,7 +11,6 @@ import { GeneratedFooterText } from './types/GeneratedFooterText';
 import { getFooterText, getRowScrollContainerStyle, measureColumnWidths, setHorizontalScroll, setVerticalScroll, syncScrollableElements } from './interactions/table';
 
 type Props = {
-  columnNames:string[],
   sheet:HoneSheet,
   displayRowCount?:number,
   selectedColNo?:number,
