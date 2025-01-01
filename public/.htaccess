@@ -7,9 +7,9 @@
 </IfModule>
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /your-app-route/
+    RewriteBase /hone/
     RewriteRule ^index\.html$ - [L]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule . /your-app-route/index.html [L]
+    RewriteRule . /hone/index.html [L]
 </IfModule>
