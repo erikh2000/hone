@@ -3,7 +3,8 @@ import DialogFooter from '@/components/modalDialogs/DialogFooter';
 import DialogButton from '@/components/modalDialogs/DialogButton';
 import HoneSheet from '@/sheets/types/HoneSheet';
 import { doesSheetHaveWritableColumns } from '@/sheets/sheetUtil';
-import SheetTable, { GeneratedFooterText } from '@/components/sheetTable/SheetTable';
+import SheetTable from '@/components/sheetTable/SheetTable';
+import { GeneratedFooterText } from '@/components/sheetTable/types/GeneratedFooterText';
 
 type Props = {
   pastedSheet:HoneSheet|null,

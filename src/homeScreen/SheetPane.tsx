@@ -1,7 +1,9 @@
 import Pane, { ButtonDefinition } from "@/components/pane/Pane";
 import { getComment } from "./interactions/comment";
 import HoneSheet from "@/sheets/types/HoneSheet";
-import SheetTable, { GeneratedFooterText, HorizontalScroll } from "@/components/sheetTable/SheetTable";
+import SheetTable from "@/components/sheetTable/SheetTable";
+import HorizontalScroll from "@/components/sheetTable/types/HorizontalScroll";
+import { GeneratedFooterText } from "@/components/sheetTable/types/GeneratedFooterText";
 
 type Props = {
   sheet: HoneSheet|null,

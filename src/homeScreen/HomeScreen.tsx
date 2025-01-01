@@ -29,8 +29,8 @@ import ConfirmSheetPasteDialog from "./dialogs/ConfirmSheetPasteDialog";
 import ImportExampleDialog from "./dialogs/ImportExampleDialog";
 import LLMDevPauseDialog from "@/homeScreen/dialogs/LLMDevPauseDialog";
 import { LOAD_URL } from "@/common/urlUtil";
-import { HorizontalScroll } from "@/components/sheetTable/SheetTable";
 import { doesSheetHaveWritableColumns } from "@/sheets/sheetUtil";
+import HorizontalScroll from "@/components/sheetTable/types/HorizontalScroll";
 
 function HomeScreen() {
   const [sheet, setSheet] = useState<HoneSheet|null>(null);

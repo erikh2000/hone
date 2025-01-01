@@ -2,7 +2,8 @@ import { useMemo, useState, useEffect } from "react";
 
 import HoneSheet from "@/sheets/types/HoneSheet";
 import styles from './PromptOutputRow.module.css';
-import SheetTable, { HorizontalScroll } from "@/components/sheetTable/SheetTable";
+import SheetTable from "@/components/sheetTable/SheetTable";
+import HorizontalScroll from "@/components/sheetTable/types/HorizontalScroll";
 
 type Props = {
   sheet:HoneSheet;
