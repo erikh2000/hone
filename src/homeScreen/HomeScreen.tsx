@@ -29,6 +29,8 @@ import ConfirmSheetPasteDialog from "./dialogs/ConfirmSheetPasteDialog";
 import ImportExampleDialog from "./dialogs/ImportExampleDialog";
 import LLMDevPauseDialog from "@/homeScreen/dialogs/LLMDevPauseDialog";
 import { LOAD_URL } from "@/common/urlUtil";
+import { HorizontalScroll } from "@/components/sheetTable/SheetTable";
+import { doesSheetHaveWritableColumns } from "@/sheets/sheetUtil";
 
 function HomeScreen() {
   const [sheet, setSheet] = useState<HoneSheet|null>(null);
@@ -37,12 +39,27 @@ function HomeScreen() {
   const [job, setJob] = useState<ExecutionJob|null>(null);
   const [modalDialog, setModalDialog] = useState<string|null>(null);
   const [promptTemplate, setPromptTemplate] = useState<string>('');
+  const [sheetHorizontalScroll, setSheetHorizontalScroll] = useState<HorizontalScroll>(HorizontalScroll.CLEAR);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
     init(setAvailableSheets, setModalDialog, setLocation).then(() => { });
     return deinit;
   }, []);
+
+  useEffect(() => {
+    if (!sheet) return;
+    if (doesSheetHaveWritableColumns(sheet)) {
+      setSheetHorizontalScroll(HorizontalScroll.RIGHT); // To show newly added column.
+      return;
+    }
+    setSheetHorizontalScroll(HorizontalScroll.LEFT);
+  }, [sheet]);
+
+  useEffect(() => {
+    if (sheetHorizontalScroll === HorizontalScroll.CLEAR) return;
+    setSheetHorizontalScroll(HorizontalScroll.CLEAR); // Reset so it can be set again later.
+  }, [sheetHorizontalScroll]);
 
   const promptPaneContent = !sheet ? null : 
     <PromptPane 
@@ -59,6 +76,7 @@ function HomeScreen() {
       </div>
       <SheetPane 
         sheet={sheet} className={styles.sheetPane} selectedRowNo={selectedRowNo} 
+        horizontalScroll={sheetHorizontalScroll}
         onRowSelect={setSelectedRowNo}
         onImportSheet={() => setModalDialog(ImportOptionsDialog.name)}
         onExportSheet={() => chooseExportType(setModalDialog)}

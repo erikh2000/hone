@@ -40,9 +40,9 @@ function ExecuteDialog({onCancel, isOpen, job, onComplete, onUpdateJob}:Props) {
   const middleContent = cancelRequestReceived 
     ? <p>One moment<WaitingEllipsis trailing/></p>
     : <>
-      <p>Current prompt: "{job.currentPrompt}"</p>
+      <p>Current prompt: <span className={styles.prompt}>{job.currentPrompt}</span></p>
       <p>Response: <GeneratedText text={responseText} /></p>
-      <p>Time remaining:{job.timeRemainingText}</p>
+      <p>Time remaining: {job.timeRemainingText}</p>
     </>
 
   return ( // Intentionally not passing "onCancel" to ModalDialog as I don't want a click-away to cancel the job. User must click the "cancel" button.

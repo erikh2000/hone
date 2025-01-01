@@ -1,3 +1,21 @@
 .progress {
   height: 3vh;
 }
+
+@keyframes shimmer {
+  0% {
+    background-position: -200%;
+  }
+  100% {
+    background-position: 200%;
+  }
+}
+
+.prompt {
+  display: inline-block;
+  background: linear-gradient(90deg, rgba(.5, .1, 0, 0.2), rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.2));
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  animation: shimmer 1.5s infinite;
+}

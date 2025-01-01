@@ -1,12 +1,13 @@
 import Pane, { ButtonDefinition } from "@/components/pane/Pane";
 import { getComment } from "./interactions/comment";
 import HoneSheet from "@/sheets/types/HoneSheet";
-import SheetTable, { GeneratedFooterText } from "@/components/sheetTable/SheetTable";
+import SheetTable, { GeneratedFooterText, HorizontalScroll } from "@/components/sheetTable/SheetTable";
 
 type Props = {
   sheet: HoneSheet|null,
   className:string,
   selectedRowNo:number,
+  horizontalScroll:HorizontalScroll,
   onRowSelect:(rowNo:number)=>void
   onExportSheet():void,
   onImportSheet():void
@@ -16,16 +17,16 @@ function _noSheetLoadedContent() {
   return <div>No sheet loaded.</div>;
 }
 
-function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, _onRowSelect:(rowNo:number)=>void) {
+function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, _onRowSelect:(rowNo:number)=>void, horizontalScroll) {
   if (!sheet) return _noSheetLoadedContent();
   const onSelectCell = (_colNo:number, rowNo:number) => _onRowSelect(rowNo);
   return <SheetTable 
     selectedRowNo={selectedRowNo} sheet={sheet} footerText={GeneratedFooterText.ROW_COUNT} 
-    onSelectCell={onSelectCell} displayRowCount={20} />;
+    onSelectCell={onSelectCell} displayRowCount={20} horizontalScroll={horizontalScroll}/>;
 }
 
-function SheetPane({sheet, className, onImportSheet, selectedRowNo, onRowSelect, onExportSheet}:Props) {
-  const content = _sheetContent(sheet, selectedRowNo, onRowSelect);
+function SheetPane({sheet, className, onImportSheet, selectedRowNo, onRowSelect, onExportSheet, horizontalScroll}:Props) {
+  const content = _sheetContent(sheet, selectedRowNo, onRowSelect, horizontalScroll);
 
   const buttons:ButtonDefinition[] = [
     { text:'Import', onClick:() => onImportSheet() }, 
