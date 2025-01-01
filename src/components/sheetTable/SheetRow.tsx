@@ -1,10 +1,9 @@
-import Row from "@/sheets/types/Row"
 import styles from '@/components/sheetTable/SheetRow.module.css';
-import GeneratedText from "../generatedText/GeneratedText";
+import GeneratedText from "@/components/generatedText/GeneratedText";
 import { cellValueToText } from "./interactions/row";
 
 type Props = {
-  row:Row,
+  row:any[],
   rowNo:number,
   rowCount:number,
   columnWidths:number[],

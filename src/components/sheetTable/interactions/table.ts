@@ -1,7 +1,6 @@
 import { CSSProperties, RefObject } from 'react';
-import HoneSheet from '@/sheets/types/HoneSheet';
+
 import DOMTextMeasurer from '@/components/sheetTable/DOMTextMeasurer';
-import { plural } from '@/common/englishGrammarUtil';
 import rowStyles from '@/components/sheetTable/SheetRow.module.css';
 import { GeneratedFooterText } from '@/components/sheetTable/types/GeneratedFooterText';
 import HorizontalScroll from '@/components/sheetTable/types/HorizontalScroll';
@@ -9,11 +8,11 @@ import VerticalScroll from '@/components/sheetTable/types/VerticalScroll';
 
 type DivRef = RefObject<HTMLDivElement>;
 
-export function measureColumnWidths(sheetTableElement:HTMLDivElement, sheet:HoneSheet):number[] {
+export function measureColumnWidths(sheetTableElement:HTMLDivElement, columnNames:string[], rows:any[][]):number[] {
   const measurer = new DOMTextMeasurer(sheetTableElement, rowStyles.measureCellText);
-  const widths = sheet.columns.map(column => measurer.measureTextWidth(column.name));
-  for(let rowI = 0; rowI < sheet.rows.length; rowI++) {
-    const row = sheet.rows[rowI];
+  const widths = columnNames.map(columnName => measurer.measureTextWidth(columnName));
+  for(let rowI = 0; rowI < rows.length; rowI++) {
+    const row = rows[rowI];
     for(let cellI = 0; cellI < row.length; cellI++) {
       const cell = '' + row[cellI];
       widths[cellI] = Math.max(widths[cellI], measurer.measureTextWidth(cell));
@@ -22,9 +21,9 @@ export function measureColumnWidths(sheetTableElement:HTMLDivElement, sheet:Hone
   return widths;
 }
 
-export function getFooterText(footerText:string|GeneratedFooterText|undefined, sheet:HoneSheet):string {
+export function getFooterText(footerText:string|GeneratedFooterText|undefined, rows:any[][]):string {
   if (footerText === undefined) return '';
-  if (footerText === GeneratedFooterText.ROW_COUNT) return `${sheet.rows.length} ${plural('row', sheet.rows.length)}`;
+  if (footerText === GeneratedFooterText.ROW_COUNT) return rows.length === 1 ? '1 row' : `${rows.length} rows`;
   return footerText;
 }
 

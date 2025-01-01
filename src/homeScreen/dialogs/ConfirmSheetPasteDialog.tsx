@@ -25,11 +25,12 @@ function ConfirmSheetPasteDialog({pastedSheet, existingSheet, isOpen, onConfirm,
   if (!isOpen || !pastedSheet) return null;
 
   const {confirmButtonText, description} = _getUiTextAffectedByExistingSheet(existingSheet);
+  const columnNames = pastedSheet.columns.map(column => column.name);
 
   return (
     <ModalDialog isOpen={isOpen} onCancel={onCancel} title="Confirm Sheet Paste">
       <p>{description}</p>
-      <SheetTable sheet={pastedSheet} displayRowCount={5} footerText={GeneratedFooterText.ROW_COUNT}/>
+      <SheetTable columnNames={columnNames} rows={pastedSheet.rows} displayRowCount={5} footerText={GeneratedFooterText.ROW_COUNT}/>
       <DialogFooter>
         <DialogButton text="Cancel" onClick={onCancel} />
         <DialogButton text={confirmButtonText} onClick={() => { if (pastedSheet) onConfirm(pastedSheet)}} isPrimary/>

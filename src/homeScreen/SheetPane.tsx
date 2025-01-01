@@ -22,9 +22,11 @@ function _noSheetLoadedContent() {
 function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, _onRowSelect:(rowNo:number)=>void, horizontalScroll:HorizontalScroll) {
   if (!sheet) return _noSheetLoadedContent();
   const onSelectCell = (_colNo:number, rowNo:number) => _onRowSelect(rowNo);
+  const columnNames = sheet.columns.map(column => column.name);
   return <SheetTable 
-    selectedRowNo={selectedRowNo} sheet={sheet} footerText={GeneratedFooterText.ROW_COUNT} 
-    onSelectCell={onSelectCell} displayRowCount={20} horizontalScroll={horizontalScroll}/>;
+    selectedRowNo={selectedRowNo} columnNames={columnNames} rows={sheet.rows} footerText={GeneratedFooterText.ROW_COUNT} 
+    onSelectCell={onSelectCell} displayRowCount={20} horizontalScroll={horizontalScroll}
+  />;
 }
 
 function SheetPane({sheet, className, onImportSheet, selectedRowNo, onRowSelect, onExportSheet, horizontalScroll}:Props) {

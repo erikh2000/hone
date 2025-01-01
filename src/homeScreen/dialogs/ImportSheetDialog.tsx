@@ -31,10 +31,11 @@ function ImportSheetDialog({availableSheets, isOpen, onChoose, onCancel}:Props) 
   
   if (!isOpen || !selectedSheet) return null;
 
+  const columnNames = selectedSheet.columns.map(column => column.name);
   return (
     <ModalDialog isOpen={isOpen} onCancel={onCancel} title="Select Sheet to Import">
       <SheetSelector sheetNames={availableSheetNames} selectedSheetName={selectedSheetName ?? ''} onChange={setSelectedSheetName} />
-      <SheetTable sheet={selectedSheet} displayRowCount={5} footerText={GeneratedFooterText.ROW_COUNT}/>
+      <SheetTable columnNames={columnNames} rows={selectedSheet.rows} displayRowCount={5} footerText={GeneratedFooterText.ROW_COUNT}/>
       <DialogFooter>
         <DialogButton text="Cancel" onClick={onCancel} />
         <DialogButton text="Import" onClick={() => { if (selectedSheet) onChoose(selectedSheet, '')}} isPrimary/>

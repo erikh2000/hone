@@ -1,20 +1,19 @@
 import { forwardRef } from 'react';
 
-import HoneColumn from '@/sheets/types/HoneColumn';
 import styles from './SheetHeader.module.css';
 
 type Props = {
-  columns:HoneColumn[],
+  columnNames:string[],
   columnWidths:number[]
 }
 
 function SheetHeader(props:Props, ref:React.Ref<HTMLDivElement>) {
-  const {columns, columnWidths} = props;
-  const cells = columns.map((column, columnI) => {
+  const {columnNames, columnWidths} = props;
+  const cells = columnNames.map((columnName, columnI) => {
     const style = columnWidths[columnI] ? {minWidth:columnWidths[columnI]} : {};
     return (
       <span key={columnI} style={style}>
-        {column.name}
+        {columnName}
       </span>
     );
   });

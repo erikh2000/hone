@@ -2,7 +2,7 @@
 @value button from colors;
 
 .headerScrollContainer {
-  width: 100%; /* I honestly don't understand why 90vw works and 100vw doesn't. Seems fragile. */
+  width: 100%;
   overflow-x: clip;
 }
 

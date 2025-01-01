@@ -32,9 +32,12 @@ function PromptOutputRow({sheet, rowNo, outputValue}: Props) {
 
   if (!previewSheet) return null;
 
+  const columnNames = previewSheet.columns.map(column => column.name);
   return (
     <div className={styles.promptOutputRow}>
-      <SheetTable sheet={previewSheet} footerText="Test Preview" generatedColNo={previewSheet.columns.length} horizontalScroll={horizontalScroll} />
+      <SheetTable columnNames={columnNames} rows={previewSheet.rows} footerText="Test Preview" 
+        generatedColNo={previewSheet.columns.length} horizontalScroll={horizontalScroll} 
+      />
     </div>
   );
 }
