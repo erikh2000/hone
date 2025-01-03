@@ -25,3 +25,4 @@ public/.vite
 *.njsproj
 *.sln
 *.sw?
+*.code-workspace
