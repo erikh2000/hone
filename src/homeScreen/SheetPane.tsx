@@ -12,7 +12,8 @@ type Props = {
   horizontalScroll:HorizontalScroll,
   onRowSelect:(rowNo:number)=>void
   onExportSheet():void,
-  onImportSheet():void
+  onImportSheet():void,
+  onClearSheet():void
 }
 
 function _noSheetLoadedContent() {
@@ -29,10 +30,11 @@ function _sheetContent(sheet:HoneSheet|null, selectedRowNo:number, _onRowSelect:
   />;
 }
 
-function SheetPane({sheet, className, onImportSheet, selectedRowNo, onRowSelect, onExportSheet, horizontalScroll}:Props) {
+function SheetPane({sheet, className, onImportSheet, selectedRowNo, onRowSelect, onExportSheet, onClearSheet, horizontalScroll}:Props) {
   const content = _sheetContent(sheet, selectedRowNo, onRowSelect, horizontalScroll);
 
   const buttons:ButtonDefinition[] = [
+    { text:'Clear', onClick:() => onClearSheet(), disabled:sheet===null },
     { text:'Import', onClick:() => onImportSheet() }, 
     { text:'Export', onClick:() => onExportSheet(), disabled:sheet===null }, 
   ];

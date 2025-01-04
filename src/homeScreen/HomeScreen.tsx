@@ -31,6 +31,7 @@ import LLMDevPauseDialog from "@/homeScreen/dialogs/LLMDevPauseDialog";
 import { LOAD_URL } from "@/common/urlUtil";
 import { doesSheetHaveWritableColumns } from "@/sheets/sheetUtil";
 import HorizontalScroll from "@/components/sheetTable/types/HorizontalScroll";
+import ConfirmClearSheetDialog from "./dialogs/ConfirmClearSheetDialog";
 
 function HomeScreen() {
   const [sheet, setSheet] = useState<HoneSheet|null>(null);
@@ -78,6 +79,7 @@ function HomeScreen() {
         sheet={sheet} className={styles.sheetPane} selectedRowNo={selectedRowNo} 
         horizontalScroll={sheetHorizontalScroll}
         onRowSelect={setSelectedRowNo}
+        onClearSheet={() => setModalDialog(ConfirmClearSheetDialog.name)}
         onImportSheet={() => setModalDialog(ImportOptionsDialog.name)}
         onExportSheet={() => chooseExportType(setModalDialog)}
       />
@@ -136,6 +138,13 @@ function HomeScreen() {
         pastedSheet={availableSheets[0]}
         existingSheet={sheet}
         onConfirm={(pastedSheet) => onSelectSheet(pastedSheet, '', setAvailableSheets, setSheet, setPromptTemplate, setModalDialog)}
+        onCancel={() => setModalDialog(null)}
+      />
+
+      <ConfirmClearSheetDialog
+        isOpen={modalDialog === ConfirmClearSheetDialog.name}
+        sheet={sheet}
+        onConfirm={() => setSheet(null)}
         onCancel={() => setModalDialog(null)}
       />
 
