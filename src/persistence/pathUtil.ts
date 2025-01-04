@@ -8,8 +8,6 @@ export function keyToName(key:string):string {
   return key.substring(pathEnd);
 }
 
-
-
 export function splitFilenameAndExtension(filenameWithExtension:string):[filename:string, extension:string] {
   if (filenameWithExtension === '') return ['', ''];
   const tokens = filenameWithExtension.split('.');

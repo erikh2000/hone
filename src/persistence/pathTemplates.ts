@@ -1,0 +1,1 @@
+export const SHIMMER_FRAMES_PATH = "/shimmerCache/{svgUrlFilename}/";
