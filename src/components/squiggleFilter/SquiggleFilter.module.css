@@ -1,0 +1,113 @@
+/* Thanks to Lucas Bebber who I copied this great technique from - https://codepen.io/lbebber/pen/KwGEQv */
+
+.container {
+  position: absolute; /* Probably not needed, but just to avoid affecting layout. */
+}
+
+@keyframes detectableFrames {
+  0% { filter: url("#detectable-1"); }
+  25% { filter: url("#detectable-2"); }
+  50% { filter: url("#detectable-3"); }
+  75% { filter: url("#detectable-4"); }
+  100% { filter: url("#detectable-5"); }
+}
+
+.detectable {
+  animation: detectableFrames 0.4s infinite alternate;
+}
+
+@keyframes subtleFrames {
+  0% { filter: url("#subtle-1"); }
+  25% { filter: url("#subtle-2"); }
+  50% { filter: url("#subtle-3"); }
+  75% { filter: url("#subtle-4"); }
+  100% { filter: url("#subtle-5"); }
+}
+
+.subtle {
+  animation: subtleFrames 0.4s infinite alternate;
+}
+
+@keyframes swimmingPoolFrames {
+  0% { filter: url("#swimmingPool-1"); }
+  25% { filter: url("#swimmingPool-2"); }
+  50% { filter: url("#swimmingPool-3"); }
+  75% { filter: url("#swimmingPool-4"); }
+  100% { filter: url("#swimmingPool-5"); }
+}
+
+.swimmingPool {
+  animation: swimmingPoolFrames 0.4s infinite alternate;
+}
+
+@keyframes boilingFrames {
+  0% { filter: url("#boiling-1"); }
+  25% { filter: url("#boiling-2"); }
+  50% { filter: url("#boiling-3"); }
+  75% { filter: url("#boiling-4"); }
+  100% { filter: url("#boiling-5"); }
+}
+
+.boiling {
+  animation: boilingFrames 0.2s infinite alternate;
+}
+
+@keyframes disintegratingFrames {
+  0% { filter: url("#disintegrating-1"); }
+  25% { filter: url("#disintegrating-2"); }
+  50% { filter: url("#disintegrating-3"); }
+  75% { filter: url("#disintegrating-4"); }
+  100% { filter: url("#disintegrating-5"); }
+}
+
+.disintegrating {
+  animation: disintegratingFrames 0.4s infinite alternate;
+}
+
+@keyframes gaseousFrames {
+  0% { filter: url("#gaseous-1"); }
+  25% { filter: url("#gaseous-2"); }
+  50% { filter: url("#gaseous-3"); }
+  75% { filter: url("#gaseous-4"); }
+  100% { filter: url("#gaseous-5"); }
+}
+
+.gaseous {
+  animation: gaseousFrames 0.4s infinite alternate;
+}
+
+@keyframes staticFrames {
+  0% { filter: url("#static-1"); }
+  25% { filter: url("#static-2"); }
+  50% { filter: url("#static-3"); }
+  75% { filter: url("#static-4"); }
+  100% { filter: url("#static-5"); }
+}
+
+.static {
+  animation: staticFrames 0.4s infinite alternate;
+}
+
+@keyframes jankTvFrames {
+  0% { filter: url("#jankTv-1"); }
+  25% { filter: url("#jankTv-2"); }
+  50% { filter: url("#jankTv-3"); }
+  75% { filter: url("#jankTv-4"); }
+  100% { filter: url("#jankTv-5"); }
+}
+
+.jankTv {
+  animation: jankTvFrames 0.4s infinite alternate;
+}
+
+@keyframes plymptonFrames {
+  0% { filter: url("#plympton-1"); }
+  25% { filter: url("#plympton-2"); }
+  50% { filter: url("#plympton-3"); }
+  75% { filter: url("#plympton-4"); }
+  100% { filter: url("#plympton-5"); }
+}
+
+.plympton {
+  animation: plymptonFrames 0.4s infinite alternate;
+}

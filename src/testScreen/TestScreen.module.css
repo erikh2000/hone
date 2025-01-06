@@ -1,21 +1,4 @@
-.container img {
-  animation: squigglevision 0.4s infinite alternate;
-}
-
-@keyframes squigglevision {
-  0% {
-    filter: url("#turbulence-1");
-  }
-  25% {
-    filter: url("#turbulence-2");
-  }
-  50% {
-    filter: url("#turbulence-3");
-  }
-  75% {
-    filter: url("#turbulence-4");
-  }
-  100% {
-    filter: url("#turbulence-5");
-  }
+.svgBox {
+  width: 400px;
+  background-color: red;
 }

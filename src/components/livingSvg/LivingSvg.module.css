@@ -1,22 +1,5 @@
-/* Thanks to Lucas Bebber who I copied this great technique from - https://codepen.io/lbebber/pen/KwGEQv */
-@keyframes squigglevision {
-  0% {
-    filter: url("#turbulence-1");
-  }
-  25% {
-    filter: url("#turbulence-2");
-  }
-  50% {
-    filter: url("#turbulence-3");
-  }
-  75% {
-    filter: url("#turbulence-4");
-  }
-  100% {
-    filter: url("#turbulence-5");
-  }
-}
-
-.jigglingImage {
-  animation: squigglevision 0.4s infinite alternate;
+.container {
+  position: relative;
+  width: min-content;
+  height: max-content;
 }

@@ -1,9 +1,15 @@
-import SvgCoordinates from "./SvgCoordinates";
+export type TextBox = {
+  key:string,
+  x:number,
+  y:number,
+  width:number,
+  height:number
+}
 
 type SvgTemplate = {
   url:string,
   svgText:string,
-  parts:(string|SvgCoordinates)[]
+  textBoxes:TextBox[]
 }
 
 export default SvgTemplate;

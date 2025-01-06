@@ -1,98 +1,102 @@
-import { getShimmerFrames, setShimmerFrames } from "@/persistence/shimmerCache";
-import SvgCoordinates from "./types/SvgCoordinates";
-import SvgTemplate from "./types/SvgTemplate";
+import { findNonWhiteSpace, findWhiteSpace } from "@/common/regExUtil";
 
-function _parseCoordinates(part:string):SvgCoordinates|null {
-  const numberTexts = part.split(',');
-  if (numberTexts.length !== 2) return null;
-  const x = parseFloat(numberTexts[0]);
-  const y = parseFloat(numberTexts[1]);
-  if (isNaN(x) || isNaN(y)) return null;
-  return {x,y};
+export type SvgAttributeValue = string | number;
+export type SvgAttributes = { [key:string]:SvgAttributeValue }
+export type SvgTagCallback = (svgText:string, tagName:string, tagPos:number, parseStack:SvgParseStackItem[]) => void;
+
+export type SvgParseStackItem = {
+  tagName:string,
+  tagPos:number   // Position of the "<" character of the tag, can also serve as a unique ID.
 }
 
-function _parseTag(part:string):string|null {
-  return part.startsWith('<') ? part.slice(1) : null;
+function _textToAttributeValue(valueText:string):SvgAttributeValue {
+  if (valueText.startsWith('"') && valueText.endsWith('"')) {
+    return valueText.slice(1, valueText.length-1);
+  } else {
+    const numericValue = parseFloat(valueText);
+    return isNaN(numericValue) ? valueText : numericValue;
+  }
 }
 
-function _parseAttribute(part:string):string|null {
-  const subParts = part.split('=');
-  return subParts.length === 2 ? subParts[0] : null;
+const END_TAG_NAME_CHARS = ' \t\r\n/>';
+function _findTagNameEnd(svgText:string, fromPos:number):number {
+  for (let i = fromPos; i < svgText.length; ++i) {
+    if (END_TAG_NAME_CHARS.includes(svgText[i])) return i;
+  }
+  return -1;
 }
 
-const WHITE_SPACE_REGEX = /\s+/g;
-export function createSvgTemplate(url:string, svgText:string):SvgTemplate {
-  const parts = svgText.split(WHITE_SPACE_REGEX);
-  const templateParts:(string|SvgCoordinates)[] = [];
-  let currentTag = '', currentAttribute = '';
-  for (let partI = 0; partI < parts.length; ++partI) {
-    const part = parts[partI];
-    const coordinate = _parseCoordinates(part);
-    if (coordinate) {
-      templateParts.push(coordinate);
-      continue;
+function _parseOpenTagName(svgText:string, fromPos:number):string {
+  const tagNameEndPos = _findTagNameEnd(svgText, fromPos);
+  if (tagNameEndPos === -1) throw Error('Malformed SVG text'); // "<" without a tag name is malformed.
+  return svgText.slice(fromPos, tagNameEndPos);
+}
+
+const END_TAG_CHARS = '>?-/';
+function _findOpenTagEnd(svgText:string, fromPos:number):number {
+  let endPos = svgText.indexOf('>', fromPos);
+  if (endPos === -1) throw Error('Malformed SVG text');
+  while(endPos > 0 && END_TAG_CHARS.includes(svgText[endPos])) --endPos;
+  return endPos + 1;
+}
+
+function _parseAttributeValueText(svgText:string, fromPos:number, openTagEndPos:number):string {
+  if (svgText[fromPos] === '"') {
+    const endQuotePos = svgText.indexOf('"', fromPos+1);
+    if (endQuotePos === -1) throw Error('Malformed SVG text');
+    return svgText.slice(fromPos, endQuotePos+1);
+  }
+    const whitespacePos = findWhiteSpace(svgText, fromPos + 1);
+    const endValuePos = whitespacePos === -1 || whitespacePos > openTagEndPos ? openTagEndPos : whitespacePos;
+    return svgText.slice(fromPos, endValuePos);
+}
+
+export function parseTagAttributes(svgText:string, tagPos:number):SvgAttributes {
+  let pos = tagPos;
+  const attributes:SvgAttributes = {};
+
+  pos = _findTagNameEnd(svgText, pos);
+  const openTagEndPos = _findOpenTagEnd(svgText, pos);
+  if (pos === -1) throw Error('Malformed SVG.');
+  while(pos < openTagEndPos) {
+    pos = findNonWhiteSpace(svgText, pos);
+    const equalPos = svgText.indexOf('=', pos);
+    if (equalPos === -1) throw Error('Malformed SVG.');
+    const name = svgText.slice(pos, equalPos).trim();
+    pos = findNonWhiteSpace(svgText, equalPos+1);
+    
+    const valueText = _parseAttributeValueText(svgText, pos, openTagEndPos);
+    const value = _textToAttributeValue(valueText);
+    attributes[name] = value;
+
+    pos += valueText.length;
+    pos = findNonWhiteSpace(svgText, pos);
+  }
+  return attributes;
+}
+
+// Parses an SVG without creating an object model of it, but rather calling a callback for each tag found.
+// Parsing of attributes not performed here, but can be done in the callback. tagPos is the position of the "<" character, 
+// and it can also serve as a unique ID.
+export function parseSvg(svgText:string, onTag:SvgTagCallback):void {
+  let fromPos = 0;
+  let tagNameStack:SvgParseStackItem[] = [];
+  while(fromPos < svgText.length) {
+    const nextOpenPos = svgText.indexOf('<', fromPos);
+    if (nextOpenPos === -1 || nextOpenPos >= svgText.length) return;
+    
+    const isOpenTag = svgText[nextOpenPos+1] !== '/';
+    if (isOpenTag) {
+      const tagName = _parseOpenTagName(svgText, nextOpenPos+1);
+      if (!tagName) throw Error('Malformed SVG text'); // "<" without a tag name is malformed.
+      if (!tagName.startsWith('!--')) onTag(svgText, tagName, nextOpenPos, tagNameStack);
+      tagNameStack.push({tagName, tagPos:nextOpenPos});
+      fromPos = nextOpenPos + tagName.length + 1;
     }
 
-    const tag = _parseTag(part);
-    if (tag) currentTag = tag;
-    const attribute = _parseAttribute(part);
-    if (attribute) currentAttribute = attribute;
-
-    // Remove width and height attributes from template so that DOM layout can instead set them.
-    if (currentTag === 'svg' && (currentAttribute === 'width' || currentAttribute === 'height')) {
-      console.log('Removing width or height attribute from template');
-      continue;
-    }
-
-    templateParts.push(part);
+    const nextClosePos = svgText.indexOf('>', fromPos);
+    if (nextClosePos === -1)  throw Error('Malformed SVG text'); // "<"" without a closing ">" is malformed.
+    if (!isOpenTag || svgText[nextClosePos-1] === '/' || svgText[nextOpenPos+1] === '?' || svgText[nextOpenPos+1] === '!') tagNameStack.pop();
+    fromPos = nextClosePos + 1;
   }
-  return {url, svgText, parts:templateParts};
-}
-
-export async function loadSvgTemplate(url:string) {
-  const response = await fetch(url);
-  const svgText = await response.text(); 
-  return createSvgTemplate(url, svgText);
-}
-
-export function shimmerSvg(svgTemplate:SvgTemplate, amount:number):string {
-  let concat = '';
-  const halfAmount = amount / 2;
-  for (let partI = 0; partI < svgTemplate.parts.length; ++partI) {
-    if (partI > 0) concat += ' ';
-    const part = svgTemplate.parts[partI];
-    if (typeof part === 'string') {
-      concat += part;
-      continue;
-    }
-    const x = part.x + Math.random() * amount - halfAmount;
-    const y = part.y + Math.random() * amount - halfAmount;
-    concat += `${x},${y}`;
-  }
-  return concat;
-}
-
-function _generateShimmerFrames(svgTemplate:SvgTemplate, amount:number, frameCount:number):string[] {
-  const frames:string[] = [];
-  for (let frameI = 0; frameI < frameCount; ++frameI) {
-    frames.push(shimmerSvg(svgTemplate, frameI === 0 ? 0 : amount)); // First frame is the original. Save processing time by not shimmering it.
-  }
-  return frames;
-}
-
-function _svgTextToBlobUrl(svgText:string):string {
-  const blob = new Blob([svgText], {type: 'image/svg+xml'});
-  return URL.createObjectURL(blob);
-}
-
-export async function getOrCreateShimmerBlobUrls(url:string, amount:number, frameCount:number, useCache:boolean = true):Promise<string[]> {
-  if (useCache) {
-    const cachedFrames = await getShimmerFrames(url);
-    if (cachedFrames) return cachedFrames.map(frame => _svgTextToBlobUrl(frame));
-  }
-
-  const template = await loadSvgTemplate(url);
-  const generatedFrames = _generateShimmerFrames(template, amount, frameCount);
-  setShimmerFrames(url, generatedFrames);
-  return generatedFrames.map(frame => _svgTextToBlobUrl(frame));
 }

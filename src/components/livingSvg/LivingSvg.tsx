@@ -1,66 +1,41 @@
 import { useEffect, useState } from "react";
-import { getOrCreateShimmerBlobUrls } from "./svgUtil";
+import { loadSvgTemplate } from "./svgTemplateUtil";
+import SquiggleFilter, { SquiggleType, classNameForSquiggleType } from "@/components/squiggleFilter/SquiggleFilter";
+import { TextBox } from "./types/SvgTemplate";
 import styles from './LivingSvg.module.css';
 
 type Props = {
   url:string,
   textReplacements?:{[key:string]:string}
-  shimmerAmount?:number,
-  framesPerSecond?:number
+  squiggleType?:SquiggleType,
+  className?:string
 }
 
-const DEFAULT_FRAME_INTERVAL = 1000 / 15; // 15 FPS
-const DEFAULT_SHIMMER_AMOUNT = .05;
+const DEFAULT_SQUIGGLE_TYPE = SquiggleType.SUBTLE;
 
-function LivingSvg({url, framesPerSecond, shimmerAmount}:Props) {
-  const [frameNo, setFrameNo] = useState(0);
-  const [frames, setFrames] = useState<string[]>([]);
-  const [frameInterval, setFrameInterval] = useState(DEFAULT_FRAME_INTERVAL);
+function LivingSvg({url, squiggleType, className, textReplacements}:Props) {
+  const [textBoxes, setTextBoxes] = useState<TextBox[]|null>(null);
 
   useEffect(() => {
-    if (framesPerSecond) setFrameInterval(1000 / framesPerSecond);
-    getOrCreateShimmerBlobUrls(url, shimmerAmount ?? DEFAULT_SHIMMER_AMOUNT, 3, false).then(setFrames);
-  }, [url, framesPerSecond, shimmerAmount]);
+    loadSvgTemplate(url).then(svgTemplate => {
+      setTextBoxes(svgTemplate.textBoxes);
+    });
+  }, [url]);
 
-  useEffect(() => {
-    const timer = setTimeout(
-      () => setFrameNo(frameNo + 1), frameInterval);
-    return () => clearTimeout(timer);
-  }, [frameNo]);
+  squiggleType = squiggleType ?? DEFAULT_SQUIGGLE_TYPE;
+  const imageClass = `${classNameForSquiggleType(squiggleType)} ${className}`;
 
-  if (!frames) return null;
+  const textBoxesContent = textBoxes?.map(textBox => {
+    const text = textReplacements?.[textBox.key] ?? textBox.key;
+    return <div key={textBox.key} style={{position:'absolute', left:`${textBox.x*100}%`, 
+        top:`${textBox.y*100}%`, width:`${textBox.width*100}%`, height:`${textBox.height*100}%` }}>{text}</div>;
+  })
 
-  const svgBlobUrl = frames[0];
-
-  return <>
-    <svg display="none">
-      <filter id="turbulence-1">
-        <feTurbulence type="fractalNoise" baseFrequency="0.0001" numOctaves="2" data-filterid="3" />
-        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" in="SourceGraphic" scale="25" />
-      </filter>
-
-      <filter id="turbulence-2">
-        <feTurbulence type="fractalNoise" baseFrequency="0.00015" numOctaves="2" data-filterid="3" />
-        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" in="SourceGraphic" scale="25" />
-      </filter>
-
-      <filter id="turbulence-3">
-        <feTurbulence type="fractalNoise" baseFrequency="0.0002" numOctaves="2" data-filterid="3" />
-        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" in="SourceGraphic" scale="25" />
-      </filter>
-
-      <filter id="turbulence-4">
-        <feTurbulence type="fractalNoise" baseFrequency="0.00025" numOctaves="2" data-filterid="3" />
-        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" in="SourceGraphic" scale="25" />
-      </filter>
-
-      <filter id="turbulence-5">
-        <feTurbulence type="fractalNoise" baseFrequency="0.0003" numOctaves="2" data-filterid="3" />
-        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" in="SourceGraphic" scale="25" />
-      </filter>
-    </svg>
-    <img src={svgBlobUrl} className={styles.jiggleImage} />
-  </>;
+  return <div className={styles.container}>
+    <SquiggleFilter squiggleType={squiggleType} />
+    <img src={url} className={imageClass} />
+    {textBoxesContent}
+  </div>;
 }
 
 export default LivingSvg;
