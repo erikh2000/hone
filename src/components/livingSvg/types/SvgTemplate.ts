@@ -3,7 +3,8 @@ export type TextBox = {
   x:number,
   y:number,
   width:number,
-  height:number
+  height:number,
+  className:string
 }
 
 type SvgTemplate = {

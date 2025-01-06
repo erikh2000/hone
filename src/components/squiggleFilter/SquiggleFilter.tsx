@@ -39,7 +39,9 @@ const settingsByType:{[key in SquiggleType]:SquiggleSettings} = {
   [SquiggleType.JANK_TV]: {baseFrequencyMultiplier:8000, scale:25}
 }
 
-// The filter is output into the DOM, which allows the CSS animation defined in Squiggle.module.css to reference it.
+// The filter is output into the DOM, which allows the CSS animation defined in Squiggle.module.css to reference it. To use the filter
+// other elements, output this component into the DOM. And call classNameForSquiggleType() to get the class name to apply to the
+// animated element.
 function SquiggleFilter({squiggleType}:Props) {
   if (squiggleType === SquiggleType.NONE) return null;
   const settings = settingsByType[squiggleType];

@@ -56,7 +56,8 @@ export function createSvgTemplate(url:string, svgText:string):SvgTemplate {
         const y = Number(attributes.y) / scaleHeight;
         const width = Number(attributes.width) / scaleWidth;
         const height = Number(attributes.height) / scaleHeight;
-        textBoxes.push({key, x, y, width, height});
+        const className = '' + attributes.class;
+        textBoxes.push({key, x, y, width, height, className});
       }
     }
   });

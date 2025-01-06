@@ -8,12 +8,13 @@ type Props = {
   url:string,
   textReplacements?:{[key:string]:string}
   squiggleType?:SquiggleType,
+  textSquiggles?:boolean,
   className?:string
 }
 
 const DEFAULT_SQUIGGLE_TYPE = SquiggleType.SUBTLE;
 
-function LivingSvg({url, squiggleType, className, textReplacements}:Props) {
+function LivingSvg({url, squiggleType, className, textReplacements, textSquiggles}:Props) {
   const [textBoxes, setTextBoxes] = useState<TextBox[]|null>(null);
 
   useEffect(() => {
@@ -23,11 +24,13 @@ function LivingSvg({url, squiggleType, className, textReplacements}:Props) {
   }, [url]);
 
   squiggleType = squiggleType ?? DEFAULT_SQUIGGLE_TYPE;
-  const imageClass = `${classNameForSquiggleType(squiggleType)} ${className}`;
+  const squiggleClass = classNameForSquiggleType(squiggleType);
+  const imageClass = `${squiggleClass} ${className}`;
 
   const textBoxesContent = textBoxes?.map(textBox => {
     const text = textReplacements?.[textBox.key] ?? textBox.key;
-    return <div key={textBox.key} style={{position:'absolute', left:`${textBox.x*100}%`, 
+    const className = textSquiggles ? `${styles[textBox.className]} ${squiggleClass}` : styles[textBox.className];
+    return <div key={textBox.key} className={className} style={{position:'absolute', left:`${textBox.x*100}%`, 
         top:`${textBox.y*100}%`, width:`${textBox.width*100}%`, height:`${textBox.height*100}%` }}>{text}</div>;
   })
 

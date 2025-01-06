@@ -1,5 +1,15 @@
 .container {
   position: relative;
+  display: inline-block;
   width: min-content;
   height: max-content;
+}
+
+.textBox {
+
+}
+
+.speech {
+  font-family: 'hobby-of-night';
+  color: white;
 }
