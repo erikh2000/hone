@@ -2,18 +2,8 @@ import { parseSvg, parseTagAttributes, SvgParseStackItem } from "./svgUtil";
 import SvgTemplate, { TextBox } from "./types/SvgTemplate";
 
 
-function _onTag(svgText:string, tagName:string, tagPos:number, parseStack:any[]) {
-  if (tagName !== 'rect') return;
-  console.log(`tagName: ${tagName}, tagPos: ${tagPos}`);
-  for(let i = 0; i < parseStack.length; ++i) {
-    console.log(`  ${i}: ${parseStack[i].tagName} @ ${parseStack[i].tagPos}`);
-  }
-  const attributes = parseTagAttributes(svgText, tagPos);
-  console.log(attributes);
-}
-
-function _viewboxTextToScaleDimensions(viewboxText:string):[number:scaleWidth, number:scaleHeight] {
-  const [x, y, width, height] = viewboxText.split(' ').map(Number);
+function _viewboxTextToScaleDimensions(viewboxText:string):[scaleWidth:number, scaleHeight:number] {
+  const [_x, _y, width, height] = viewboxText.split(' ').map(Number);
   return [width, height];
 }
 
