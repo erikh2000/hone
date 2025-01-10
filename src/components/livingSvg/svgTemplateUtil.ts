@@ -1,4 +1,4 @@
-import { parseSvg, parseTagAttributes, parseTagContent, SvgParseStackItem } from "./svgUtil";
+import { parseSvg, parseTagAttributes, SvgParseStackItem } from "./svgUtil";
 import SvgTemplate, { TextBox } from "./types/SvgTemplate";
 
 

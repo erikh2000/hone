@@ -1,6 +1,6 @@
 import styles from './LoadScreen.module.css';
-import { init } from "./interactions/initialization";
-import {HOME_URL} from "@/common/urlUtil.ts";
+//import { init } from "./interactions/initialization";
+//import {HOME_URL} from "@/common/urlUtil.ts";
 import ProgressBar from '@/components/progressBar/ProgressBar';
 import ProgressStory from '@/components/progressStory/ProgressStory';
 
