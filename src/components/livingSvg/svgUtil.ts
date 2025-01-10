@@ -75,6 +75,26 @@ export function parseTagAttributes(svgText:string, tagPos:number):SvgAttributes 
   return attributes;
 }
 
+export function parseTagContent(svgText:string, tagPos:number):string {
+  let pos = tagPos;
+  const tagName = _parseOpenTagName(svgText, pos+1);
+  pos = _findOpenTagEnd(svgText, pos+tagName.length+1)+1;
+  if (pos === -1) throw Error('Malformed SVG.');
+  if (svgText[pos-1] === '/' || svgText[pos-1] === '?' || svgText[pos+1] === '!') return ''; // Self-closed.
+  const startContentPos = pos;
+
+  let depth = 1;
+  while(pos < svgText.length) {
+    const nextTagStartPos = svgText.indexOf('<', pos+1);
+    if (nextTagStartPos === -1) throw Error('Malformed SVG.');
+    depth += (svgText[nextTagStartPos+1] === '/') ? -1 : 1; // Allows for nested tags in content.
+    if (depth === 0) return svgText.slice(startContentPos, nextTagStartPos); // This is the close tag that matches the open tag. Or malformed SVG, which the main parser will catch.
+    pos = nextTagStartPos+3; // +3 b/c a one character tagname (<x>) is the smallest possible thing that could be before the next tag.
+  }
+
+  throw Error('Malformed SVG.'); // Open tag without a matchin close tag.
+}
+
 // Parses an SVG without creating an object model of it, but rather calling a callback for each tag found.
 // Parsing of attributes not performed here, but can be done in the callback. tagPos is the position of the "<" character, 
 // and it can also serve as a unique ID.
