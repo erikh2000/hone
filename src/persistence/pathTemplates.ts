@@ -1,1 +1,1 @@
-export const SHIMMER_FRAMES_PATH = "/shimmerCache/{svgUrlFilename}/";
+export const TIME_PREDICTIONS_KEY = "/predictions/timePredictions.json";
