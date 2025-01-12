@@ -49,13 +49,13 @@ function _simplifyStatus(status:string):string {
   const progressText = stageProgress ? ` (${stageProgress[0]}/${stageProgress[1]})` : '';
   switch(stage) {
     case LoadStage.START:
-      return `Let's load an LLM into your browser!`;
+      return `Starting...${progressText}`;
     case LoadStage.DOWNLOAD_MODEL:
-      return `Downloading the LLM from a cloud server...${progressText}`;
+      return `Downloading the LLM from a cloud server to your browser cache...${progressText}`;
     case LoadStage.LOAD_FROM_CACHE:
-      return `Loading the previously-downloaded LLM from your browser's cache...${progressText}`;
+      return `Loading the LLM from your browser's cache to memory...${progressText}`;
     case LoadStage.LOAD_TO_GPU:
-      return `Loading the LLM onto your video card...${progressText} (This makes it execute faster)`;
+      return `Loading the LLM onto your video card...${progressText}`;
     case LoadStage.UNKNOWN:
       return `Grinding away...${progressText}`;
   }
