@@ -1,3 +1,4 @@
+/* istanbul ignore file */ // Low-value to test with all the mocking of IndexedDb. If there's anything meaty, move it to another module.
 import {keyToPath} from "./pathUtil.ts";
 import {MIMETYPE_OCTET_STREAM, MIMETYPE_PLAIN_TEXT} from "./mimeTypes.ts";
 import {createNonGlobalRegex, escapeRegexCharacters} from "@/common/regExUtil";

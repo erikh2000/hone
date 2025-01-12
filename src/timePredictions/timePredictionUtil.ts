@@ -4,7 +4,6 @@ import TimePredictions from "./types/TimePredictions";
 
 let thePredictions:TimePredictions|null = null;
 let hasScaledDefaults = false;
-let persistPredictions = false;
 
 export const MAX_STORE_TIMES = 5;
 
@@ -24,18 +23,15 @@ function _scaleDefaultsToMatchActualTime(actualTime:number, defaultTime:number) 
   hasScaledDefaults = true;
 }
 
-export async function initialize(predictions?:TimePredictions) {
+export async function initialize() {
   if (thePredictions) throw Error('Initialize only once.');
-  /* istanbul ignore next */ // I'd rather exclude the line from test coverage than mock out the persistence layer.
-  thePredictions = predictions ?? await getTimePredictions() ?? {};
-  persistPredictions = predictions === undefined;
+  thePredictions = await getTimePredictions() ?? {};
 }
 
 // Useful for unit testing.
 export function deinitialize() {
   thePredictions = null;
   hasScaledDefaults = false;
-  persistPredictions = false;
 }
 
 export function setDefault(factors:string, defaultTime:number) {
@@ -68,6 +64,5 @@ export function storeActualTime(factors:string, msecs:number) {
   previousTimes.push(msecs);
   if (previousTimes.length > MAX_STORE_TIMES) previousTimes.shift();
   if (!hasScaledDefaults) _scaleDefaultsToMatchActualTime(msecs, prediction.defaultTime);
-  /* istanbul ignore next */ // I'd rather exclude the line from test coverage than mock out the persistence layer.
-  if (persistPredictions) setTimePredictions(thePredictions); // Fire and forget.
+  setTimePredictions(thePredictions); // Fire and forget on async write.
 }
