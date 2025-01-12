@@ -1,5 +1,4 @@
 enum LLMConnectionType {
-  OLLAMA,
   WEBLLM,
   NONE
 }

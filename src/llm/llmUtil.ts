@@ -3,9 +3,7 @@ import LLMConnectionState from "./types/LLMConnectionState";
 import LLMConnectionType from "./types/LLMConnectionType";
 import LLMMessages from "./types/LLMMessages";
 import StatusUpdateCallback from "./types/StatusUpdateCallback";
-import { connectToOllama, generateOllama } from "./ollamaUtil";
 import { connectToWebLLM, generateWebLLM } from "./webLlmUtil";
-import { isServingLocally } from "@/developer/devEnvUtil";
 import { updateStatsForPrompt } from "./llmStatsUtil";
 import { getCachedPromptResponse, setCachedPromptResponse } from "./promptCache";
 
@@ -29,10 +27,7 @@ export function isInitialized():boolean { return theConnection.state === LLMConn
 export async function init(onStatusUpdate:StatusUpdateCallback) {
   if (isInitialized()) return;
   theConnection.state = LLMConnectionState.INITIALIZING;
-  const connectionSuccess = (
-    (isServingLocally() && await connectToOllama(theConnection, onStatusUpdate)) // Better option for local development because doesn't need to load the model to GPU on each reload.
-    || await connectToWebLLM(theConnection, onStatusUpdate) // Better option for production because browsers tend not to support calling local servers without hacking/advanced config.
-  );
+  const connectionSuccess = await connectToWebLLM(theConnection, onStatusUpdate);
   if (!connectionSuccess) { 
     theConnection.webLLMEngine = null;
     theConnection.serverUrl = null;
@@ -82,7 +77,6 @@ export async function generate(prompt:string, onStatusUpdate:StatusUpdateCallbac
   let message = '';
   switch(theConnection.connectionType) {
     case LLMConnectionType.WEBLLM: message = await generateWebLLM(theConnection, messages, prompt, onStatusUpdate); break;
-    case LLMConnectionType.OLLAMA: message = await generateOllama(theConnection, messages, prompt, onStatusUpdate); break;
     default: throw Error('Unexpected');
   }
   setCachedPromptResponse(prompt, message);
