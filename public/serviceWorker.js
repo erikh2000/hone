@@ -1,8 +1,9 @@
 const CACHE_NAME = 'static-cache-v1';
 
 const PUBLIC_FILES_TO_CACHE = [
-  '/index.html'
-];
+  '/index.html',
+  '/example/Examples.xlsx'
+]; // TODO add /loading/* after dust settles.
 
 async function _fetchViteManifestJsonCacheEntries() {
   try {
