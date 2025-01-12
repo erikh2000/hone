@@ -1,5 +1,5 @@
 import TimePredictions from "@/timePredictions/types/TimePredictions";
-import { TIME_PREDICTIONS_KEY } from "./pathTemplates";
+import { CACHED_MODELS_MANIFEST_KEY, TIME_PREDICTIONS_KEY } from "./pathTemplates";
 import { getText, setText } from "./pathStore";
 import { MIMETYPE_JSON } from "./mimeTypes";
 
@@ -28,4 +28,26 @@ export async function getTimePredictions():Promise<TimePredictions|null> {
 export async function setTimePredictions(predictions:TimePredictions) {
   const jsonText = JSON.stringify(predictions);
   await setText(TIME_PREDICTIONS_KEY, jsonText, MIMETYPE_JSON);
+}
+
+async function _getCachedModelIds():Promise<string[]> {
+  const text = await getText(CACHED_MODELS_MANIFEST_KEY);
+  return text ? text.split('\n') : [];
+}
+
+/*  It would be more direct to go look at WebLLM's created cache, but then I'd be relying on non-contractual 
+    behavior that can break. This is good enough for now. Alternatives: 
+    1. Parse the status messages after WebLLM starts loading. 
+    2. Use a WebLLM API that tells me. Doesn't exist now, but could try contributing. */
+export async function isModelCached(modelId:string):Promise<boolean> {
+  const cachedModelIds = await _getCachedModelIds();
+  return cachedModelIds.includes(modelId);
+}
+
+export async function setModelCached(modelId:string) {
+  const cachedModelIds = await _getCachedModelIds();
+  if (cachedModelIds.includes(modelId)) return;
+  cachedModelIds.push(modelId);
+  const text = cachedModelIds.join('\n');
+  await setText(CACHED_MODELS_MANIFEST_KEY, text);
 }

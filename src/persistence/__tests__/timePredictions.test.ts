@@ -1,10 +1,8 @@
 import TimePredictions from "@/timePredictions/types/TimePredictions";
-import { getTimePredictions, setTimePredictions } from "../timePredictions";
+import { getTimePredictions, setTimePredictions, isModelCached, setModelCached } from "../timePredictions";
 import * as PathStore from '@/persistence/pathStore';
 
 jest.mock('@/persistence/pathStore');
-
-
 
 describe('timePredictions', () => {
   let fakeStore:{[key:string]:string} = {};
@@ -99,5 +97,36 @@ describe('timePredictions', () => {
       setTimePredictions(invalidPredictions);
       await expect(getTimePredictions()).rejects.toThrow();
     });
-  })
+  });
+
+  describe('cached model manifest', () => {
+    it('returns false for a model if no manifest has been persisted', async () => {
+      expect(await isModelCached('model')).toBe(false);
+    });
+
+    it('returns false for an uncached model', async () => {
+      await setModelCached('model1');
+      expect(await isModelCached('model2')).toBe(false);
+    });
+
+    it('returns true for a cached model', async () => {
+      await setModelCached('model');
+      expect(await isModelCached('model')).toBe(true);
+    });
+
+    it('returns true for a model that was marked cached multiple times', async () => {
+      await setModelCached('model');
+      await setModelCached('model');
+      expect(await isModelCached('model')).toBe(true);
+    });
+
+    it('returns true for multiple models that were marked cached', async () => {
+      await setModelCached('model1');
+      await setModelCached('model2');
+      await setModelCached('model3');
+      expect(await isModelCached('model1')).toBe(true);
+      expect(await isModelCached('model2')).toBe(true);
+      expect(await isModelCached('model3')).toBe(true);
+    });
+  });
 });
