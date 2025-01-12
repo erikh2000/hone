@@ -2,27 +2,32 @@ import { useEffect, useState } from "react";
 
 import LivingSvg from "@/components/livingSvg/LivingSvg";
 import { SquiggleType } from "@/components/squiggleFilter/SquiggleFilter";
-import { startSpiel, stopSpiel, updateProgress } from "./interactions/story";
+import { startSpiel, stopSpiel, updateProgress, updateCurrentTask } from "./interactions/story";
 
 type Props = {
   svgUrl:string,
   spielUrl:string,
   percentComplete:number,
-  playLooped:boolean
+  currentTask:string,
+  playLooped?:boolean
 }
 
 const WAIT_SECONDS = 3;
-function ProgressStory({svgUrl, spielUrl, playLooped, percentComplete}:Props) {
+function ProgressStory({svgUrl, spielUrl, playLooped, percentComplete, currentTask}:Props) {
   const [textReplacements, setTextReplacements] = useState<{[key:string]:string}>({});
 
   useEffect(() => {
-    startSpiel(WAIT_SECONDS, spielUrl, playLooped, setTextReplacements);
+    startSpiel(WAIT_SECONDS, spielUrl, playLooped===true, setTextReplacements);
     return stopSpiel;
   }, [spielUrl]);
 
   useEffect(() => {
     updateProgress(percentComplete);
   }, [percentComplete]);
+
+  useEffect(() => {
+    updateCurrentTask(currentTask);
+  }, [currentTask])
 
   return (
     <>

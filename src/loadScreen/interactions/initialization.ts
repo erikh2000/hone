@@ -4,7 +4,6 @@ let isInitialized = false;
 let isInitializing = false;
 
 enum LoadStage {
-  OLLAMA_CHECK = -1,
   START = 0,
   DOWNLOAD_MODEL = 1,
   LOAD_FROM_CACHE = 2,
@@ -36,7 +35,6 @@ Example statuses:
 */
 function _findStageFromWebLLMStatus(status:string):LoadStage {
   status = status.trim().toLowerCase();
-  if (status.includes('ollama')) return LoadStage.OLLAMA_CHECK;
   if (status === '' || status.includes('fetch params')) return LoadStage.START;
   if (status.includes('fetching param cache')) return LoadStage.DOWNLOAD_MODEL;
   if (status.includes('loading model from cache')) return LoadStage.LOAD_FROM_CACHE;
@@ -50,11 +48,10 @@ function _simplifyStatus(status:string):string {
   const stageProgress = _findProgressFromWebLLMStatus(status);
   const progressText = stageProgress ? ` (${stageProgress[0]}/${stageProgress[1]})` : '';
   switch(stage) {
-    case LoadStage.OLLAMA_CHECK: return status;
     case LoadStage.START:
       return `Let's load an LLM into your browser!`;
     case LoadStage.DOWNLOAD_MODEL:
-      return `Downloading the LLM from a cloud server...${progressText} (You can probably skip this next time)`;
+      return `Downloading the LLM from a cloud server...${progressText}`;
     case LoadStage.LOAD_FROM_CACHE:
       return `Loading the previously-downloaded LLM from your browser's cache...${progressText}`;
     case LoadStage.LOAD_TO_GPU:
@@ -65,14 +62,6 @@ function _simplifyStatus(status:string):string {
   return status;
 }
 
-/* Stage percentage ranges:
-  0 - 1%    Start
-  1% - 50%  Download model / load from cache
-  50 - 99%  Load to GPU
-  99 - 100% Unknown
-
-  In case the status text parsing is wrong, never go backwards.
-*/
 let stagesSoFar:LoadStage[] = [];
 let highestPercentComplete = 0;
 function _findPercentCompleteFromStatus(status:string):number|null {
@@ -82,7 +71,6 @@ function _findPercentCompleteFromStatus(status:string):number|null {
 
   let start = 0, end = 1;
   switch(stage) {
-    case LoadStage.OLLAMA_CHECK:
     case LoadStage.START: 
       start = 0; end = .01; 
     break;

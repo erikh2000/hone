@@ -1,83 +1,14 @@
 nodes:
-  - PETE: (amused) Hey, Pukeface. / Hey, Bubba Baloney. / Hey, you. Doctor Genius
-      over there. / Hey, Goober Head. / Hey, Cob Chomper. / Hey, Donkey Butt. /
-      Hey, you. Cheezy Squeezy. / Hey, you. Captain Scrunchie. / Hey, Turbo
-      Trousers. / Hey, Pickle Breath. / Hey, Sweet Chunks. / Hey, you. Lampshade
-      Face. / Hey, you. Nickle Licker. / Hey, Clown Cuddler. / Hey, you.
-      Freakmondo!
-  - PETE: Think you're better than me?
-  - PETE: (irritated) Why you always doing that wide swagger? / Why you always
-      strutting proud? / Why you always catwalking down the road? / Why you
-      always rooster-stepping in front of everybody?
-  - PETE: I see you out there.
-  - PETE: (suspicious) Looking behind you for your entourage. / Acting like the
-      belle of the ball and the pepper. / Waiting for people to write songs
-      about you. / Stepping into moonbeams like you own em. / Wearing that
-      attitude like a tight snack-jacket. / Wafting your smells onto other
-      people.
-  - PETE: You think you're some oven-baked dookie cookie. / You think you're a
-      whole cat rodeo show. / You think you're full of rainbow juice, and
-      everybody's gonna slurp on it.
-  - PETE: (thinking) The big question is... / I gotta ask you... / Here's my
-      question...
-  - PETE: (confused) Do you think you're smart?
-  - PETE: (confused) You think I'm stupid? / You think I'm an idiot? / You think
-      I'm a moron?
-  - PETE: (amused) I can see one thing... / I can tell you this... / I definitely
-      know one thing...
-  - PETE: (irritated) You think you're smarter than me. / You think I'm stupid
-      compared to you. / You see yourself above me, brainwise.
-  - PETE: (suspicious) Where are you from?
-  - PETE: Did you go to college?
-  - PETE: You take a lot of showers?
-  - PETE: (amused) I bet you wash your hands with water. Am I right?
-  - PETE: (suspicious) Do you brush your teeth on Tuesdays?
-  - PETE: You got those... matching socks? / Are your socks matching? / Is your
-      left sock matching your right sock?
-  - PETE: (thinking) I bet you're out there every day
-  - PETE: tickling those baby newtons. / finessing and hairdressing. / harrassing
-      the masses like you own em. / quibbling with grammar hammocks.
-  - PETE: (suspicious) Yanking loose drawstrings. / Extending warranties. /
-      Delivering news that is neither good or bad. / Assembling furniture that
-      isn't even yours. / Beating a path to your own door. / Sipping drinks with
-      long, underground straws.
-  - PETE: (angry) And wiping morsels off the fat chins. / And claiming islands for
-      Spain. / And taking a too long a time on the see-saw. / And not banking
-      your nuts for the long winter coming.
-  - PETE: (thinking) That's all fine, but let me ask you... / It's what I expect,
-      but I should ask you... / Won't stop you. But I do want to know...
-  - PETE: (confused) You got your pants on straight? / Are your pants facing
-      frontwards? / Are your pants fully on?
-  - PETE: (confused) Is your zipper zipped? / You got your zipper zipped?
-  - PETE: (suspicious) You gripping or slipping? / You souping or stooping? / You
-      horsing or remorsing? / You funking or trunking?
-  - PETE: Rate yourself on a scale between one and... uh... nine.
-  - PETE: If I invite you to a party, are you coming?
-  - PETE: Okay, say the party I invite you to is at your house. Are you coming?
-  - PETE: And say you have a party at my house. Am I invited?
-  - PETE: (thinking) If I go to that party, I'm bringing you
-  - PETE: (happy) a full ten-pound bag of used cat food. / a mason jar of ancient
-      Aztec chocolates. / a recall notice for your favorite childhood toy. / a
-      sloppy sack of hobo train ride dreams. / the loose end of a five-mile rope
-      that's tied to something. / a recipe for disaster cream pie. / the most
-      glamorous castanet in six out of seven counties. / a gopher that screams
-      in his sleep for crimes of the past. / a gold-plated replica of an
-      unremarkable piece of styrofoam.
-  - PETE: (happy) Would you be grateful as a pilgrim? / Would that make you feel
-      the magic? / Would you smile like the King of Smiling?
-  - PETE: (thinking) Well, this is the situation. / Guess it just has to be this
-      way. / I suppose it's how it goes.
-  - PETE: You'll be butter, and I'll be glue. / I'll be the mystery meat in your
-      hot glam sandwich. / You'll be the captain, but I'll be the boat. / You'll
-      go west. I'll go east. Everybody else stay put. / I'll start the parade,
-      but you're gonna finish it.
-  - PETE: And you'll be pre-funking and spelunking. / And you'll be sharpening
-      your spoons. / And you'll be whipping cream into a frenzy. / And you'll be
-      straddling the borders of decencies. / And you'll be huddling with
-      yourself at half-time.
-  - PETE: (thinking) And in the end / And all things considered / Taking
-      everything into account
-  - PETE: That's just how it's gotta be. / It's the only thing that makes sense. /
-      It's what we gotta do.
-rootReplies: []
+  - PETE: Loading, loading, loading... / It's loading time. / Time to load the LLM.
+  - PETE: You might be grumpy about the loading. / This waiting around might put you off. / I don't expect you to like waiting.
+  - PETE: But something glorius is happening here. / But be patient and witness a miracle. / But you gotta believe for the magic to unfold.
+  - PETE: A sophisticated model is dropping right into your browser. / Your browser is getting smarter. / We're filling your browser with golden goodness.
+rootReplies:
+  - PETE: cloud / download / downloading / downloaded -> It takes a while to download the model the first time. Then it's cached.
+  - PETE: previously-downloaded / cache / cached / cache... -> Now we're just grabbing chunks from your browser cache.
+  - PETE: video / GPU -> The model goes onto your video card so it can run fast.
+  - PETE: grinding -> I have no idea what "grinding" is. / "Grinding"? I confess I don't know what that means. / What the heck is "grinding" in this context?
+  - PETE: 25% -> Past the quarter mark. Not bad. / If it gets past 25%, I figure it will load. / Making decent progress here. I like it.
+  - PETE: 50% -> Past the halfway mark. / We're more than half done. Nice. / Check out the bar. Over halfway done.
+  - PETE: 75% -> It's going to happen! / The miracle is manifesting! / The beautiful bar... it's full of dreams!
 defaultCharacter: PETE

@@ -1,6 +1,6 @@
 import styles from './LoadScreen.module.css';
-//import { init } from "./interactions/initialization";
-//import {HOME_URL} from "@/common/urlUtil.ts";
+import { init } from "./interactions/initialization";
+import {HOME_URL} from "@/common/urlUtil.ts";
 import ProgressBar from '@/components/progressBar/ProgressBar';
 import ProgressStory from '@/components/progressStory/ProgressStory';
 
@@ -13,14 +13,14 @@ function LoadScreen() {
   const [, setLocation] = useLocation();
   
   useEffect(() => {
-    //init(setPercentComplete, setCurrentTask).then((isInitialized) => { if (isInitialized) setLocation(HOME_URL); });
+    init(setPercentComplete, setCurrentTask).then((isInitialized) => { if (isInitialized) setLocation(HOME_URL); });
   }, [setPercentComplete, setCurrentTask]);
   
   return (
     <div className={styles.container}>
       <div className={styles.header}><h1>Hone - Loading</h1></div>
       <div className={styles.content}>
-        <ProgressStory svgUrl="/loading/calmPete.svg" spielUrl='/loading/calmPete.spiel' percentComplete={percentComplete} playLooped/>
+        <ProgressStory svgUrl="/loading/calmPete.svg" spielUrl='/loading/calmPete.spiel' currentTask={currentTask} percentComplete={percentComplete} />
         <div className={styles.progressBarContainer}>
           <ProgressBar percentComplete={percentComplete}/>
           {currentTask}

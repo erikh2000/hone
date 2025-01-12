@@ -28,11 +28,12 @@ function LivingSvg({url, squiggleType, className, textReplacements, textSquiggle
   const imageClass = `${styles.image} ${squiggleClass}`;
 
   const textBoxesContent = textBoxes?.map(textBox => {
-    const text = textReplacements?.[textBox.key] ?? textBox.key;
+    const text = textReplacements?.[textBox.key];
+    if (!text) return null;
     const textBoxClassName = textSquiggles ? `${styles.speech} ${squiggleClass}` : styles[textBox.className];
     return (
       <div key={textBox.key} className={textBoxClassName}
-            style={{position:'absolute', left:`${textBox.x*100}%`, top:`${textBox.y*100}%`, maxWidth:`${textBox.width*100}%`, maxHeight:`${textBox.height*100}%` }}>
+            style={{position:'absolute', left:`${textBox.x*100}%`, top:`${textBox.y*100}%`, maxWidth:`${textBox.width*100}%` }}>
           {text}
       </div>
     );
@@ -46,3 +47,16 @@ function LivingSvg({url, squiggleType, className, textReplacements, textSquiggle
 }
 
 export default LivingSvg;
+
+/*
+Stories for Hone
+
+Choose a spiel specific to:
+First time loading a model vs cached
+Predicted time to load
+
+If you predict time to load, factors would be:
+Model name, Already cached
+Keep defaults for models.
+
+*/
