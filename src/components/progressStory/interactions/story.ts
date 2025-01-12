@@ -13,6 +13,7 @@ type StoryState = {
   pendingMessages:Message[],
   setTextReplacements:Function,
   nextDialogTimer:NodeJS.Timeout|null,
+  clearDialogTimer:NodeJS.Timeout|null,
   playLooped:boolean,
   pastReplies:SpielReply[],
   highestPercentComplete:number
@@ -31,8 +32,9 @@ async function _loadSpiel(spielUrl:string):Promise<Spiel|null> {
   }
 }
 
-const MIN_DIALOGUE_MSECS = 2000;
-const MSECS_PER_WORD = 200;
+const MIN_DIALOGUE_MSECS = 3500;
+const BETWEEN_MESSAGE_SILENCE_MSECS = 500;
+const MSECS_PER_WORD = 400;
 function _getDurationForDialogue(dialogue:string):number {
   const wordCount = dialogue.split(' ').length;
   return Math.max(MIN_DIALOGUE_MSECS, wordCount * MSECS_PER_WORD);
@@ -62,24 +64,25 @@ function _showNextMessage() {
     dialogue = message.dialogue;
     duration = _getDurationForDialogue(dialogue);
   } else {
-    if(_finishedPlayingSpiel()) {
-      setTextReplacements({}); // Clear text.
-      return;
-    }
-    dialogue =  spiel.currentNode.nextDialogue();
     characterName = spiel.currentNode.line.character;
+    dialogue =  spiel.currentNode.nextDialogue();
     duration = _getDurationForDialogue(dialogue) + spiel.currentNode.postDelay;
+  }
+
+  const textReplacements:{[key:string]:string} = {};
+  textReplacements[characterName] = dialogue;
+  setTextReplacements(textReplacements);
+  theStoryState.clearDialogTimer = setTimeout(() => setTextReplacements({}), duration - BETWEEN_MESSAGE_SILENCE_MSECS); // The gap is important to signal to the user a new message is coming.
+
+  if(_finishedPlayingSpiel() && theStoryState.pendingMessages.length === 0) return;
+
+  if (!usePendingMessage) {
     if (playLooped) {
       spiel.moveNextLooped();
     } else {
       spiel.moveNext();
     }
   }
-
-  const textReplacements:{[key:string]:string} = {};
-  textReplacements[characterName] = dialogue;
-  setTextReplacements(textReplacements);
-
   theStoryState.nextDialogTimer = setTimeout(_showNextMessage, duration);
 }
 
@@ -91,7 +94,7 @@ export async function startSpiel(waitSeconds:number, spielUrl:string, playLooped
     const startTime = Date.now();
     const spiel = await _loadSpiel(spielUrl);
     if (!spiel) return;
-    theStoryState = {spiel, setTextReplacements, nextDialogTimer:null, 
+    theStoryState = {spiel, setTextReplacements, nextDialogTimer:null, clearDialogTimer:null,
       pendingMessages:[], playLooped, highestPercentComplete:0, pastReplies:[]};
     const remainingWait = waitSeconds * 1000 - (Date.now() - startTime);
     await wait(remainingWait);
@@ -104,8 +107,9 @@ export async function startSpiel(waitSeconds:number, spielUrl:string, playLooped
 }
 
 export function stopSpiel() {
-  if(!theStoryState) return;
-  if(theStoryState.nextDialogTimer) clearTimeout(theStoryState.nextDialogTimer);
+  if (!theStoryState) return;
+  if (theStoryState.nextDialogTimer) clearTimeout(theStoryState.nextDialogTimer);
+  if (theStoryState.clearDialogTimer) clearTimeout(theStoryState.clearDialogTimer);
   theStoryState = null;
 }
 
@@ -115,7 +119,7 @@ function _addReplyAsPendingMessage(reply:SpielReply) {
   const dialogue = reply.nextDialogue();
   const character = reply.line.character;
   theStoryState.pendingMessages.push({character, dialogue});
-  if (_finishedPlayingSpiel() && !theStoryState.nextDialogTimer) _showNextMessage();
+  if (_finishedPlayingSpiel() && theStoryState.nextDialogTimer === null) _showNextMessage();
 }
 
 export function updateProgress(percentComplete:number) {

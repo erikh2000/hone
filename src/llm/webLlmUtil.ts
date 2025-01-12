@@ -13,7 +13,7 @@ import {
 } from "@mlc-ai/web-llm";
 import LLMMessage from "./types/LLMMessage";
 
-const WEBLLM_MODEL = "Llama-3.1-8B-Instruct-q4f16_1-MLC-1k";
+export const WEBLLM_MODEL = "Llama-3.1-8B-Instruct-q4f16_1-MLC-1k";
 
 export async function connectToWebLLM(connection:LLMConnection, onStatusUpdate:StatusUpdateCallback):Promise<boolean> {
   try {

@@ -1,4 +1,4 @@
-import { init as initLlm } from "@/llm/llmUtil.ts";
+import { init as initLlm, predictLoadTime } from "@/llm/llmUtil.ts";
 
 let isInitialized = false;
 let isInitializing = false;
@@ -76,12 +76,12 @@ function _findPercentCompleteFromStatus(status:string):number|null {
     break;
 
     case LoadStage.DOWNLOAD_MODEL: 
-    case LoadStage.LOAD_FROM_CACHE: 
-      start = .01; end = .95;
+    case LoadStage.LOAD_FROM_CACHE:
+      start = .01; end = .90;
     break;
 
     case LoadStage.LOAD_TO_GPU:
-      start = .95; end = .99;
+      start = .90; end = .99;
     break;
 
     // A fall through when my parsing fails.
@@ -101,7 +101,7 @@ function _findPercentCompleteFromStatus(status:string):number|null {
   return progress;
 }
 
-export async function init(setPercentComplete:Function, setCurrentTask:Function):Promise<boolean> {
+export async function init(setPercentComplete:Function, setCurrentTask:Function, setSpielUrl:Function):Promise<boolean> {
   if (isInitialized || isInitializing) return false;
   
   try {
@@ -116,6 +116,9 @@ export async function init(setPercentComplete:Function, setCurrentTask:Function)
 
     highestPercentComplete = 0;
     stagesSoFar = [];
+    const predictedLoadTime = await predictLoadTime();
+    const spielUrl = predictedLoadTime < 30000 ? '/loading/calmPete30.spiel' : '/loading/calmPete120.spiel';
+    setSpielUrl(spielUrl);
     await initLlm(_onStatusUpdate);
     isInitialized = true;
     return true;
@@ -126,3 +129,4 @@ export async function init(setPercentComplete:Function, setCurrentTask:Function)
     isInitializing = false;
   }
 }
+

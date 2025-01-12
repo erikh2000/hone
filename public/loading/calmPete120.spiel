@@ -1,0 +1,23 @@
+nodes:
+  - PETE: Settle in. / Get comfy. / Make yourself comfortable.
+  - PETE: This load might take some minutes. / I think this could take a while. / We could be here for a bit.
+  - PETE: But I'm here to keep you company. / You and me can just have a little Load Party. / We can talk while it's loading.
+  - PETE: We're basically making your browser much smarter. / A frigging LLM is getting added to your browser. / We're gonna download a digital brain here.
+  - PETE: The LLM will be in your browser. That allows us to keep all your data local.
+  - PETE: This app sends none of your data to the cloud.
+  - PETE: After the model is downloaded, you could actually use this app with the Internet turned off.
+  - PETE: I can see your data, but I'm staying in your browser along with the other bits.
+  - PETE: I've just never been a "cloud guy". / I'm a local dude. That's my style. / Some people say I should get out more, but hey... I'm content.
+  - PETE: I got my lap blanket tucked in perfect. / I got this comfy, virtual chair. / I've got this pleasant conversation with you.
+  - PETE: What more could I want? / I don't need much to be happy. / I am properly ensconced.
+  - PETE: I feel like I'm talking too much. / I don't want to talk your ear off. / Sorry, I tend to go on. Blah blah blah.
+  - PETE: I'll just mostly be quiet now. / I should just shut up for a bit. / I can bring the energy down.
+rootReplies:
+  - PETE: cloud / download / downloading / downloaded -> It takes extra time to download the model. But next time, it will be cached. / On the first load, we need to download the model. / We gotta download the model on the first load. Next time should be faster.
+  - PETE: previously-downloaded / cache / cached / cache... -> Now we're just grabbing chunks from your browser cache.
+  - PETE: video / GPU -> The model goes onto your video card so it can run fast.
+  - PETE: grinding -> I have no idea what "grinding" is. / "Grinding"? I confess I don't know what that means. / What the heck is "grinding" in this context?
+  - PETE: 25% -> Past the quarter mark. Not bad. / If it gets past 25%, I figure it will load. / Making decent progress here. I like it.
+  - PETE: 50% -> Past the halfway mark. / We're more than half done. Nice. / Check out the bar. Over halfway done.
+  - PETE: 75% -> It's going to happen! / The miracle is manifesting! / The beautiful bar... it's full of dreams!
+defaultCharacter: PETE

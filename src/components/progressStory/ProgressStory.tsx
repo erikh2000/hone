@@ -6,7 +6,7 @@ import { startSpiel, stopSpiel, updateProgress, updateCurrentTask } from "./inte
 
 type Props = {
   svgUrl:string,
-  spielUrl:string,
+  spielUrl:string|null,
   percentComplete:number,
   currentTask:string,
   playLooped?:boolean
@@ -17,6 +17,7 @@ function ProgressStory({svgUrl, spielUrl, playLooped, percentComplete, currentTa
   const [textReplacements, setTextReplacements] = useState<{[key:string]:string}>({});
 
   useEffect(() => {
+    if (!spielUrl) return;
     startSpiel(WAIT_SECONDS, spielUrl, playLooped===true, setTextReplacements);
     return stopSpiel;
   }, [spielUrl]);

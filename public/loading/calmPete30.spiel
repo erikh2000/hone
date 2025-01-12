@@ -1,14 +1,12 @@
 nodes:
-  - PETE: Loading, loading, loading... / It's loading time. / Time to load the LLM.
   - PETE: You might be grumpy about the loading. / This waiting around might put you off. / I don't expect you to like waiting.
-  - PETE: But something glorius is happening here. / But be patient and witness a miracle. / But you gotta believe for the magic to unfold.
+  - PETE: But something glorious is happening here. / But be patient and witness a miracle. / But you gotta believe for the magic to unfold.
   - PETE: A sophisticated model is dropping right into your browser. / Your browser is getting smarter. / We're filling your browser with golden goodness.
 rootReplies:
   - PETE: cloud / download / downloading / downloaded -> It takes a while to download the model the first time. Then it's cached.
-  - PETE: previously-downloaded / cache / cached / cache... -> Now we're just grabbing chunks from your browser cache.
+  - PETE: previously-downloaded / cache / cached / cache... -> Now we're just grabbing chunks from your browser cache. / The LLM is stored in your browser already. Just grabbing those chunks. / We're grabbing little chunks of data in your browser that store the LLM.
   - PETE: video / GPU -> The model goes onto your video card so it can run fast.
   - PETE: grinding -> I have no idea what "grinding" is. / "Grinding"? I confess I don't know what that means. / What the heck is "grinding" in this context?
-  - PETE: 25% -> Past the quarter mark. Not bad. / If it gets past 25%, I figure it will load. / Making decent progress here. I like it.
   - PETE: 50% -> Past the halfway mark. / We're more than half done. Nice. / Check out the bar. Over halfway done.
   - PETE: 75% -> It's going to happen! / The miracle is manifesting! / The beautiful bar... it's full of dreams!
 defaultCharacter: PETE

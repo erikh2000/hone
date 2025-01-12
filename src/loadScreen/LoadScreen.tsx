@@ -10,17 +10,18 @@ import {useLocation} from "wouter";
 function LoadScreen() {
   const [percentComplete, setPercentComplete] = useState(0);
   const [currentTask, setCurrentTask] = useState('Loading');
+  const [spielUrl, setSpielUrl] = useState<string|null>(null);
   const [, setLocation] = useLocation();
   
   useEffect(() => {
-    init(setPercentComplete, setCurrentTask).then((isInitialized) => { if (isInitialized) setLocation(HOME_URL); });
+    init(setPercentComplete, setCurrentTask, setSpielUrl).then((isInitialized) => { if (isInitialized) setLocation(HOME_URL); });
   }, [setPercentComplete, setCurrentTask]);
   
   return (
     <div className={styles.container}>
       <div className={styles.header}><h1>Hone - Loading</h1></div>
       <div className={styles.content}>
-        <ProgressStory svgUrl="/loading/calmPete.svg" spielUrl='/loading/calmPete.spiel' currentTask={currentTask} percentComplete={percentComplete} />
+        <ProgressStory svgUrl="/loading/calmPete.svg" spielUrl={spielUrl} currentTask={currentTask} percentComplete={percentComplete} />
         <div className={styles.progressBarContainer}>
           <ProgressBar percentComplete={percentComplete}/>
           {currentTask}
