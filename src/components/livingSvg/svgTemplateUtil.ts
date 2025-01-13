@@ -1,3 +1,4 @@
+import { baseUrl } from "@/common/urlUtil";
 import { parseSvg, parseTagAttributes, SvgParseStackItem } from "./svgUtil";
 import SvgTemplate, { TextBox } from "./types/SvgTemplate";
 
@@ -55,7 +56,7 @@ export function createSvgTemplate(url:string, svgText:string):SvgTemplate {
 }
 
 export async function loadSvgTemplate(url:string) {
-  const response = await fetch(url);
+  const response = await fetch(baseUrl(url));
   const svgText = await response.text(); 
   return createSvgTemplate(url, svgText);
 }
