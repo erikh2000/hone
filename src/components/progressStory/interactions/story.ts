@@ -1,3 +1,4 @@
+import { baseUrl } from '@/common/urlUtil';
 import { wait } from '@/common/waitUtil';
 import {Spiel, SpielReply, importSpielFile} from 'sl-spiel';
 
@@ -22,7 +23,7 @@ let theStoryState:StoryState|null = null;
 
 async function _loadSpiel(spielUrl:string):Promise<Spiel|null> {
   try {
-    const spielResponse = await fetch(spielUrl);
+    const spielResponse = await fetch(baseUrl(spielUrl));
     const spielText = await spielResponse.text();
     const spiel = importSpielFile(spielText);
     return spiel;

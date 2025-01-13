@@ -47,16 +47,3 @@ function LivingSvg({url, squiggleType, className, textReplacements, textSquiggle
 }
 
 export default LivingSvg;
-
-/*
-Stories for Hone
-
-Choose a spiel specific to:
-First time loading a model vs cached
-Predicted time to load
-
-If you predict time to load, factors would be:
-Model name, Already cached
-Keep defaults for models.
-
-*/
