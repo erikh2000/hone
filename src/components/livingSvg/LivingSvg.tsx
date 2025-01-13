@@ -3,6 +3,7 @@ import { loadSvgTemplate } from "./svgTemplateUtil";
 import SquiggleFilter, { SquiggleType, classNameForSquiggleType } from "@/components/squiggleFilter/SquiggleFilter";
 import { TextBox } from "./types/SvgTemplate";
 import styles from './LivingSvg.module.css';
+import { baseUrl } from "@/common/urlUtil";
 
 type Props = {
   url:string,
@@ -41,7 +42,7 @@ function LivingSvg({url, squiggleType, className, textReplacements, textSquiggle
 
   return <div className={`${styles.container} ${className}`}>
     <SquiggleFilter squiggleType={squiggleType} />
-    <img src={url} className={imageClass} />
+    <img src={baseUrl(url)} className={imageClass} />
     {textBoxesContent}
   </div>;
 }
