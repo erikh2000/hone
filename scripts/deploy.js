@@ -13,7 +13,7 @@ async function main(bunnyApiKey, storageZoneName, appName, commitHash) {
   if (!commitHash) _fatalError('Missing COMMIT_HASH environment variable.');
   
   const shortHash = commitHash.length > 7 ? commitHash.slice(0, 7) : commitHash;
-  const storagePath = `/${appName}/${shortHash}/`;
+  const storagePath = `/_${appName}/${shortHash}/`;
   if (
     !await useStorageZone(storageZoneName) ||
     !await syncFilesToStorage(storagePath, './dist')
