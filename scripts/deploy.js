@@ -12,7 +12,8 @@ async function main(bunnyApiKey, storageZoneName, appName, commitHash) {
   if (!appName) _fatalError('Missing APP_NAME environment variable.');
   if (!commitHash) _fatalError('Missing COMMIT_HASH environment variable.');
   
-  const storagePath = `/${appName}/${commitHash}/`;
+  const shortHash = commitHash.length > 7 ? commitHash.slice(0, 8) : commitHash;
+  const storagePath = `/${appName}/${shortHash}/`;
   if (
     !await useStorageZone(storageZoneName) ||
     !await syncFilesToStorage(storagePath, './dist')
