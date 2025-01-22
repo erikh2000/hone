@@ -1,4 +1,4 @@
-import { useStorageZone, syncFilesToStorage, ANSI_START_RED, ANSI_RESET } from "./bunnyUtil.js";
+import { useStorageZone, syncFilesToStorage, ANSI_START_RED, ANSI_RESET, writeAppVersion, updateAppStageVersion } from "./bunnyUtil.js";
 
 function _fatalError(message) {
   if (!message) message = 'Exiting script due to preceding error.';
@@ -16,7 +16,9 @@ async function main(bunnyApiKey, storageZoneName, appName, commitHash) {
   const storagePath = `/_${appName}/${shortHash}/`;
   if (
     !await useStorageZone(storageZoneName) ||
-    !await syncFilesToStorage(storagePath, './dist')
+    !await syncFilesToStorage(storagePath, './dist') ||
+    !await writeAppVersion(storagePath, commitHash) ||
+    !await updateAppStageVersion(appName, commitHash)
   ) _fatalError();
 }
 

@@ -1,8 +1,9 @@
 import * as https from 'https';
 import { createReadStream } from 'fs';
 import * as path from 'path';
-import { opendir } from 'fs/promises';
+import { opendir, stat } from 'fs/promises';
 import { createHash } from 'crypto';
+import { parseStageIndex, createStageIndex, appNameToStageIndexPath, createEmptyVarsObject } from './stageIndexUtil.js';
 
 /* Bunny's docs on storage API limits - https://docs.bunny.net/reference/edge-storage-api-limits
    If there's only one ongoing upload to my storage zone, a higher number, e.g. 50 should work.
@@ -46,16 +47,16 @@ async function _httpsRequest(options) {
         }
       });
     });
-    req.on('error', (err) => {
-      reject(err);
-    });
+    req.on('error', (err) => reject(err));
     req.end();
   }).catch((err) => { throw(err); });
 }
 
 async function _httpsRequestWithBodyFromFile(options, filePath) {
+  const fileStats = await stat(filePath);
   return new Promise((resolve, reject) => {
     // Write HTTP request headers, wait for the request body to be piped, and close the connection.
+    options.headers['Content-Length'] = fileStats.size;
     const req = https.request(options, (res) => {
       let responseData = '';
       res.on('data', (chunk) => { responseData += chunk; });
@@ -67,22 +68,45 @@ async function _httpsRequestWithBodyFromFile(options, filePath) {
         }
       });
     });
-    req.on('error', async (err) => { reject(err); });
+    req.on('error', (err) => reject(err));
 
     // Pipe the file stream to the request, writing it after HTTP headers are sent.
     const inputReadStream = createReadStream(filePath);
     inputReadStream.pipe(req);
     inputReadStream.on('end', () => req.end());
-    inputReadStream.on('error', async (err) => reject(err));
+    inputReadStream.on('error', (err) => { req.destroy(); reject(err); });
   }).catch((err) => { throw err; });
 }
 
-async function _bunnyGet(urlPath) {
+async function _httpsRequestWithBodyFromText(options, text) {
+  return new Promise((resolve, reject) => {
+    // Write HTTP request headers, wait for the request body to be written, and close the connection.
+    options.headers['Content-Length'] = Buffer.byteLength(text);
+    const req = https.request(options, (res) => {
+      let responseData = '';
+      res.on('data', (chunk) => { responseData += chunk; });
+      res.on('end', async () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve({ statusCode: res.statusCode, body: responseData });
+        } else {
+          reject(new Error(`Request failed with status code: ${res.statusCode}. Response: ${responseData}`));
+        }
+      });
+    });
+    req.on('error', (err) => reject(err));
+
+    // Write text to body of request.
+    req.write(text);
+    req.end();
+  }).catch((err) => { throw err; });
+}
+
+async function _bunnyGetText(urlPath) {
   const bunnyAPIKey = _getBunnyApiKey();
   const options = {
     hostname: 'api.bunny.net', path:urlPath, method: 'GET',
     headers: {
-      'Accept': 'application/json',
+      'Accept': 'application/json, text/plain',
       'AccessKey': bunnyAPIKey
     }
   };
@@ -90,17 +114,17 @@ async function _bunnyGet(urlPath) {
 }
 
 async function _bunnyGetJson(urlPath) {
-  const jsonData = await _bunnyGet(urlPath);
+  const jsonData = await _bunnyGetText(urlPath);
   return JSON.parse(jsonData);
 }
 
-async function _storageGet(domainName, storageZoneName, password, storagePath) {
+async function _storageGetText(domainName, storageZoneName, password, storagePath) {
   storagePath = storagePath.startsWith('/') ? storagePath : '/' + storagePath;
   storagePath = `/${storageZoneName}${storagePath}`;
   const options = {
     hostname: domainName, path:storagePath, method: 'GET',
     headers: {
-      'Accept': 'application/json',
+      'Accept': 'application/json, text/plain',
       'AccessKey': password
     }
   };
@@ -108,8 +132,25 @@ async function _storageGet(domainName, storageZoneName, password, storagePath) {
   return data;
 }
 
+async function _fetchAppVersionInfo(domainName, storageZoneName, password, appName) {
+  const stageIndexPath = appNameToStageIndexPath(appName);
+  let htmlText;
+  try {
+    htmlText = await _storageGetText(domainName, storageZoneName, password, stageIndexPath);
+  } catch(_ignored) { // Expected condition - index.html not created yet.
+    return createEmptyVarsObject();
+  }
+  return parseStageIndex(htmlText); // This may throw for an invalid stage index file.
+}
+
+async function _writeAppVersionInfo(domainName, storageZoneName, password, appName, productionVersion, rollbackVersion, stageVersion) {
+  const stageIndexText = createStageIndex(appName, productionVersion, rollbackVersion, stageVersion);
+  const stageIndexPath = appNameToStageIndexPath(appName);
+  await _storagePutText(domainName, storageZoneName, password, stageIndexPath, stageIndexText);
+}
+
 async function _storageGetJson(domainName, storageZoneName, password, storagePath) {
-  const data = await _storageGet(domainName, storageZoneName, password, storagePath);
+  const data = await _storageGetText(domainName, storageZoneName, password, storagePath);
   return JSON.parse(data);
 }
 
@@ -117,10 +158,7 @@ async function _storageDelete(domainName, storageZoneName, password, storageFile
   storageFilepath = path.join('/', storageZoneName, storageFilepath);
   const options = {
     hostname: domainName, path:storageFilepath, method: 'DELETE',
-    headers: {
-      'Accept': 'application/json',
-      'AccessKey': password
-    }
+    headers: { 'AccessKey': password }
   };
   await _httpsRequest(options);
 }
@@ -137,6 +175,20 @@ async function _storagePutLocalFile(domainName, storageZoneName, password, stora
     },
   };
   await _httpsRequestWithBodyFromFile(options, localFilePath);
+}
+
+async function _storagePutText(domainName, storageZoneName, password, storageFilepath, text) {
+  if (storageFilepath.endsWith('/')) throw new Error(`Cannot PUT to a directory: ${storageFilepath}`); // Write a file instead, and the directory will be implicitly created.
+  storageFilepath = storageFilepath.startsWith('/') ? storageFilepath : '/' + storageFilepath;
+  storageFilepath = `/${storageZoneName}${storageFilepath}`;
+  const options = {
+    hostname: domainName, path:storageFilepath, method: 'PUT',
+    headers: {
+      'AccessKey': password,
+      'Content-Type': 'text/plain'
+    },
+  };
+  await _httpsRequestWithBodyFromText(options, text);
 }
 
 async function _getStorageZone(id) {
@@ -325,7 +377,7 @@ export async function useStorageZone(name) {
 export async function fetchStorageFile(storagePath) {
   if (!currentStorageZone) { throw new Error('Call useStorageZone() to set a current storage zone.'); }
   const { StorageHostname, ReadOnlyPassword, Name} = currentStorageZone;
-  return await _storageGet(StorageHostname, Name, ReadOnlyPassword, storagePath);
+  return await _storageGetText(StorageHostname, Name, ReadOnlyPassword, storagePath);
 }
 
 export async function doesDirectoryExist(storagePath) {
@@ -334,7 +386,7 @@ export async function doesDirectoryExist(storagePath) {
     if (!storagePath.endsWith('/')) storagePath = `${storagePath}/`;
     const { StorageHostname, ReadOnlyPassword, Name} = currentStorageZone;
     try {
-      const response = await _storageGet(StorageHostname, Name, ReadOnlyPassword, storagePath);
+      const response = await _storageGetText(StorageHostname, Name, ReadOnlyPassword, storagePath);
       return _isDirectoryResponse(response);
     } catch(_ignored) { // Because useStorage() was previously called, very likely the error is an expected failure.
       return false;
@@ -351,7 +403,7 @@ export async function doesFileExist(storagePath) {
     if (!storagePath.endsWith('/')) storagePath = `${storagePath}/`;
     const { StorageHostname, ReadOnlyPassword, Name} = currentStorageZone;
     try {
-      const response = await _storageGet(StorageHostname, Name, ReadOnlyPassword, storagePath);
+      const response = await _storageGetText(StorageHostname, Name, ReadOnlyPassword, storagePath);
       return !_isDirectoryResponse(response);
     } catch(_ignored) { // Because useStorage() was previously called, very likely the error is an expected failure.
       return false;
@@ -372,6 +424,49 @@ export async function uploadFileToStorage(storagePath, localFilePath) {
     return true;
   } catch(err) {
     _logError(`Failed to upload file from '${localFilePath}' to ${storagePath}.`, err);
+    return null;
+  }
+}
+
+// Idempotent. 
+export async function uploadTextToStorage(storagePath, filename, text) {
+  try {
+    if (!currentStorageZone) { throw new Error('Call useStorageZone() to set a current storage zone.'); }
+    const { StorageHostname, Password, Name} = currentStorageZone;
+    const storageFilepath = path.join(storagePath, filename);
+    await _storagePutText(StorageHostname, Name, Password, storageFilepath, text);
+    _logSuccess(`Created '${filename}' and uploaded to ${storagePath}.`);
+    return true;
+  } catch(err) {
+    _logError(`Failed to upload '${filename}' to ${storagePath}.`, err);
+    return null;
+  }
+}
+
+// Idempotent.
+export async function writeAppVersion(appStoragePath, version) {
+  try {
+    if (!currentStorageZone) { throw new Error('Call useStorageZone() to set a current storage zone.'); }
+    const { StorageHostname, Password, Name} = currentStorageZone;
+    const storageFilepath = path.join(appStoragePath, 'version.txt');
+    await _storagePutText(StorageHostname, Name, Password, storageFilepath, version);
+    _logSuccess(`Wrote version ${version} to ${storageFilepath}.`);
+    return true;
+  } catch(err) {
+    _logError(`Failed to write version ${version} to ${storageFilepath}.`, err);
+    return null;
+  }
+}
+
+export async function fetchAppVersion(appStoragePath) {
+  try {
+    if (!currentStorageZone) { throw new Error('Call useStorageZone() to set a current storage zone.'); }
+    const { StorageHostname, Password, Name} = currentStorageZone;
+    const storageFilepath = path.join(appStoragePath, 'version.txt');
+    const version = await _storageGetText(StorageHostname, Name, Password, storageFilepath);
+    _logSuccess(`Version ${version} currently deployed at ${appStoragePath}.`);
+  } catch(err) {
+    _logError(`Failed to fetch app version at '${appStoragePath}'.`, err);
     return null;
   }
 }
@@ -407,6 +502,23 @@ export async function syncFilesToStorage(storagePath, localPath, maxConcurrency=
     return stats;
   } catch(err) {
     _logError(`Failed to sync files between from '${localPath}') to ${storagePath}.`, err);
+    return null;
+  }
+}
+
+// Idempotent. This writes the /_appName/index.html file to accomplish 2 things: correct version#s are inside of it,
+// and it redirects to the last-deployed-to-stage version of the app. (Useful to be able to browse to '/_appName/' rather
+// than '/_appName/aaaaaaa/' while testing staging.)
+export async function updateAppStageVersion(appName, stageVersion) {
+  try {
+    if (!currentStorageZone) { throw new Error('Call useStorageZone() to set a current storage zone.'); }
+    const { StorageHostname, ReadOnlyPassword, Password, Name} = currentStorageZone;
+    const { productionVersion, rollbackVersion } = await _fetchAppVersionInfo(StorageHostname, Name, ReadOnlyPassword, appName);
+    await _writeAppVersionInfo(StorageHostname, Name, Password, appName, productionVersion, rollbackVersion, stageVersion);
+    _logSuccess(`Updated stage version of ${appName} to ${stageVersion}.`);
+    return true;
+  } catch(err) {
+    _logError(`Failed to update stage version of ${appName}.`, err);
     return null;
   }
 }
