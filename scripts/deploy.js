@@ -17,8 +17,8 @@ async function main(bunnyApiKey, storageZoneName, appName, commitHash) {
   if (
     !await useStorageZone(storageZoneName) ||
     !await syncFilesToStorage(storagePath, './dist') ||
-    !await writeAppVersion(storagePath, commitHash) ||
-    !await updateAppStageVersion(appName, commitHash)
+    !await writeAppVersion(storagePath, shortHash) ||
+    !await updateAppStageVersion(appName, shortHash)
   ) _fatalError();
 }
 
