@@ -1,9 +1,10 @@
-import * as https from 'https';
+
 import { createReadStream } from 'fs';
 import * as path from 'path';
-import { opendir, stat } from 'fs/promises';
+import { opendir } from 'fs/promises';
 import { createHash } from 'crypto';
 import { parseStageIndex, createStageIndex, appNameToStageIndexPath, createEmptyVarsObject } from './stageIndexUtil.js';
+import { httpsRequest, httpsRequestWithBodyFromFile, httpsRequestWithBodyFromText } from './httpUtil.js';
 
 /* Bunny's docs on storage API limits - https://docs.bunny.net/reference/edge-storage-api-limits
    If there's only one ongoing upload to my storage zone, a higher number, e.g. 50 should work.
@@ -34,73 +35,6 @@ function _getBunnyApiKey() {
   return bunnyAPIKey;
 }
 
-async function _httpsRequest(options) {
-  return new Promise((resolve, reject) => {
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(data);
-        } else {
-          reject(new Error(`Request failed. Status code: ${res.statusCode}. Response: ${data}`));
-        }
-      });
-    });
-    req.on('error', (err) => reject(err));
-    req.end();
-  }).catch((err) => { throw(err); });
-}
-
-async function _httpsRequestWithBodyFromFile(options, filePath) {
-  const fileStats = await stat(filePath);
-  return new Promise((resolve, reject) => {
-    // Write HTTP request headers, wait for the request body to be piped, and close the connection.
-    options.headers['Content-Length'] = fileStats.size;
-    const req = https.request(options, (res) => {
-      let responseData = '';
-      res.on('data', (chunk) => { responseData += chunk; });
-      res.on('end', async () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve({ statusCode: res.statusCode, body: responseData });
-        } else {
-          reject(new Error(`Request failed with status code: ${res.statusCode}. Response: ${responseData}`));
-        }
-      });
-    });
-    req.on('error', (err) => reject(err));
-
-    // Pipe the file stream to the request, writing it after HTTP headers are sent.
-    const inputReadStream = createReadStream(filePath);
-    inputReadStream.pipe(req);
-    inputReadStream.on('end', () => req.end());
-    inputReadStream.on('error', (err) => { req.destroy(); reject(err); });
-  }).catch((err) => { throw err; });
-}
-
-async function _httpsRequestWithBodyFromText(options, text) {
-  return new Promise((resolve, reject) => {
-    // Write HTTP request headers, wait for the request body to be written, and close the connection.
-    options.headers['Content-Length'] = Buffer.byteLength(text);
-    const req = https.request(options, (res) => {
-      let responseData = '';
-      res.on('data', (chunk) => { responseData += chunk; });
-      res.on('end', async () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve({ statusCode: res.statusCode, body: responseData });
-        } else {
-          reject(new Error(`Request failed with status code: ${res.statusCode}. Response: ${responseData}`));
-        }
-      });
-    });
-    req.on('error', (err) => reject(err));
-
-    // Write text to body of request.
-    req.write(text);
-    req.end();
-  }).catch((err) => { throw err; });
-}
-
 async function _bunnyGetText(urlPath) {
   const bunnyAPIKey = _getBunnyApiKey();
   const options = {
@@ -110,7 +44,7 @@ async function _bunnyGetText(urlPath) {
       'AccessKey': bunnyAPIKey
     }
   };
-  return await _httpsRequest(options);
+  return await httpsRequest(options);
 }
 
 async function _bunnyGetJson(urlPath) {
@@ -128,7 +62,7 @@ async function _storageGetText(domainName, storageZoneName, password, storagePat
       'AccessKey': password
     }
   };
-  const data = await _httpsRequest(options);
+  const data = await httpsRequest(options);
   return data;
 }
 
@@ -160,7 +94,7 @@ async function _storageDelete(domainName, storageZoneName, password, storageFile
     hostname: domainName, path:storageFilepath, method: 'DELETE',
     headers: { 'AccessKey': password }
   };
-  await _httpsRequest(options);
+  await httpsRequest(options);
 }
 
 async function _storagePutLocalFile(domainName, storageZoneName, password, storageFilepath, localFilePath) {
@@ -174,7 +108,7 @@ async function _storagePutLocalFile(domainName, storageZoneName, password, stora
       'Content-Type': 'application/octet-stream'
     },
   };
-  await _httpsRequestWithBodyFromFile(options, localFilePath);
+  await httpsRequestWithBodyFromFile(options, localFilePath);
 }
 
 async function _storagePutText(domainName, storageZoneName, password, storageFilepath, text) {
@@ -188,7 +122,7 @@ async function _storagePutText(domainName, storageZoneName, password, storageFil
       'Content-Type': 'text/plain'
     },
   };
-  await _httpsRequestWithBodyFromText(options, text);
+  await httpsRequestWithBodyFromText(options, text);
 }
 
 async function _getStorageZone(id) {
