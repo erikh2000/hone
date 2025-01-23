@@ -35,7 +35,7 @@ export function createStageIndex(appName, productionVersion, rollbackVersion, st
     `const productionVersion='${productionVersion}';\n` +
     `const rollbackVersion='${rollbackVersion}';\n` +
     `const stageVersion='${stageVersion}';\n` +
-    `window.location.href='./' + stageVersion + '/index.html';\n` +
+    `window.location.href='./' + stageVersion + '/';\n` +
     `</script></head><body></body></html>`;
 }
 
