@@ -1,6 +1,14 @@
 // Don't put I/O in here. Just parsing, concatenation, and text manipulation utilities.
 const DSIF_VERSION = '1.0';
 
+// '/app', 'app', '_app', '/_app', '_app/', etc. -> 'app'
+function _nakedAppName(appName) {
+  while (appName.startsWith('/') || appName.startsWith('_')) appName = appName.substring(1);
+  const appNameEndPos = appName.indexOf('/');
+  if (appNameEndPos === -1) return appName;
+  return appName.substring(0, appNameEndPos);
+}
+
 function _parseStageIndexFormat(htmlText) {
   const versionPrefix = `<!-- v`;
   const versionPrefixStartPos = htmlText.indexOf(versionPrefix);
@@ -29,13 +37,14 @@ function _findSupportedStageIndexFormat(htmlText) {
 }
 
 export function createStageIndex(appName, productionVersion, rollbackVersion, stageVersion) {
+  const stageIndexUrl = `/_${_nakedAppName(appName)}/${stageVersion}/`;
   return `` +
     `<!DOCTYPE html><html><head><title>Stage Index for ${appName}</title><script>\n` +
     `<!-- v${DSIF_VERSION} Decent Stage Index Format. Hand-edit at your own risk! -->\n` +
     `const productionVersion='${productionVersion}';\n` +
     `const rollbackVersion='${rollbackVersion}';\n` +
     `const stageVersion='${stageVersion}';\n` +
-    `window.location.href='./' + stageVersion + '/';\n` +
+    `window.location.href='${stageIndexUrl}';\n` +
     `</script></head><body></body></html>`;
 }
 
@@ -46,14 +55,6 @@ export function parseStageIndex(htmlText) {
   const rollbackVersion = _parseVariableValue(htmlText, 'rollbackVersion');
   const stageVersion = _parseVariableValue(htmlText, 'stageVersion');
   return { productionVersion, rollbackVersion, stageVersion };
-}
-
-// '/app', 'app', '_app', '/_app', '_app/', etc. -> 'app'
-function _nakedAppName(appName) {
-  while (appName.startsWith('/') || appName.startsWith('_')) appName = appName.substring(1);
-  const appNameEndPos = appName.indexOf('/');
-  if (appNameEndPos === -1) return appName;
-  return appName.substring(0, appNameEndPos);
 }
 
 export function appNameToStageIndexPath(appName) {
