@@ -1,7 +1,7 @@
 import { doesDirectoryExist, putText } from "./util/localFileUtil.js";
-import { useStorageZoneSubtask,  syncFilesToStorageSubtask } from "./util/storageUtil.js";
+import { useStorageZoneSubtask,  syncFilesToStorageSubtask, findOldAppVersions, deleteAppVersions } from "./util/storageUtil.js";
 import { logSuccess, logError, logOverallSuccess, fatalError } from "./util/colorfulMessageUtil.js";
-import { shortCommitHash, updateAppStageVersionSubtask } from "./util/stageIndexUtil.js";
+import { getActiveVersions, shortCommitHash, updateAppStageVersionSubtask } from "./util/stageIndexUtil.js";
 import { nakedAppName } from "./util/pathUtil.js";
 
 // Idempotent.
@@ -12,6 +12,23 @@ export async function _writeAppVersionFileSubtask(version, localFilePath) {
     return true;
   } catch(err) {
     logError(`Failed to write version ${version} to ${localFilePath}.`, err);
+    return null;
+  }
+}
+
+// Idempotent, except for edge case of time changing between calls and selecting more versions to delete past the retention period.
+const VERSION_RETENTION_MONTHS = 3;
+export async function _deleteOldInactiveVersionsSubtask(appName) {
+  try{
+    const activeVersions = await getActiveVersions(appName);
+    const oldVersions = await findOldAppVersions(appName, VERSION_RETENTION_MONTHS);
+    const oldInactiveVersions = oldVersions.filter((version) => !activeVersions.includes(version));
+    if (!oldInactiveVersions.length) { logSuccess(`No old inactive versions of ${appName} to delete.`); return true; }
+    await deleteAppVersions(appName, oldInactiveVersions);
+    logSuccess(`Deleted old inactive versions of ${appName}.`);
+    return true;
+  } catch(err) {
+    logError(`Failed to delete old inactive versions of ${appName}.`, err);
     return null;
   }
 }
@@ -38,6 +55,7 @@ async function main(bunnyApiKey, storageZoneName, appName, commitHash) {
     !await updateAppStageVersionSubtask(appName, shortHash)
   ) fatalError();
   logOverallSuccess(`Deployed ${appName} version ${shortHash} to staging.`);
+  if (!await _deleteOldInactiveVersionsSubtask(appName)) console.warn('Cleanup action failed and should be investigated, but deployment was successful.');
 }
 
 // Receives input via environment vars.

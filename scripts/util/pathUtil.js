@@ -19,6 +19,11 @@ export function appNameToStageIndexPath(appName) {
   return `${appNameToStagePath(appName)}index.html`;
 }
 
+// e.g. /_app/1111111/
+export function appNameAndVersionToStagePath(appName, version) {
+  return `${appNameToStagePath(appName)}${version}/`;
+}
+
 // https://example.com/app -> https://example.com/app/  
 // https://example.com/app/ -> https://example.com/app/ 
 // https://example.com/app/index.html -> https://example.com/app/

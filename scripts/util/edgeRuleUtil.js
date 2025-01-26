@@ -1,7 +1,7 @@
 import { bunnyPostJson } from './bunnyHttpUtil.js';
 import { appNameToStagePath, getAppUrl, pullZoneToHostNames } from './pathUtil.js';
 import { DECENT_TOOLS_VERSION } from './toolVersionUtil.js';
-import { purgeLandingUrl } from './purgeUtil.js';
+import { purgeApp, purgeLandingUrl } from './purgeUtil.js';
 
 const EDGE_RULE_DESCRIPTION = `${DECENT_TOOLS_VERSION}. Hand-edit at your own risk!`
 
@@ -88,5 +88,5 @@ export async function setAppOrigin(pullZone, appName, productionVersion) {
   const guid = edgeRule?.Guid;
   const nextEdgeRule = _createAppOriginEdgeRule(guid, appName, pullZoneDomainName, originDomainName, productionVersion);
   await _writeEdgeRule(pullZoneId, nextEdgeRule);
-  await purgeLandingUrl(getAppUrl(pullZoneDomainName, appName));
+  await purgeApp(getAppUrl(pullZoneDomainName, appName));
 }

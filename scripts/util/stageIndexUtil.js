@@ -146,6 +146,21 @@ export async function revertAppVersions(appName, originalVersionInfo) {
   await _writeAppVersionInfo(pullZoneDomainName, storageHostName, storageZoneName, password, appName, productionVersion, rollbackVersion, stageVersion);
 }
 
+export async function getActiveVersions(appName) {
+  const currentStorageZone = await getCurrentStorageZone();
+  if (!currentStorageZone) { throw new Error('Call useStorageZone() to set a current storage zone.'); }
+  const { StorageHostname:storageHostName, ReadOnlyPassword:readOnlyPassword, Name:storageZoneName } = currentStorageZone;
+  const {productionVersion, rollbackVersion, stageVersion} = await _fetchAppVersionInfo(storageHostName, storageZoneName, readOnlyPassword, appName);
+  const activeVersions = [];
+
+  function _addIfShould(version) { if (version !== '' && !activeVersions.includes(version)) activeVersions.push(version);}
+
+  _addIfShould(productionVersion);
+  _addIfShould(rollbackVersion);
+  _addIfShould(stageVersion);
+  return activeVersions;
+}
+
 export function shortCommitHash(commitHash) {
   return commitHash.length > 7 ? commitHash.slice(0, 7) : commitHash;
 }

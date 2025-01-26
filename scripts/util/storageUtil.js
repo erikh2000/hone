@@ -4,6 +4,7 @@ import { executeTasksWithMaxConcurrency } from './concurrentUtil.js';
 import { bunnyGetJson, storagePutLocalFile, storageGetJson, storageDelete } from './bunnyHttpUtil.js';
 import { calcLocalFileChecksum, findFilesAtPath } from './localFileUtil.js';
 import { logError, logSuccess } from './colorfulMessageUtil.js';
+import { appNameToStagePath, appNameAndVersionToStagePath } from './pathUtil.js';
 
 let currentStorageZone = null;
 
@@ -26,12 +27,12 @@ async function _getStorageZone(id) {
   return await bunnyGetJson(`/storagezone/${id}`);
 }
 
-async function _uploadFilesToStorage(storageHostName, storageZoneName, password, storagePath, localPath, maxConcurrentUploads) {
+async function _uploadFilesToStorage(storageHostName, storageZoneName, readOnlyPassword, password, storagePath, localPath, maxConcurrentUploads) {
   const localFilepaths = await findFilesAtPath(localPath);
   const stats = { localFilesCount:localFilepaths.length, skippedCount:0, uploadedCount:0, deletedCount:0, storageOrphanFiles:[] };
 
   if (!stats.localFilesCount) throw new Error(`No files found at ${localPath}`);
-  const storageFileChecksums = await _findFileChecksumsAtStoragePath(storagePath);
+  const storageFileChecksums = await _findFileChecksumsAtStoragePath(storageHostName, storageZoneName, readOnlyPassword, storagePath);
 
   const taskFunctions = localFilepaths.map(localFilepath => {
     const relativePath = path.relative(localPath, localFilepath);
@@ -70,11 +71,16 @@ function _createSyncFilesSummaryMessage(stats) {
   return `Local to storage synchronization complete. ${message}`;
 }
 
+async function _browseStoragePath(storageHostName, storageZoneName, readOnlyPassword, storagePath) {
+  if (!storagePath.endsWith('/')) storagePath = `${storagePath}/`;
+  return await storageGetJson(storageHostName, storageZoneName, readOnlyPassword, storagePath);
+}
+
 // Returns map of storage filepaths to their checksum values, looking recursively at storagePath.
-async function _findFileChecksumsAtStoragePath(storagePath) {
+async function _findFileChecksumsAtStoragePath(storageHostName, storageZoneName, readOnlyPassword, storagePath) {
   const map = {};
   async function _findFileChecksumsAtStoragePathHelper(recursedStoragePath) {
-    const fileEntries = await _browseStoragePath(recursedStoragePath);
+    const fileEntries = await _browseStoragePath(storageHostName, storageZoneName, readOnlyPassword, recursedStoragePath);
     for(let i = 0; i < fileEntries.length; ++i) {
       const { IsDirectory, Checksum, ObjectName } = fileEntries[i];
       const combinedPath = path.join(recursedStoragePath, ObjectName);
@@ -89,11 +95,7 @@ async function _findFileChecksumsAtStoragePath(storagePath) {
   return map;
 }
 
-async function _browseStoragePath(storagePath) {
-  const { StorageHostname, ReadOnlyPassword, Name} = currentStorageZone;
-  if (!storagePath.endsWith('/')) storagePath = `${storagePath}/`;
-  return await storageGetJson(StorageHostname, Name, ReadOnlyPassword, storagePath);
-}
+
 
 async function _deleteFilesFromStorage(storageFilepaths, maxConcurrency) {
   const { StorageHostname, Name, Password } = currentStorageZone;
@@ -135,8 +137,8 @@ export async function syncFilesToStorageSubtask(storagePath, localPath, maxConcu
   try {
     if (!currentStorageZone) throw new Error('Call useStorageZone() to set a current storage zone.');
     if (!storagePath.endsWith('/')) storagePath = `${storagePath}/`;
-    const { StorageHostname:storageHostName, Password:password, Name:storageZoneName} = currentStorageZone;
-    const stats = await _uploadFilesToStorage(storageHostName, storageZoneName, password, storagePath, localPath, maxConcurrency);
+    const { StorageHostname:storageHostName, Password:password, ReadOnlyPassword:readOnlyPassword, Name:storageZoneName} = currentStorageZone;
+    const stats = await _uploadFilesToStorage(storageHostName, storageZoneName, readOnlyPassword, password, storagePath, localPath, maxConcurrency);
     if (stats.storageOrphanFiles.length) {
       await _deleteFilesFromStorage(stats.storageOrphanFiles, maxConcurrency);
       stats.deletedCount = stats.storageOrphanFiles.length;
@@ -147,4 +149,41 @@ export async function syncFilesToStorageSubtask(storagePath, localPath, maxConcu
     logError(`Failed to sync files between from '${localPath}') to ${storagePath}.`, err);
     return null;
   }
+}
+
+// 7 characters, all hex digits.
+function _looksLikeAVersion(version) {
+  return version.length === 7 && /^[0-9a-fA-F]+$/.test(version);
+}
+
+export async function findOldAppVersions(appName, olderThanMonths) {
+  if (!currentStorageZone) throw new Error('Call useStorageZone() to set a current storage zone.');
+  const { StorageHostname:storageHostName, ReadOnlyPassword:readOnlyPassword, Name:storageZoneName} = currentStorageZone;
+  const storagePath = appNameToStagePath(appName);
+  const fileEntries = await _browseStoragePath(storageHostName, storageZoneName, readOnlyPassword, storagePath);
+  
+  const retentionCutoff = new Date();
+  retentionCutoff.setMonth(retentionCutoff.getMonth() - olderThanMonths);
+  const versions = [];
+  for (let i = 0; i < fileEntries.length; ++i) {
+    const {ObjectName:version, IsDirectory:isDirectory, LastChanged:lastChanged} = fileEntries[i];
+    const lastChangedDate = new Date(lastChanged);
+    if (!isDirectory || lastChangedDate > retentionCutoff || !_looksLikeAVersion(version)) continue;
+    versions.push(version);
+  }
+
+  return versions;
+}
+
+export async function deleteAppVersions(appName, versions) {
+  if (!currentStorageZone) throw new Error('Call useStorageZone() to set a current storage zone.');
+  const { StorageHostname:storageHostName, Password:password, Name:storageZoneName} = currentStorageZone;
+  const taskFunctions = versions.map((version) => {
+    return async() => {
+      const storagePath = appNameAndVersionToStagePath(appName, version);
+      console.log(`Deleting ${storagePath} from storage.`);
+      await storageDelete(storageHostName, storageZoneName, password, storagePath);
+    };
+  });
+  return await executeTasksWithMaxConcurrency(taskFunctions, DEFAULT_MAX_CONCURRENT_REQUESTS);
 }
