@@ -1,25 +1,43 @@
-import { useStorageZone, syncFilesToStorage, ANSI_START_RED, ANSI_RESET, writeAppVersion, updateAppStageVersion } from "./bunnyUtil.js";
+import { doesDirectoryExist, putText } from "./util/localFileUtil.js";
+import { useStorageZoneSubtask,  syncFilesToStorageSubtask } from "./util/storageUtil.js";
+import { logSuccess, logError, logOverallSuccess, fatalError } from "./util/colorfulMessageUtil.js";
+import { shortCommitHash, updateAppStageVersionSubtask } from "./util/stageIndexUtil.js";
+import { nakedAppName } from "./util/pathUtil.js";
 
-function _fatalError(message) {
-  if (!message) message = 'Exiting script due to preceding error.';
-  console.log(`${ANSI_START_RED}Fatal Error:${ANSI_RESET} ${message}`);
-  process.exit(1);
+// Idempotent.
+export async function _writeAppVersionFileSubtask(version, localFilePath) {
+  try {
+    await putText(localFilePath, version);
+    logSuccess(`Wrote version ${version} to ${localFilePath}.`);
+    return true;
+  } catch(err) {
+    logError(`Failed to write version ${version} to ${localFilePath}.`, err);
+    return null;
+  }
 }
 
+// Deploys the local files at ./dist to the storage zone, making it "staged". It won't be live at the production URLs, but
+// accessible from a staging URL. If the app name is "test", the staged version will be accessible at "/_test/" and the live
+// version of the app will be at "/test/" unchanged by this operation. Each deployment creates a new directory under 
+// "/_test/" with the commit hash.
 async function main(bunnyApiKey, storageZoneName, appName, commitHash) {
-  if (!bunnyApiKey) _fatalError('Missing BUNNY_API_KEY environment variable.'); 
-  if (!storageZoneName) _fatalError('Missing STORAGE_ZONE_NAME environment variable.');
-  if (!appName) _fatalError('Missing APP_NAME environment variable.');
-  if (!commitHash) _fatalError('Missing COMMIT_HASH environment variable.');
+  if (!bunnyApiKey) fatalError('Missing BUNNY_API_KEY environment variable.'); 
+  if (!storageZoneName) fatalError('Missing STORAGE_ZONE_NAME environment variable.');
+  if (!appName) fatalError('Missing APP_NAME environment variable.');
+  if (!commitHash) fatalError('Missing COMMIT_HASH environment variable.');
   
-  const shortHash = commitHash.length > 7 ? commitHash.slice(0, 7) : commitHash;
+  if (!await doesDirectoryExist('./dist')) fatalError('Missing "./dist" directory. Did build complete? Running from wrong directory?');
+
+  appName = nakedAppName(appName);
+  const shortHash = shortCommitHash(commitHash);
   const storagePath = `/_${appName}/${shortHash}/`;
   if (
-    !await useStorageZone(storageZoneName) ||
-    !await syncFilesToStorage(storagePath, './dist') ||
-    !await writeAppVersion(storagePath, shortHash) ||
-    !await updateAppStageVersion(appName, shortHash)
-  ) _fatalError();
+    !await useStorageZoneSubtask(storageZoneName) ||
+    !await _writeAppVersionFileSubtask(shortHash, './dist/version.txt') ||
+    !await syncFilesToStorageSubtask(storagePath, './dist') ||
+    !await updateAppStageVersionSubtask(appName, shortHash)
+  ) fatalError();
+  logOverallSuccess(`Deployed ${appName} version ${shortHash} to staging.`);
 }
 
 // Receives input via environment vars.
