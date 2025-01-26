@@ -113,11 +113,27 @@ export async function updateAppVersionsForStagedPromotion(appName) {
 
   originalVersionInfo = await _fetchAppVersionInfo(storageHostName, storageZoneName, readOnlyPassword, appName);
   if (originalVersionInfo.stageVersion === '') { throw new Error(`No version of ${appName} is currently staged. Aborted with no changes.`)};
-  // TODO UNCOMMENT if (originalVersionInfo.stageVersion === originalVersionInfo.productionVersion) { throw new Error(`Staged version of ${appName} already matches production version. Aborted with no changes.`)};
+  if (originalVersionInfo.stageVersion === originalVersionInfo.productionVersion) { throw new Error(`Staged version of ${appName} already matches production version. Aborted with no changes.`)};
   if (originalVersionInfo.productionVersion === '') { console.log(`First promotion of ${appName}, assuming stage index is correct.`)};
   const nextRollbackVersion = originalVersionInfo.productionVersion, nextStageVersion = originalVersionInfo.stageVersion, nextProductionVersion = originalVersionInfo.stageVersion;
   await _writeAppVersionInfo(pullZoneDomainName, storageHostName, storageZoneName, password, appName, nextProductionVersion, nextRollbackVersion, nextStageVersion);
   logSuccess(`Updated stage index to promote stage version ${originalVersionInfo.stageVersion} of ${appName} to production.`);
+  return originalVersionInfo;
+}
+
+// NOT idempotent.
+export async function updateAppVersionsForRollback(appName) {
+  let originalVersionInfo = null;
+  const currentStorageZone = await getCurrentStorageZone();
+  if (!currentStorageZone) { throw new Error('Call useStorageZone() to set a current storage zone.'); }
+  const { StorageHostname:storageHostName, ReadOnlyPassword:readOnlyPassword, Password:password, Name:storageZoneName, PullZones:pullZones} = currentStorageZone;
+  const pullZoneDomainName = getPullZoneDomainName(pullZones[0]);
+
+  originalVersionInfo = await _fetchAppVersionInfo(storageHostName, storageZoneName, readOnlyPassword, appName);
+  if (originalVersionInfo.rollbackVersion === '') { throw new Error(`No rollback version of ${appName} is currently available. Aborted with no changes.`)};
+  const nextRollbackVersion = '', nextStageVersion = originalVersionInfo.stageVersion, nextProductionVersion = originalVersionInfo.rollbackVersion;
+  await _writeAppVersionInfo(pullZoneDomainName, storageHostName, storageZoneName, password, appName, nextProductionVersion, nextRollbackVersion, nextStageVersion);
+  logSuccess(`Updated stage index to roll back to version ${originalVersionInfo.rollbackVersion} of ${appName}.`);
   return originalVersionInfo;
 }
 
