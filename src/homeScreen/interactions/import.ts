@@ -9,6 +9,7 @@ import { importSheetFromClipboard, importSheetFromClipboardData, importSheetFrom
 import { CvsImportErrorType, MAX_FIELD_COUNT } from '@/csv/csvImportUtil';
 import ConfirmSheetPasteDialog from "../dialogs/ConfirmSheetPasteDialog";
 import ImportExampleDialog from "../dialogs/ImportExampleDialog";
+import { setDirty } from "./beforeUnload";
 
 async function _selectExcelFileHandle():Promise<FileSystemFileHandle|null> {
     const openFileOptions = {
@@ -197,21 +198,22 @@ export async function importSheet(importOptions:ImportOptions, setAvailableSheet
     switch(importOptions.importType) {
         case ImportType.CLIPBOARD:
             await _importFromClipboard(importOptions, setSheet, setModalDialog);
-        return;
+        break;
 
         case ImportType.CSV:
             await _importFromCsv(importOptions, setSheet, setModalDialog);
-        return;
+        break;
 
         case ImportType.EXCEL:
             await _importFromExcel(setAvailableSheets, setSheet, setModalDialog);
-        return;
+        break;
 
         case ImportType.EXAMPLE:
             await _importExample(setAvailableSheets, setModalDialog);
-        return;
+        break;
 
         default:
             throw Error('Unexpected');
     }
+    setDirty(false);
 }

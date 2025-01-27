@@ -13,6 +13,7 @@ import { errorToast } from "@/components/toasts/toastUtil";
 import { SIMPLE_RESPONSE_SUPPORTED_TYPES } from "@/common/sloppyJsonUtil";
 import KeepPartialDataDialog from "../dialogs/KeepPartialDataDialog";
 import ResumeJobDialog from "../dialogs/ResumeJobDialog";
+import { setDirty } from "./beforeUnload";
 
 let cancelExecutionRequested = false;
 
@@ -93,6 +94,7 @@ export async function executeJob(startingJob:ExecutionJob, setJob:Function, setR
 
     if (job.processedRowCount < jobRowCount) errorToast(`Due to errors, only ${job.processedRowCount} of ${jobRowCount} rows were processed.`);
 
+    setDirty(true);
     setJob(job);
     onComplete(job);
   } finally {

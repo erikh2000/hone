@@ -5,6 +5,7 @@ import HoneSheet from "@/sheets/types/HoneSheet";
 import ExportType from "../types/ExportType";
 import ExportOptions from "../types/ExportOptions";
 import { MIMETYPE_CSV, MIMETYPE_XLSX } from "@/persistence/mimeTypes";
+import { setDirty } from "./beforeUnload";
 
 // Same as above but for selecting a filepath to export a CSV.
 async function _selectCsvSaveFilepath():Promise<FileSystemFileHandle|null> {
@@ -89,9 +90,9 @@ export async function exportSheet(sheet:HoneSheet|null, options:ExportOptions, s
   try {
     if (!sheet) throw Error('Unexpected');
     switch(options.exportType) {
-      case ExportType.CLIPBOARD: await _exportToClipboard(sheet, options); break;
-      case ExportType.CSV: await _exportToCsv(sheet, options); break;
-      case ExportType.EXCEL: await _exportToExcel(sheet, options); break;
+      case ExportType.CLIPBOARD: await _exportToClipboard(sheet, options); break; // User might still lose clipboard contents, so don't clear dirty flag.
+      case ExportType.CSV: await _exportToCsv(sheet, options); setDirty(false); break;
+      case ExportType.EXCEL: await _exportToExcel(sheet, options); setDirty(false); break;
       default: throw Error('Unexpected');
     }
   } finally {

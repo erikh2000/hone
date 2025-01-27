@@ -4,6 +4,7 @@ import { importFromPasteEvent } from "./import";
 import { isServingLocally } from "@/developer/devEnvUtil";
 import LLMDevPauseDialog from "@/homeScreen/dialogs/LLMDevPauseDialog";
 import { LOAD_URL } from "@/common/urlUtil";
+import { initBeforeUnload, deinitBeforeUnload } from "./beforeUnload";
 
 type PasteHandlerFunction = (event:ClipboardEvent) => void;
 
@@ -30,6 +31,8 @@ export async function init(setAvailableSheets:Function, setModalDialog:Function,
   pasteHandler = clipboardEvent => _handlePaste(clipboardEvent, setAvailableSheets, setModalDialog);
   document.addEventListener('paste', pasteHandler);
 
+  initBeforeUnload();
+
   if (!isLlmConnected()) {
     if (isServingLocally()) {
       setModalDialog(LLMDevPauseDialog.name); // Probably a hot reload on a dev server - ask user if should load LLM.
@@ -44,4 +47,5 @@ export function deinit() {
     document.removeEventListener('paste', pasteHandler);
     pasteHandler = null;
   }
+  deinitBeforeUnload();
 }
