@@ -1,7 +1,7 @@
 import { useStorageZoneSubtask, getCurrentStorageZone } from "./util/storageUtil.js";
 import { logError, logSuccess, fatalError, logOverallSuccess } from "./util/colorfulMessageUtil.js";
 import { updateAppVersionsForStagedPromotion, revertAppVersions } from "./util/stageIndexUtil.js";
-import { setAppOrigin } from "./util/edgeRuleUtil.js";
+import { setAppOrigin, addAppendAppSlashConditionAsNeeded } from "./util/edgeRuleUtil.js";
 import { nakedAppName } from "./util/pathUtil.js";
 
 // Definitely NOT idempotent. This makes the staged version of the app live, and it's no longer staged.
@@ -13,6 +13,11 @@ async function _promoteStagedAppSubtask(appName) {
     const { PullZones:pullZones} = currentStorageZone;
     if (!pullZones.length) throw Error(`${Name} storage zone has no pull zone associated with it.`);
     const pullZone = pullZones[0];
+
+    // Do this one first, because it doesn't need a rollback, and if it fails, a simple exit
+    // without rollback works.
+    await addAppendAppSlashConditionAsNeeded(pullZone, appName);
+    logSuccess(`Append app slash redirection includes ${appName}.`);
 
     originalVersionInfo = await updateAppVersionsForStagedPromotion(appName);
     const nextProductionVersion = originalVersionInfo.stageVersion;
