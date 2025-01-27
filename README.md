@@ -16,7 +16,7 @@ Importing and exporting can be done from standard spreadsheet files or via the c
 * Import/export Excel (XLS, XLSX), CSV, and TSV files
 * Copy and paste sheets with Excel, Google Sheets, and Numbers. Other spreadsheet software probably works too
 * Design and test prompt templates quickly, inserting input fields from your spreadsheet
-* View sheets with up to 1000 rows and 256 columns
+* View sheets with up 256 columns and as many rows as you have memory for.
 * Prompt execution jobs can be paused and resumed
 * Llama 3.2 8b model used for executing prompts, running in your browser (Thanks, [WebLLM](https://webllm.mlc.ai/)!)
 * Example data and prompts included to try it out quickly
