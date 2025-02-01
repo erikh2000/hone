@@ -1,0 +1,87 @@
+@value colors: "@/components/commonPalette.module.css";
+@value button, button-text, button-highlight, button-text-highlight, button-disabled, button-text-disabled from colors;
+@value commonStyles: "@/components/commonStyles.module.css";
+@value disableSelect from commonStyles;
+
+/*
+Dynamic sizing of app name text.
+
+Why it's hard to do with just CSS - app facet can grow automatically to fit the child elements within it. But as soon as I use that, it breaks the transition
+animation. Also, there are elements to the right of the text that are meant to be hidden when non-hovered over app facet.
+
+I fiddled with this for a long time. I think maybe it's a dead-end for pure CSS. But what should work is measuring the text in JS and setting in-line style width
+based on the text measurement.
+*/
+.container {
+  composes: disableSelect;
+  display: flex;
+  grid-area: header;
+  width: 100%;
+  height: 5vh;
+}
+
+.decentFacet {
+  background-color: #000;
+  width: 8.5vh;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 5vh) 100%, 0% 100%);
+  margin-right: -5vh; 
+}
+
+.appFacet {
+  background: linear-gradient(button, #222222);
+  clip-path: polygon(5vh 0, 100% 0, calc(100% - 5vh) 100%, 0% 100%);
+  margin-right: -6.1vh;
+  display: inline-block;
+  width: 22vh; /* See comments on dynamic sizing at top. */
+  color: white;
+  overflow-x: hidden;
+  transition: width 0.3s ease-in-out;
+  position: relative;
+}
+
+.appFacet:hover {
+  width: 40vh;
+}
+
+.appName {
+  padding-left: 5.5vh;
+  padding-right: 6vh;
+  width: 22vh; /* See comments on dynamic sizing at top. */
+  font-size: 4vh; 
+  -webkit-text-fill-color: white;
+  -webkit-text-stroke-width: .2vh;
+  -webkit-text-stroke-color: #222222;
+  font-family: "hobby-of-night";
+  display: inline-block;
+}
+
+.appButtonArea {
+  display: inline-block;
+  height: 100%;
+  margin-left: -4vh;
+}
+
+.appFacetSeparator {
+  background-color: black;
+  width: 6vh;
+  margin-right: -5.5vh;
+  clip-path: polygon(5vh 0, 100% 0, calc(100% - 5vh) 100%, 0% 100%);
+}
+
+.contributorFacet {
+  background: linear-gradient(#dddddd, #222222);
+  flex: 1;
+  clip-path: polygon(5vh 0, 100% 0, 100% 100%, 0% 100%);
+  margin-right: -5vh;
+  padding-left: 5vh;
+  position: relative;
+  color: #555;
+  font-size: 1vh;
+}
+
+.favIcon {
+  position: relative;
+  top: .5vh;
+  left: .5vh;
+  height: 4vh;
+}

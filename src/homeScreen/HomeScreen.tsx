@@ -19,6 +19,7 @@ import {
   discardPartialDataAfterCancel 
 } from "./interactions/execute";
 import ExecutionJob from "@/sheets/types/ExecutionJob";
+import AboutDialog from "./dialogs/AboutDialog";
 import ExecuteDialog from "./dialogs/ExecuteDialog";
 import { chooseExportType, exportSheet } from "./interactions/export";
 import KeepPartialDataDialog from "./dialogs/KeepPartialDataDialog";
@@ -32,6 +33,12 @@ import { LOAD_URL } from "@/common/urlUtil";
 import { doesSheetHaveWritableColumns } from "@/sheets/sheetUtil";
 import HorizontalScroll from "@/components/sheetTable/types/HorizontalScroll";
 import ConfirmClearSheetDialog from "./dialogs/ConfirmClearSheetDialog";
+import DecentBar, { Link } from "@/components/decentbar/DecentBar";
+
+const appLinks:Link[] = [
+  {description:'About', url:'about'},
+  {description:'Support', url:'https://github.com/erikh2000/hone/issues'},
+];
 
 function HomeScreen() {
   const [sheet, setSheet] = useState<HoneSheet|null>(null);
@@ -70,11 +77,20 @@ function HomeScreen() {
       onExecute={promptTemplate => setUpExecution(job, sheet, promptTemplate, setPromptTemplate, setJob, setModalDialog)}
     />;
   
+  function _onClickLink(link:Link) {
+    const { url } = link;
+    if (url.startsWith('https://')) {
+      window.open(link.url, '_blank');
+      return;
+    }
+    if (url === 'about') {
+      setModalDialog(AboutDialog.name);
+    }
+  }
+  
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>Hone</h1>
-      </div>
+      <DecentBar appName="Hone" appLinks={appLinks} contributorText="by Erik Hermansen" onClickLink={_onClickLink} />
       <SheetPane 
         sheet={sheet} className={styles.sheetPane} selectedRowNo={selectedRowNo} 
         horizontalScroll={sheetHorizontalScroll}
@@ -147,6 +163,8 @@ function HomeScreen() {
         onConfirm={() => setSheet(null)}
         onCancel={() => setModalDialog(null)}
       />
+
+      <AboutDialog isOpen={modalDialog === AboutDialog.name} onClose={() => setModalDialog(null)} />
 
       <ToastPane/>
     </div>
