@@ -31,8 +31,6 @@ jobs:
 
       - name: Build static content
         run: npm run build
-        env:
-          VITE_BASE_URL: ${{ vars.BASE_URL }}
 
       # Important to set the secret-based env vars just in this deploy step to avoid secret exposure to 3rd-party code.
       - name: Deploy using BunnyCDN
