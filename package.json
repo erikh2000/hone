@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "fonts": "node scripts/localFonts.js",
+    "docker": "npm run fonts && npm run build && docker build -t hone-server ."
   },
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.75",

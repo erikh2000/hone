@@ -83,6 +83,60 @@ The fonts used by the template are hosted from decentapps.net rather than includ
 
 If you want to check the licensing I used for a hosted font, you can replace the filename of the URL that loads a WOFF or WOFF2 file with "LICENSE". So for example, the font served from "https://decentapps.net/fonts/hobby-of-night/hobby-of-night-webfont.woff2" was licensed to me according to terms found at "https://decentapps.net/fonts/hobby-of-night/LICENSE".
 
+## Running a Local Server
+
+The following steps show how to run Hone as a web server on your local device, for development or other non-production purposes:
+
+1. `git clone git@github.com:erikh2000/hone.git` (clone the repo)
+2. `cd hone` (change your working directory to the hone project directory)
+3. `npm install` (installs dependencies needed to build the app)
+4. `npm run fonts` (downloads a few fonts used by Hone so they can be served locally.)
+5. `npm run dev` (launches the Vite web server, listening on port 3000 or another port if that is taken)
+6. Browse to "http://localhost:3000" with your browser.
+
+After the initial setup, just steps 5 and 6 are needed.
+
+## Deploying to a Production Server
+
+The following steps show how to deploy the Hone files to a production web server.
+
+1. `git clone git@github.com:erikh2000/hone.git` (clone the repo)
+2. `cd hone` (change your working directory to the hone project directory)
+3. `npm install` (installs dependencies needed to build the app)
+4. `npm run fonts` (downloads a few fonts used by Hone)
+5. `npm run build` (creates all static content needed to serve Hone in the ./dist directory.)
+6. Upload all the files under ./dist to the web-served directory on your production web server.
+
+Some considerations:
+
+* Hone is a purely static-content web app. So it really should be as simple as using `ftp`, `rsync`, `aws s3 cp`, or similar tool to copy the files to the right place.
+* All paths are relative, so deploying to paths served with non-root URLs should work fine.
+* Hone does make read-only fetches to some external hosts to download local LLM models. These are documented in `Dockerfile`.
+* I do recommend using a CSP header to defend against potential supply chain attacks. Again, see the `Dockerfile` for an example.
+
+## Creating a Docker Image
+
+While you don't need a Docker image to build or run Hone, containerization can simplify deployments in many environments. The following steps show how to build and run a Docker image for Hone:
+
+1. `git clone git@github.com:erikh2000/hone.git` (clone the repo)
+2. `cd hone` (change your working directory to the hone project directory)
+3. `npm install` (installs dependencies needed to build the app)
+4. `npm run docker` (creates a hone-server image that bundles a minimal, production-ready Nginx web server with Hone.)
+
+If you want to try out the image, continue with:
+
+5. `docker run -d -p 8080:8080 hone-server` (launches a container based on the hone-server image, serving on port 8080)
+6. Browse to "http://localhost:8080" with your browser.
+
+The Docker image has been built with the following best practices in mind:
+
+* Minimal footprint: Only the necessary runtime components are included — build dependencies and extraneous software have been omitted.
+* Unprivileged execution: Nginx runs under a non-root user for enhanced security.
+* Hardened configuration: Strict Content Security Policy (CSP) headers and minimal Nginx settings reduce the risk of supply chain attacks.
+* Transparent design: Detailed comments in the Dockerfile explain all key decisions.
+
+I always welcome feedback. But on security, I double-welcome it! Please feel free to open an issue or contact me if you have any suggestions.
+
 ## Making Your Own Apps Like This
 
 I am so excited about local-LLM web apps, that I made a project code generator for them. Basically, you can run "npx create-decent-app YourProjectName" from a terminal window, and it will give you functioning local-LLM web app that is ready to be modified to fit your vision. See my [create-decent-app Github repo](https://github.com/erikh2000/create-decent-app) for more info.

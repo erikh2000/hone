@@ -14,6 +14,7 @@ dist-ssr
 workAssets
 coverage
 public/.vite
+public/fonts
 
 # Editor directories and files
 .vscode/*
