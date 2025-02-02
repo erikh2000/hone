@@ -27,7 +27,9 @@ jobs:
         run: npm run docker
 
       - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: |
+          echo "NOTE: The following warning about unencrypted password storage can be ignored, as the storage is only within the temporary CI environment."
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Deploy Docker image to GHCR.
         run: |
