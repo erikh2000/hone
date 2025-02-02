@@ -4,8 +4,12 @@ on:
   workflow_dispatch:  # Allows manual triggering from Github portal.
 
 jobs:
-  deploy:
+  create-and-publish:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write # Required to push to GHCR
 
     steps:
       - name: Checkout code
