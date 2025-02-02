@@ -1,4 +1,4 @@
-import { opendir, stat } from 'fs/promises';
+import { opendir, stat, mkdir } from 'fs/promises';
 import { createHash } from 'crypto';
 import { createReadStream, createWriteStream } from 'fs';
 import path from 'path';
@@ -38,16 +38,34 @@ export async function calcLocalFileChecksum(localFilePath) {
 }
 
 export async function doesDirectoryExist(dirPath) {
-  try { await stat(dirPath); } catch { return false; }
-  return true;
+  try {
+    const stats = await stat(dirPath);
+    return stats.isDirectory();
+  } catch {
+    return false;
+  }
 }
 
-export async function putText(localFilePath, text) {
+export async function createDirectoryAsNeeded(dirPath) {
+  if (await doesDirectoryExist(dirPath)) return;
+  await mkdir(dirPath, { recursive: true });
+}
+
+async function _put(localFilePath, data) {
   return new Promise((resolve, reject) => {
     const writeStream = createWriteStream(localFilePath);
-    writeStream.write(text);
+    writeStream.write(data);
     writeStream.end();
     writeStream.on('finish', () => resolve());
     writeStream.on('error', (err) => reject(err));
   }).catch((err) => { throw err; });
+}
+
+export async function putText(localFilePath, text) {
+  return _put(localFilePath, text);
+}
+
+// bytes is Uint8Array.
+export async function putBytes(localFilePath, bytes) {
+  return _put(localFilePath, bytes);
 }
