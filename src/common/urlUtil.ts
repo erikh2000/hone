@@ -13,8 +13,13 @@ export function parseBasePathFromUriPath(path:string) {
   return isStagedApp ? `/${appName}/${pathSegments[1]}/` : `/${appName}/`;
 }
 
-// Disable the function from test coverage.
-/* istanbul ignore next */
+// From https://127.0.0.1:8080/path/to/file to https://127.0.1:8080/ and variants. Basically, just the scheme, domain, and port.
+export function parseDomainUrlFromUrl(url:string) {
+  const urlObject = new URL(url);
+  return `${urlObject.protocol}//${urlObject.hostname}${urlObject.port ? ':' + urlObject.port : ''}/`;
+}
+
+/* istanbul ignore next */ // Web-DOM-specific code that is not useful to test.
 function _getBasePath() {
   if (!theBasePath) { theBasePath = parseBasePathFromUriPath(window.location.pathname); }
   return theBasePath;

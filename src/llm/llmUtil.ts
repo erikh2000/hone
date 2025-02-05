@@ -8,11 +8,13 @@ import { updateStatsForPrompt } from "./llmStatsUtil";
 import { getCachedPromptResponse, setCachedPromptResponse } from "./promptCache";
 import { isModelCached, setModelCached } from "@/persistence/timePredictions";
 import { predictTime, storeActualTime, initialize as initializeTimePredictions, setDefault } from "@/timePredictions/timePredictionUtil";
+import { connectToCustomLLM, generateCustomLLM } from "./customLlmUtil";
 
 let theConnection:LLMConnection = {
   state:LLMConnectionState.UNINITIALIZED,
   webLLMEngine:null,
   serverUrl:null,
+  customLLMConfig:null,
   connectionType:LLMConnectionType.NONE
 }
 
@@ -68,7 +70,7 @@ export async function init(onStatusUpdate:StatusUpdateCallback) {
   if (isInitialized()) return;
   theConnection.state = LLMConnectionState.INITIALIZING;
   const startMSecs = Date.now();
-  const connectionSuccess = await connectToWebLLM(theConnection, onStatusUpdate);
+  const connectionSuccess = await connectToCustomLLM(theConnection, onStatusUpdate) || await connectToWebLLM(theConnection, onStatusUpdate);
   if (!connectionSuccess) { 
     theConnection.webLLMEngine = null;
     theConnection.serverUrl = null;
@@ -120,6 +122,7 @@ export async function generate(prompt:string, onStatusUpdate:StatusUpdateCallbac
   let message = '';
   switch(theConnection.connectionType) {
     case LLMConnectionType.WEBLLM: message = await generateWebLLM(theConnection, messages, prompt, onStatusUpdate); break;
+    case LLMConnectionType.CUSTOM: message = await generateCustomLLM(theConnection, messages, prompt, onStatusUpdate); break;
     default: throw Error('Unexpected');
   }
   setCachedPromptResponse(prompt, message);

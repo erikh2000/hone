@@ -1,6 +1,4 @@
-
-export async function isHostListening(domain:string, portNo:number, timeout:number = 100) {
-    const url = `http://${domain}:${portNo}`;
+export async function isHostListeningAtUrl(url:string, timeout:number = 100) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     try {
@@ -12,4 +10,9 @@ export async function isHostListening(domain:string, portNo:number, timeout:numb
         if (error.name !== 'AbortError') console.warn('Fetch request failed:', error);
         return false;
     }
+}
+
+export async function isHostListening(domain:string, portNo:number, timeout:number = 100) {
+    const url = `http://${domain}:${portNo}`;
+    return await isHostListeningAtUrl(url, timeout);
 }

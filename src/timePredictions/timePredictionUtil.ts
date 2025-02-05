@@ -5,7 +5,7 @@ import TimePredictions from "./types/TimePredictions";
 let thePredictions:TimePredictions|null = null;
 let hasScaledDefaults = false;
 
-export const MAX_STORE_TIMES = 10;
+export const MAX_STORE_TIMES = 5;
 
 function _averagePreviousTimes(previousTimes:number[]):number {
   return previousTimes.reduce((a,b) => a+b, 0) / previousTimes.length;

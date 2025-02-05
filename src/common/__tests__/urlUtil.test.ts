@@ -1,4 +1,4 @@
-import { parseBasePathFromUriPath, baseUrl } from "../urlUtil";
+import { parseBasePathFromUriPath, baseUrl, parseDomainUrlFromUrl } from "../urlUtil";
 
 describe('urlUtil', () => {
   describe('parseBasePathFromUriPath()', () => {
@@ -76,4 +76,29 @@ describe('urlUtil', () => {
     });
   });
   
+  describe('parseDomainUrlFromUrl()', () => {
+    test('handles https + IP address + port + path.', () => {
+      expect(parseDomainUrlFromUrl('https://127.0.0.1:8080/path/to/file')).toEqual('https://127.0.0.1:8080/');
+    });
+
+    test('handles https + IP address + path.', () => {
+      expect(parseDomainUrlFromUrl('https://127.0.0.1/path/to/file')).toEqual('https://127.0.0.1/');
+    });
+
+    test('handles domain name', () => {
+      expect(parseDomainUrlFromUrl('https://example.com/path/to/file')).toEqual('https://example.com/');
+    });
+
+    test('handles http scheme', () => {
+      expect(parseDomainUrlFromUrl('http://example.com/path/to/file')).toEqual('http://example.com/');
+    });
+
+    test('handles root URL', () => {
+      expect(parseDomainUrlFromUrl('https://example.com/')).toEqual('https://example.com/');
+    });
+
+    test('handles root URL with no trailing slash', () => {
+      expect(parseDomainUrlFromUrl('https://example.com')).toEqual('https://example.com/');
+    });
+  });
 });
