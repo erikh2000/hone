@@ -15,7 +15,7 @@ workAssets
 coverage
 public/.vite
 public/fonts
-public/custom/customConfig.json
+public/custom/llmConfig.json
 
 # Editor directories and files
 .vscode/*
