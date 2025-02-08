@@ -1,20 +1,31 @@
+@value colors: "@/components/commonPalette.module.css";
+@value button from colors;
+
 .textInputLine {
-    height: 2rem;
+    height: 2.5vh;
+    margin-bottom: .4vh;
 }
 
 .textInputLineValue {
     border-style: dashed;
     background-color: #fdfdfd;
     border-color: #999;
-    padding: 0.2rem .4rem;
+    padding: 0.2vh .4vh;
     cursor: text;
-    right: 2rem;
+    right: 2vh;
     position: absolute;
     min-width: 60%;
 }
 
+.textInputLineValue:focus {
+    border-style: solid;
+    border-color: button;
+    outline: none;
+}
+
 .textInputLineLabel {
     position: relative;
-    top: .2rem;
-    font-size: 1rem;
+    top: .2vh;
+    padding-left: 1vh;
+    font-size: 1.2vh;
 }

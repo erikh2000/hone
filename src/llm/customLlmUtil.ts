@@ -104,3 +104,11 @@ export async function generateCustomLLM(connection:LLMConnection, llmMessages:LL
   addAssistantMessageToChatHistory(llmMessages, messageText);
   return messageText;
 }
+
+export function areUserSettingsMissing(userSettings:Record<string,string>):boolean {
+  for (const key in userSettings) {
+    const value = userSettings[key];
+    if (value === null || value === '') return true;
+  }
+  return false;
+}
