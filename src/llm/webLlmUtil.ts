@@ -15,20 +15,6 @@ import LLMMessage from "./types/LLMMessage";
 
 export const WEBLLM_MODEL = "Llama-3.1-8B-Instruct-q4f16_1-MLC-1k";
 
-export async function connectToWebLLM(connection:LLMConnection, onStatusUpdate:StatusUpdateCallback):Promise<boolean> {
-  try {
-    connection.connectionType = LLMConnectionType.WEBLLM;
-    connection.webLLMEngine = await CreateMLCEngine(
-      WEBLLM_MODEL,
-      { initProgressCallback: progress => onStatusUpdate(progress.text, progress.progress) }
-    );
-    return true;
-  } catch(e) {
-    console.error('Error while connecting to WebLLM.', e);
-    return false;
-  }
-}
-
 // A safe way to convert from WebLLM-specific message format to the format used by the chat history. The two formats are the same as I write this, 
 // but this function should catch breakages if the WebLLM format changes.
 function _toChatCompletionMessages(llmMessages:LLMMessage[]):ChatCompletionMessageParam[] {
@@ -47,7 +33,25 @@ function _toChatCompletionMessages(llmMessages:LLMMessage[]):ChatCompletionMessa
   });
 }
 
-export async function generateWebLLM(connection:LLMConnection, llmMessages:LLMMessages, prompt:string, onStatusUpdate:StatusUpdateCallback):Promise<string> {
+/*
+  Public APIs
+*/
+
+export async function webLlmConnect(connection:LLMConnection, onStatusUpdate:StatusUpdateCallback):Promise<boolean> {
+  try {
+    connection.connectionType = LLMConnectionType.WEBLLM;
+    connection.webLLMEngine = await CreateMLCEngine(
+      WEBLLM_MODEL,
+      { initProgressCallback: progress => onStatusUpdate(progress.text, progress.progress) }
+    );
+    return true;
+  } catch(e) {
+    console.error('Error while connecting to WebLLM.', e);
+    return false;
+  }
+}
+
+export async function webLlmGenerate(connection:LLMConnection, llmMessages:LLMMessages, prompt:string, onStatusUpdate:StatusUpdateCallback):Promise<string> {
   const engine = connection.webLLMEngine;
   if (!engine) throw Error('Unexpected');
 

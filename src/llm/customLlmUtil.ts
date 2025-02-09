@@ -28,14 +28,6 @@ function _throwForInvalidCustomLLMConfig(config:unknown):void {
   if (typeof completionOptions.body !== 'object' || completionOptions.body === null) throw new Error('Invalid custom LLM config: body in completionOptions is not an object');
 }
 
-async function _loadCustomLLMConfig():Promise<CustomLLMConfig|null> {
-  const response = await fetch(baseUrl(CUSTOM_CONFIG_URL));
-  if (response.status !== 200 || response.headers.get('content-type') !== 'application/json') return null;
-  const jsonObject = await response.json();
-  _throwForInvalidCustomLLMConfig(jsonObject);
-  return jsonObject as CustomLLMConfig;
-}
-
 function _createFetchOptions(messages:LLMMessage[], completionOptions:CompletionOptions):Object {
   const options:any = {...completionOptions};
   options.body.messages = messages;
@@ -44,10 +36,22 @@ function _createFetchOptions(messages:LLMMessage[], completionOptions:Completion
   return options;
 }
 
-export async function connectToCustomLLM(connection:LLMConnection, onStatusUpdate:StatusUpdateCallback):Promise<boolean> {
+/*
+  Public APIs
+*/
+
+export async function customLlmLoadConfig():Promise<CustomLLMConfig|null> {
+  const response = await fetch(baseUrl(CUSTOM_CONFIG_URL));
+  if (response.status !== 200 || response.headers.get('content-type') !== 'application/json') return null;
+  const jsonObject = await response.json();
+  _throwForInvalidCustomLLMConfig(jsonObject);
+  return jsonObject as CustomLLMConfig;
+}
+
+export async function customLlmConnect(connection:LLMConnection, onStatusUpdate:StatusUpdateCallback):Promise<boolean> {
   try {
     onStatusUpdate('Finding custom LLM config...', 0);
-    connection.customLLMConfig = await _loadCustomLLMConfig();
+    connection.customLLMConfig = await customLlmLoadConfig();
     if (!connection.customLLMConfig) return false; // No custom configuration available.
     const serverUrl = parseDomainUrlFromUrl(connection.customLLMConfig.completionUrl);
     if (!await isHostListeningAtUrl(serverUrl)) { 
@@ -66,7 +70,7 @@ export async function connectToCustomLLM(connection:LLMConnection, onStatusUpdat
 
 const INITIAL_DOUBLING_DELAY = 500;
 const MAX_REQUEST_ATTEMPTS = 5;
-export async function generateCustomLLM(connection:LLMConnection, llmMessages:LLMMessages, prompt:string, onStatusUpdate:StatusUpdateCallback):Promise<string> {
+export async function customLlmGenerate(connection:LLMConnection, llmMessages:LLMMessages, prompt:string, onStatusUpdate:StatusUpdateCallback):Promise<string> {
   const customLLMConfig = connection.customLLMConfig;
   if (!customLLMConfig || !throttler) throw Error('Unexpected');
 

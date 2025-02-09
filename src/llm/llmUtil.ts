@@ -3,12 +3,12 @@ import LLMConnectionState from "./types/LLMConnectionState";
 import LLMConnectionType from "./types/LLMConnectionType";
 import LLMMessages from "./types/LLMMessages";
 import StatusUpdateCallback from "./types/StatusUpdateCallback";
-import { connectToWebLLM, generateWebLLM, WEBLLM_MODEL } from "./webLlmUtil";
+import { webLlmConnect, webLlmGenerate, WEBLLM_MODEL } from "./webLlmUtil";
 import { updateStatsForPrompt } from "./llmStatsUtil";
 import { getCachedPromptResponse, setCachedPromptResponse } from "./promptCache";
 import { isModelCached, setModelCached } from "@/persistence/timePredictions";
 import { predictTime, storeActualTime, initialize as initializeTimePredictions, setDefault } from "@/timePredictions/timePredictionUtil";
-import { connectToCustomLLM, generateCustomLLM } from "./customLlmUtil";
+import { customLlmConnect, customLlmGenerate } from "./customLlmUtil";
 
 let theConnection:LLMConnection = {
   state:LLMConnectionState.UNINITIALIZED,
@@ -51,17 +51,21 @@ async function _getPredictionFactors(modelId:string):Promise<string> {
   return `${modelId}-${cachedStateText}`;
 }
 
-export async function predictLoadTime():Promise<number> {
-  await _initPredictionsAsNeeded();
-  const factors = await _getPredictionFactors(MODEL_ID);
-  return predictTime(factors);
-}
-
 async function _storeTimePredictionData(actualTime:number) {
   await _initPredictionsAsNeeded();
   const factors = await _getPredictionFactors(MODEL_ID);
   storeActualTime(factors, actualTime);
   await setModelCached(MODEL_ID);
+}
+
+/*
+  Public APIs
+*/
+
+export async function predictLoadTime():Promise<number> {
+  await _initPredictionsAsNeeded();
+  const factors = await _getPredictionFactors(MODEL_ID);
+  return predictTime(factors);
 }
 
 export function isInitialized():boolean { return theConnection.state === LLMConnectionState.READY || theConnection.state === LLMConnectionState.GENERATING; }
@@ -70,7 +74,7 @@ export async function init(onStatusUpdate:StatusUpdateCallback) {
   if (isInitialized()) return;
   theConnection.state = LLMConnectionState.INITIALIZING;
   const startMSecs = Date.now();
-  const connectionSuccess = await connectToCustomLLM(theConnection, onStatusUpdate) || await connectToWebLLM(theConnection, onStatusUpdate);
+  const connectionSuccess = await customLlmConnect(theConnection, onStatusUpdate) || await webLlmConnect(theConnection, onStatusUpdate);
   if (!connectionSuccess) { 
     theConnection.webLLMEngine = null;
     theConnection.serverUrl = null;
@@ -121,8 +125,8 @@ export async function generate(prompt:string, onStatusUpdate:StatusUpdateCallbac
   let promptStartTime = Date.now();
   let message = '';
   switch(theConnection.connectionType) {
-    case LLMConnectionType.WEBLLM: message = await generateWebLLM(theConnection, messages, prompt, onStatusUpdate); break;
-    case LLMConnectionType.CUSTOM: message = await generateCustomLLM(theConnection, messages, prompt, onStatusUpdate); break;
+    case LLMConnectionType.WEBLLM: message = await webLlmGenerate(theConnection, messages, prompt, onStatusUpdate); break;
+    case LLMConnectionType.CUSTOM: message = await customLlmGenerate(theConnection, messages, prompt, onStatusUpdate); break;
     default: throw Error('Unexpected');
   }
   setCachedPromptResponse(prompt, message);
