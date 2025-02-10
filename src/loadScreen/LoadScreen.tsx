@@ -3,7 +3,6 @@ import {useLocation} from "wouter";
 
 import styles from './LoadScreen.module.css';
 import { init, useLocalLlm, useCustomLlm } from "./interactions/initialization";
-import {HOME_URL} from "@/common/urlUtil.ts";
 import ProgressBar from '@/components/progressBar/ProgressBar';
 import ProgressStory from '@/components/progressStory/ProgressStory';
 import ConfigureCustomLLMDialog from './dialogs/ConfigureCustomLLMDialog';
@@ -26,7 +25,6 @@ function LoadScreen() {
         setModalDialog(ConfigureCustomLLMDialog.name);
       } else {
         useLocalLlm(setPercentComplete, setCurrentTask, setSpielUrl, setModalDialog, setLocation);
-        setLocation(HOME_URL);
       }
     }
     _async();
