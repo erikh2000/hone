@@ -1,11 +1,11 @@
 {
-  "userSettings": [ {"Access Token":""} ],
+  "userSettings": {"Model":"llama3.1"},
   "completionUrl": "http://127.0.0.1:11434/api/chat",
   "completionOptions": {
     "method": "POST",
     "headers": { "Content-Type": "application/json" },
     "body": {
-      "model": "llama3.1",
+      "model": "%MODEL%",
       "options": { "temperature": 0 },
       "max_tokens": 512
     }

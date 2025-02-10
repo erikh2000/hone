@@ -1,4 +1,8 @@
-import { init as initLlm, predictLoadTime } from "@/llm/llmUtil.ts";
+import { HOME_URL } from "@/common/urlUtil";
+import { errorToast } from "@/components/toasts/toastUtil";
+import { customLlmLoadConfig } from "@/llm/customLlmUtil";
+import { connect as connectLlm, predictLoadTime } from "@/llm/llmUtil.ts";
+import CustomLLMConfig from "@/llm/types/CustomLLMConfig";
 
 let isInitialized = false;
 let isInitializing = false;
@@ -9,6 +13,9 @@ enum LoadStage {
   LOAD_FROM_CACHE = 2,
   LOAD_TO_GPU = 3,
   UNKNOWN = 4
+}
+export type InitResults = {
+  customLlmConfig:CustomLLMConfig|null;
 }
 
 // Format: Blah blah [3/45] blah blah
@@ -101,32 +108,59 @@ function _findPercentCompleteFromStatus(status:string):number|null {
   return progress;
 }
 
-export async function init(setPercentComplete:Function, setCurrentTask:Function, setSpielUrl:Function):Promise<boolean> {
-  if (isInitialized || isInitializing) return false;
-  
+export async function init():Promise<InitResults|null> {
+  if (isInitialized || isInitializing) return null;
+  const initResults:InitResults = { customLlmConfig:null };
+
   try {
     isInitializing = true;
+    initResults.customLlmConfig = await customLlmLoadConfig();
+    isInitialized = true;
+    return initResults;
+  } catch(e) {
+    console.error(e);
+    return null;
+  } finally {
+    isInitializing = false;
+  }
+}
+
+export async function useCustomLlm(customLLMConfig:CustomLLMConfig|null, setModalDialog:Function, setLocation:Function) {
+  if (!isInitialized || isInitializing || !customLLMConfig) throw Error('Unexpected');
+  try {
+    setModalDialog(null);
+    await connectLlm(() => {}, customLLMConfig);
+    setLocation(HOME_URL);
+  } catch(e) {
+    errorToast('Failed to connect to custom LLM with error: ' + e);
+    console.error(e);
+    return false;
+  }
+}
+
+export async function useLocalLlm(setPercentComplete:Function, setCurrentTask:Function, setSpielUrl:Function, setModalDialog:Function, setLocation:Function) {
+  if (!isInitialized || isInitializing) throw Error('Unexpected');
+  
+  try {
     function _onStatusUpdate(status:string, percentComplete:number) {
-      const statusPercentComplete = _findPercentCompleteFromStatus(status); // For WebLLM, it's better to parse from status text.
+      const statusPercentComplete = _findPercentCompleteFromStatus(status); // For WebLLM, it's better to parse percent complete from status text.
       percentComplete = Math.max(percentComplete, statusPercentComplete || 0);
       setPercentComplete(percentComplete);
       const simplifiedStatus = _simplifyStatus(status);
       setCurrentTask(simplifiedStatus);
     }
 
+    setModalDialog(null);
     highestPercentComplete = 0;
     stagesSoFar = [];
     const predictedLoadTime = await predictLoadTime();
     const spielUrl = predictedLoadTime < 30000 ? '/loading/calmPete30.spiel' : '/loading/calmPete120.spiel';
     setSpielUrl(spielUrl);
-    await initLlm(_onStatusUpdate);
-    isInitialized = true;
-    return true;
+    await connectLlm(_onStatusUpdate);
+    setLocation(HOME_URL);
   } catch(e) {
+    errorToast('Failed to connect to local LLM with error: ' + e);
     console.error(e);
-    return false;
-  } finally {
-    isInitializing = false;
   }
 }
 

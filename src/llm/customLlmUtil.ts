@@ -2,13 +2,14 @@ import { isHostListeningAtUrl } from "@/common/hostUtil";
 import LLMConnection from "./types/LLMConnection";
 import LLMConnectionType from "./types/LLMConnectionType";
 import StatusUpdateCallback from "./types/StatusUpdateCallback";
-import CustomLLMConfig, { CompletionOptions } from "./types/CustomLLMConfig";
+import CustomLLMConfig, { JsonCustomLLMConfig, CompletionOptions } from "./types/CustomLLMConfig";
 import { baseUrl, parseDomainUrlFromUrl } from "@/common/urlUtil";
 import LLMMessages from "./types/LLMMessages";
 import { addAssistantMessageToChatHistory, addUserMessageToChatHistory, createChatHistory } from "./messageUtil";
 import LLMMessage from "./types/LLMMessage";
 import StreamCompletionReader from "./StreamCompletionReader";
 import Throttler from "./Throttler";
+import { clearCustomLlmUserSettings, getCustomLlmUserSettings, setCustomLlmUserSettings } from "@/persistence/customLlmUserSettings";
 
 const CUSTOM_CONFIG_URL = '/custom/llmConfig.json';
 let throttler:Throttler|null = null;
@@ -18,21 +19,50 @@ let throttler:Throttler|null = null;
 // with more cause-correlated error messages.
 function _throwForInvalidCustomLLMConfig(config:unknown):void {
   if (typeof config !== 'object' || config === null) throw new Error('Invalid custom LLM config: not an object');
-  if (typeof (config as CustomLLMConfig).completionUrl !== 'string') throw new Error('Invalid custom LLM config: missing completionUrl');
-  if (typeof (config as CustomLLMConfig).maxRequestsPerMinute !== 'number') throw new Error('Invalid custom LLM config: missing maxRequestsPerMinute');
-  if (typeof (config as CustomLLMConfig).userSettings !== 'object' || (config as CustomLLMConfig).userSettings === null) throw new Error('Invalid custom LLM config: missing userSettings');
-  if (typeof (config as CustomLLMConfig).completionOptions !== 'object' || (config as CustomLLMConfig).completionOptions === null) throw new Error('Invalid custom LLM config: missing completionOptions');
-  const completionOptions = (config as CustomLLMConfig).completionOptions;
+  if (typeof (config as JsonCustomLLMConfig).completionUrl !== 'string') throw new Error('Invalid custom LLM config: missing completionUrl');
+  if (typeof (config as JsonCustomLLMConfig).maxRequestsPerMinute !== 'number') throw new Error('Invalid custom LLM config: missing maxRequestsPerMinute');
+  if (typeof (config as JsonCustomLLMConfig).userSettings !== 'object' || (config as JsonCustomLLMConfig).userSettings === null) throw new Error('Invalid custom LLM config: missing userSettings');
+  if (typeof (config as JsonCustomLLMConfig).completionOptions !== 'object' || (config as JsonCustomLLMConfig).completionOptions === null) throw new Error('Invalid custom LLM config: missing completionOptions');
+  const completionOptions = (config as JsonCustomLLMConfig).completionOptions;
   if (typeof completionOptions.method !== 'string') throw new Error('Invalid custom LLM config: missing method in completionOptions');
   if (completionOptions.headers && typeof completionOptions.headers !== 'object') throw new Error('Invalid custom LLM config: headers in completionOptions is not an object');
   if (typeof completionOptions.body !== 'object' || completionOptions.body === null) throw new Error('Invalid custom LLM config: body in completionOptions is not an object');
+}
+
+// Example: "Access Token" -> "%ACCESS_TOKEN%". 
+function _displayToVariableName(displayName:string):string {
+  return '%' + displayName.toUpperCase().replaceAll(' ', '_') + '%';
+}
+
+// In returned object, the display name of each variable is converted to a variable name.
+function _createReplacementVariables(userSettings:Record<string,string>):Record<string,string>|null {
+  const replacementVariables:Record<string,string> = {};
+  for (const key in userSettings) {
+    const newKey = _displayToVariableName(key);
+    replacementVariables[newKey] = userSettings[key];
+  }
+  return Object.keys(replacementVariables).length ? replacementVariables : null;
+}
+
+function _makeUserSettingReplacements(config:CustomLLMConfig):CustomLLMConfig {
+  const replacementVariables = _createReplacementVariables(config.userSettings);
+  if (!replacementVariables) return config; // No replacements to make.
+  // For simplicity, make replacements against the whole string, and then parse it back to an object.
+  // This means that some parts of the config that don't need replacements will be evaluated, but it's benign
+  // because the variable format is unique enough to not cause accidental replacements, and it doesn't allow  
+  // for a useful exploit due to mutual exploitability.
+  let jsonText = JSON.stringify(config); 
+  for (const key in replacementVariables) {
+    const value = replacementVariables[key];
+    jsonText = jsonText.replaceAll(key, value);
+  }
+  return JSON.parse(jsonText) as CustomLLMConfig;
 }
 
 function _createFetchOptions(messages:LLMMessage[], completionOptions:CompletionOptions):Object {
   const options:any = {...completionOptions};
   options.body.messages = messages;
   options.body = JSON.stringify(options.body);
-  // TODO here is where I replace text in the body with user settings. Also necessary for headers.
   return options;
 }
 
@@ -45,22 +75,31 @@ export async function customLlmLoadConfig():Promise<CustomLLMConfig|null> {
   if (response.status !== 200 || response.headers.get('content-type') !== 'application/json') return null;
   const jsonObject = await response.json();
   _throwForInvalidCustomLLMConfig(jsonObject);
+  jsonObject.persistUserSettings = await getCustomLlmUserSettings(jsonObject); // If settings were available, it implies an earlier decision to persist.
+  
   return jsonObject as CustomLLMConfig;
 }
 
 export async function customLlmConnect(connection:LLMConnection, onStatusUpdate:StatusUpdateCallback):Promise<boolean> {
   try {
-    onStatusUpdate('Finding custom LLM config...', 0);
-    connection.customLLMConfig = await customLlmLoadConfig();
-    if (!connection.customLLMConfig) return false; // No custom configuration available.
-    const serverUrl = parseDomainUrlFromUrl(connection.customLLMConfig.completionUrl);
-    if (!await isHostListeningAtUrl(serverUrl)) { 
-      console.error(`Custom LLM host is not responding at ${connection.customLLMConfig.completionUrl}`);
+    if (!connection.customLLMConfig) throw Error('Unexpected');
+
+    const customLLMConfig = connection.customLLMConfig = _makeUserSettingReplacements(connection.customLLMConfig);
+    if (customLLMConfig.persistUserSettings) {
+      onStatusUpdate('Saving custom LLM user settings...', 0);
+      await setCustomLlmUserSettings(customLLMConfig.userSettings);
+    } else {
+      onStatusUpdate('Clearing custom LLM user settings...', 0);
+      await clearCustomLlmUserSettings();
+    }
+
+    connection.serverUrl = parseDomainUrlFromUrl(customLLMConfig.completionUrl);
+    if (!await isHostListeningAtUrl(connection.serverUrl)) { 
+      console.error(`Custom LLM host is not responding at ${customLLMConfig.completionUrl}`);
       return false;
     }
-    connection.serverUrl = serverUrl;
     connection.connectionType = LLMConnectionType.CUSTOM;
-    throttler = new Throttler(connection.customLLMConfig.maxRequestsPerMinute, 60 * 1000);
+    throttler = new Throttler(customLLMConfig.maxRequestsPerMinute, 60 * 1000);
     return true;
   } catch(e) {
     console.error('Error while connecting to custom LLM.', e);

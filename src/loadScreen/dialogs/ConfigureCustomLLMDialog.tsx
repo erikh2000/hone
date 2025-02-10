@@ -12,11 +12,10 @@ type Props = {
   config:CustomLLMConfig|null,
   isOpen:boolean,
   onUseLocalLLM:() => void,
-  onUseCustomLLM:(updatedConfig:CustomLLMConfig, persistSettings:boolean) => void
+  onUseCustomLLM:(updatedConfig:CustomLLMConfig) => void
 }
 
-function _settingsContent(config:CustomLLMConfig, setUpdatedConfig:Function, persistSettings:boolean, 
-    setPersistSettings:(persistSettings:boolean) => void):JSX.Element|null {
+function _settingsContent(config:CustomLLMConfig, setUpdatedConfig:Function):JSX.Element|null {
   const settingKeys = Object.keys(config.userSettings);
   if (!settingKeys.length) return null;
 
@@ -32,18 +31,21 @@ function _settingsContent(config:CustomLLMConfig, setUpdatedConfig:Function, per
     );
   });
 
+  function _updatePersistSettings(persistUserSettings:boolean) {
+    setUpdatedConfig({...config, persistUserSettings});
+  }
+
   return (
     <>
       <p>Settings Required for Custom LLM:</p>
       {_settingsInputs}
-      <Checkbox label="Remember settings on this device" isChecked={persistSettings} onChange={setPersistSettings}/>
+      <Checkbox label="Remember settings on this device" isChecked={config.persistUserSettings} onChange={_updatePersistSettings}/>
     </>
   );
 }
 
-function ConfigureCustomLLMSettingsDialog({config, isOpen, onUseLocalLLM, onUseCustomLLM}:Props) {
+function ConfigureCustomLLMDialog({config, isOpen, onUseLocalLLM, onUseCustomLLM}:Props) {
   const [updatedConfig, setUpdatedConfig] = useState<CustomLLMConfig|null>(null);
-  const [persistSettings, setPersistSettings] = useState<boolean>(false);
 
   useEffect(() => {
     if (!config) return;
@@ -52,7 +54,7 @@ function ConfigureCustomLLMSettingsDialog({config, isOpen, onUseLocalLLM, onUseC
 
   if (!isOpen || !updatedConfig) return null;
 
-  const settingsContent = _settingsContent(updatedConfig, setUpdatedConfig, persistSettings, setPersistSettings);
+  const settingsContent = _settingsContent(updatedConfig, setUpdatedConfig);
   const isCustomLlmDisabled = areUserSettingsMissing(updatedConfig.userSettings);
 
   return (
@@ -62,10 +64,10 @@ function ConfigureCustomLLMSettingsDialog({config, isOpen, onUseLocalLLM, onUseC
       {settingsContent}
       <DialogFooter>
         <DialogButton text="Use Local LLM" onClick={onUseLocalLLM}/>
-        <DialogButton text="Use Custom LLM" onClick={() => onUseCustomLLM(updatedConfig, persistSettings)} isPrimary disabled={isCustomLlmDisabled}/>
+        <DialogButton text="Use Custom LLM" onClick={() => onUseCustomLLM(updatedConfig)} isPrimary disabled={isCustomLlmDisabled}/>
       </DialogFooter>
     </ModalDialog>
   );
 }
 
-export default ConfigureCustomLLMSettingsDialog;
+export default ConfigureCustomLLMDialog;

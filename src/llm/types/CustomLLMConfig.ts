@@ -15,16 +15,22 @@
 }*/
 
 export type CompletionOptions = {
-  method: string;
-  headers?: Record<string, string>;
-  body: Record<string, unknown>;
+  method:string;
+  headers?:Record<string, string>;
+  body:Record<string, unknown>;
 };
 
-type CustomLLMConfig = {
-  userSettings: Record<string, string>;
-  completionUrl: string;
-  completionOptions: CompletionOptions;
-  maxRequestsPerMinute: number;
+// Type that mirrors what can be in the llmConfig.json file.
+export type JsonCustomLLMConfig = {
+  userSettings:Record<string, string>;
+  completionUrl:string;
+  completionOptions:CompletionOptions;
+  maxRequestsPerMinute:number;
+}
+
+// Full configuration object with additional settings.
+type CustomLLMConfig = JsonCustomLLMConfig & {
+  persistUserSettings:boolean;
 };
 
 export default CustomLLMConfig;

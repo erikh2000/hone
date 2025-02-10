@@ -1,21 +1,36 @@
+import {useState, useEffect} from "react";
+import {useLocation} from "wouter";
+
 import styles from './LoadScreen.module.css';
-import { init } from "./interactions/initialization";
+import { init, useLocalLlm, useCustomLlm } from "./interactions/initialization";
 import {HOME_URL} from "@/common/urlUtil.ts";
 import ProgressBar from '@/components/progressBar/ProgressBar';
 import ProgressStory from '@/components/progressStory/ProgressStory';
-
-import {useState, useEffect} from "react";
-import {useLocation} from "wouter";
+import ConfigureCustomLLMDialog from './dialogs/ConfigureCustomLLMDialog';
+import CustomLLMConfig from '@/llm/types/CustomLLMConfig';
 
 function LoadScreen() {
   const [percentComplete, setPercentComplete] = useState(0);
   const [currentTask, setCurrentTask] = useState('Loading');
+  const [customLlmConfig, setCustomLlmConfig] = useState<CustomLLMConfig|null>(null);
+  const [modalDialog, setModalDialog] = useState<string|null>(null);
   const [spielUrl, setSpielUrl] = useState<string|null>(null);
   const [, setLocation] = useLocation();
   
   useEffect(() => {
-    init(setPercentComplete, setCurrentTask, setSpielUrl).then((isInitialized) => { if (isInitialized) setLocation(HOME_URL); });
-  }, [setPercentComplete, setCurrentTask]);
+    async function _async() {
+      const initResults = await init();
+      if (!initResults) return;
+      if (initResults.customLlmConfig) { 
+        setCustomLlmConfig(initResults.customLlmConfig);
+        setModalDialog(ConfigureCustomLLMDialog.name);
+      } else {
+        useLocalLlm(setPercentComplete, setCurrentTask, setSpielUrl, setModalDialog, setLocation);
+        setLocation(HOME_URL);
+      }
+    }
+    _async();
+  }, [setPercentComplete, setCurrentTask, setSpielUrl, setModalDialog]);
   
   return (
     <div className={styles.container}>
@@ -27,6 +42,13 @@ function LoadScreen() {
           {currentTask}
         </div>
       </div>
+
+      <ConfigureCustomLLMDialog 
+        isOpen={modalDialog===ConfigureCustomLLMDialog.name} 
+        config={customLlmConfig} 
+        onUseLocalLLM={() => useLocalLlm(setPercentComplete, setCurrentTask, setSpielUrl, setModalDialog, setLocation)} 
+        onUseCustomLLM={(updatedConfig) => useCustomLlm(updatedConfig, setModalDialog, setLocation)}
+      />
     </div>
   );
 }

@@ -1,3 +1,11 @@
+/*
+  This module is an abstraction layer for LLM APIs.
+
+  General Usage:
+  * call connect() to initialize the connection and pass in a CustomLLMConfig object if you want to use a custom LLM instead of WebLLM.
+  * call generate() to get a response for a prompt. This will call to WebLLM or CustomLLM depending on the previous call to connect().
+  * other APIs are there for setting system message, chat history, etc.
+*/
 import LLMConnection from "./types/LLMConnection";
 import LLMConnectionState from "./types/LLMConnectionState";
 import LLMConnectionType from "./types/LLMConnectionType";
@@ -9,6 +17,7 @@ import { getCachedPromptResponse, setCachedPromptResponse } from "./promptCache"
 import { isModelCached, setModelCached } from "@/persistence/timePredictions";
 import { predictTime, storeActualTime, initialize as initializeTimePredictions, setDefault } from "@/timePredictions/timePredictionUtil";
 import { customLlmConnect, customLlmGenerate } from "./customLlmUtil";
+import CustomLLMConfig from "./types/CustomLLMConfig";
 
 let theConnection:LLMConnection = {
   state:LLMConnectionState.UNINITIALIZED,
@@ -26,11 +35,6 @@ let messages:LLMMessages = {
 
 let savedMessages:LLMMessages|null = null;
 
-// There is a circular dependency to figure out later if you want to support multiple LLM engines.
-// 1. init() is currently both determining the LLM engine and starting the LLM load. The model is tied to the LLM engine.
-// 2. but I want to predict the load time before I start loading the LLM.
-// Rather than create abstraction to deal with it now, I'd prefer to roll in some other changes in the design at once.
-// It suffices in Hone to just assume I'll load a model from WebLLM.
 const MODEL_ID = WEBLLM_MODEL;
 
 let isTimePredictionsInitialized = false;
@@ -38,7 +42,7 @@ async function _initPredictionsAsNeeded() {
   if (!isTimePredictionsInitialized) {
     await initializeTimePredictions();
     isTimePredictionsInitialized = true;
-    if (predictTime(MODEL_ID) === 0) { // TODO - pass the defaults in to initializeTimePredictions() and have it set them there if needed. But sort that out with the other design issues with model selection.
+    if (predictTime(MODEL_ID) === 0) {
       setDefault(`${MODEL_ID}-cached`, 28000);
       setDefault(`${MODEL_ID}-first`, 120000);
     }
@@ -58,6 +62,14 @@ async function _storeTimePredictionData(actualTime:number) {
   await setModelCached(MODEL_ID);
 }
 
+function _clearConnectionAndThrow(message:string) {
+  theConnection.webLLMEngine = null;
+  theConnection.serverUrl = null;
+  theConnection.connectionType = LLMConnectionType.NONE;
+  theConnection.state = LLMConnectionState.INIT_FAILED;
+  throw new Error(message);
+}
+
 /*
   Public APIs
 */
@@ -68,27 +80,24 @@ export async function predictLoadTime():Promise<number> {
   return predictTime(factors);
 }
 
-export function isInitialized():boolean { return theConnection.state === LLMConnectionState.READY || theConnection.state === LLMConnectionState.GENERATING; }
-
-export async function init(onStatusUpdate:StatusUpdateCallback) {
-  if (isInitialized()) return;
-  theConnection.state = LLMConnectionState.INITIALIZING;
-  const startMSecs = Date.now();
-  const connectionSuccess = await customLlmConnect(theConnection, onStatusUpdate) || await webLlmConnect(theConnection, onStatusUpdate);
-  if (!connectionSuccess) { 
-    theConnection.webLLMEngine = null;
-    theConnection.serverUrl = null;
-    theConnection.connectionType = LLMConnectionType.NONE;
-    theConnection.state = LLMConnectionState.INIT_FAILED;
-    throw new Error('Failed to connect to LLM.');
-  }
-  const elapsed = Date.now() - startMSecs;
-  _storeTimePredictionData(elapsed);
-  theConnection.state = LLMConnectionState.READY;
-}
-
 export function isLlmConnected():boolean {
   return theConnection.state === LLMConnectionState.READY || theConnection.state === LLMConnectionState.GENERATING;
+}
+
+export async function connect(onStatusUpdate:StatusUpdateCallback, customLLMConfig:CustomLLMConfig|null = null) {
+  if (isLlmConnected()) return;
+  theConnection.state = LLMConnectionState.INITIALIZING;
+  if (customLLMConfig) {
+    theConnection.customLLMConfig = customLLMConfig;
+    theConnection.connectionType = LLMConnectionType.CUSTOM;
+    if (!await customLlmConnect(theConnection, onStatusUpdate)) _clearConnectionAndThrow('Failed to connect to custom LLM.');
+  } else {
+    const startMSecs = Date.now();
+    if (!await webLlmConnect(theConnection, onStatusUpdate)) _clearConnectionAndThrow('Failed to connect to WebLLM.');
+    const elapsed = Date.now() - startMSecs;
+    _storeTimePredictionData(elapsed);
+  }
+  theConnection.state = LLMConnectionState.READY;
 }
 
 export function setSystemMessage(message:string|null) {
@@ -119,7 +128,7 @@ export async function generate(prompt:string, onStatusUpdate:StatusUpdateCallbac
     return cachedResponse;
   }
 
-  if (!isInitialized()) throw Error('LLM connection is not initialized.');
+  if (!isLlmConnected()) throw Error('LLM connection is not initialized.');
   if (theConnection.state !== LLMConnectionState.READY) throw Error('LLM is not in ready state.');
   theConnection.state = LLMConnectionState.GENERATING;
   let promptStartTime = Date.now();
