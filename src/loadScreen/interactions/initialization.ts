@@ -132,7 +132,7 @@ export async function useCustomLlm(customLLMConfig:CustomLLMConfig|null, setModa
     await connectLlm(() => {}, customLLMConfig);
     setLocation(HOME_URL);
   } catch(e) {
-    errorToast('Failed to connect to custom LLM with error: ' + e);
+    errorToast('Error: ' + e);
     console.error(e);
     return false;
   }
@@ -159,7 +159,7 @@ export async function useLocalLlm(setPercentComplete:Function, setCurrentTask:Fu
     await connectLlm(_onStatusUpdate);
     setLocation(HOME_URL);
   } catch(e) {
-    errorToast('Failed to connect to local LLM with error: ' + e);
+    errorToast('Error: ' + e);
     console.error(e);
   }
 }
