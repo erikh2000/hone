@@ -7,6 +7,7 @@ import ProgressBar from '@/components/progressBar/ProgressBar';
 import ProgressStory from '@/components/progressStory/ProgressStory';
 import ConfigureCustomLLMDialog from './dialogs/ConfigureCustomLLMDialog';
 import CustomLLMConfig from '@/llm/types/CustomLLMConfig';
+import ToastPane from "@/components/toasts/ToastPane";
 
 function LoadScreen() {
   const [percentComplete, setPercentComplete] = useState(0);
@@ -47,6 +48,8 @@ function LoadScreen() {
         onUseLocalLLM={() => useLocalLlm(setPercentComplete, setCurrentTask, setSpielUrl, setModalDialog, setLocation)} 
         onUseCustomLLM={(updatedConfig) => useCustomLlm(updatedConfig, setModalDialog, setLocation)}
       />
+
+      <ToastPane />
     </div>
   );
 }
