@@ -1,0 +1,17 @@
+{
+  "userSettings": {"Model":"gpt-4o-mini", "API Key":""},
+  "completionUrl": "https://localhost:3000/openai/v1/chat/completions",
+  "completionOptions": {
+    "method": "POST",
+    "headers": { 
+      "Content-Type": "application/json", 
+      "Authorization": "Bearer %API_KEY%"
+    },
+    "body": {
+      "model": "%MODEL%",
+      "options": { "temperature": 0 },
+      "max_tokens": 512
+    }
+  },
+  "maxRequestsPerMinute": 60
+}
