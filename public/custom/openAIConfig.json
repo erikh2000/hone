@@ -1,6 +1,7 @@
 {
+  "proxyUrl": "https://api.openai.com/",
   "userSettings": {"Model":"gpt-4o-mini", "API Key":""},
-  "completionUrl": "https://localhost:3000/openai/v1/chat/completions",
+  "completionUrl": "/custom/api/v1/chat/completions",
   "completionOptions": {
     "method": "POST",
     "headers": { 
@@ -9,8 +10,10 @@
     },
     "body": {
       "model": "%MODEL%",
-      "options": { "temperature": 0 },
-      "max_tokens": 512
+      "temperature": 0,
+      "max_tokens": 512,
+      "seed": 0,
+      "stream": true
     }
   },
   "maxRequestsPerMinute": 60

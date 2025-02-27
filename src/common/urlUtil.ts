@@ -15,7 +15,7 @@ export function parseBasePathFromUriPath(path:string) {
 
 // From https://127.0.0.1:8080/path/to/file to https://127.0.1:8080/ and variants. Basically, just the scheme, domain, and port.
 export function parseDomainUrlFromUrl(url:string) {
-  const urlObject = new URL(url);
+  const urlObject = new URL(url, window.location.href);
   return `${urlObject.protocol}//${urlObject.hostname}${urlObject.port ? ':' + urlObject.port : ''}/`;
 }
 

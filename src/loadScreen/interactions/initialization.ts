@@ -159,7 +159,7 @@ export async function useLocalLlm(setPercentComplete:Function, setCurrentTask:Fu
     await connectLlm(_onStatusUpdate);
     setLocation(HOME_URL);
   } catch(e) {
-    errorToast('Error: ' + e);
+    errorToast('' + e);
     console.error(e);
   }
 }
