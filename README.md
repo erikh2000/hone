@@ -1,6 +1,6 @@
 # Hone
 
-An app for processing spreadsheet data with a local LLM. Try it out now at https://decentapps.net/hone .
+An app for processing spreadsheet data with a local LLM. Try it out now at https://decentapps.net/hone/.
 
 The basic flow of using Hone is:
 
@@ -22,6 +22,10 @@ Importing and exporting can be done from standard spreadsheet files or via the c
 * Example data and prompts included to try it out quickly
 * Developed with high-security practices (limited dependencies, no service calls, no persistence of generated data)
 * Fully open source
+* Configure to work with your own LLM - including Ollama, OpenAI, and basically any LLM with a chat completion endpoint following an OpenAI-like syntax.
+* Docker container for optional self-hosting, designed with security best practices.
+
+For running dev servers and production deployment options, see DEPLOYMENT.md in the project directory root.
 
 ## It's Your Data, Not Mine
 
@@ -82,70 +86,6 @@ My code and other files in this repository are licensed under the MIT open sourc
 The fonts used by the template are hosted from decentapps.net rather than included in this repo. Their licensing is separate, but will be something compatible with open source, e.g., OFS SFIL. If you want to self-host the fonts rather load them from decentapps.net, the easiest thing might be to just find the same fonts from other sources and verify the licensing for your use. 
 
 If you want to check the licensing I used for a hosted font, you can replace the filename of the URL that loads a WOFF or WOFF2 file with "LICENSE". So for example, the font served from "https://decentapps.net/fonts/hobby-of-night/hobby-of-night-webfont.woff2" was licensed to me according to terms found at "https://decentapps.net/fonts/hobby-of-night/LICENSE".
-
-## Running a Local Server
-
-The following steps show how to run Hone as a web server on your local device, for development or other non-production purposes:
-
-1. `git clone git@github.com:erikh2000/hone.git` (clone the repo)
-2. `cd hone` (change your working directory to the hone project directory)
-3. `npm install` (installs dependencies needed to build the app)
-4. `npm run fonts` (downloads a few fonts used by Hone so they can be served locally.)
-5. `npm run dev` (launches the Vite web server, typically on port 3000. If 3000 is in use, Vite will pick another port—check the console output for the actual port.)
-6. Browse to "http://localhost:3000" with your browser.
-
-After the initial setup, just steps 5 and 6 are needed.
-
-## Deploying to a Production Server
-
-The following steps show how to deploy the Hone files to a production web server.
-
-1. `git clone git@github.com:erikh2000/hone.git` (clone the repo)
-2. `cd hone` (change your working directory to the hone project directory)
-3. `npm install` (installs dependencies needed to build the app)
-4. `npm run fonts` (downloads a few fonts used by Hone)
-5. `npm run build` (creates all static content needed to serve Hone in the ./dist directory.)
-6. Upload the contents of the `./dist` directory to the appropriate web directory on your production server.
-
-Some considerations:
-
-* Hone is a purely static-content web app. So it really should be as simple as using `ftp`, `rsync`, `aws s3 cp`, or similar tool to copy the files to the right place.
-* All paths are relative, so deploying to paths served with non-root URLs should work fine.
-* Hone does make read-only fetches to some external hosts to download local LLM models. These are documented in `Dockerfile`.
-* I do recommend using a CSP header to defend against potential supply chain attacks. Again, see the `Dockerfile` for an example.
-
-## Pulling and Running a Docker Image from GHCR
-
-While you don't need a Docker image to build or run Hone, containerization can simplify deployments in many environments. The following steps show how to pull and run the latest Docker image of Hone using GitHub Container Registry.
-
-1. `docker pull ghcr.io/erikh2000/hone-server:latest` to pull the latest image.
-2. `docker run -d --name hone-server -p 8080:8080 ghcr.io/erikh2000/hone-server:latest` to run it.
-3. Browse to "http://localhost:8080" with your browser.
-
-## Creating a Docker Image
-
-Again, you don't need to use a Docker image, but it may fit your deployment needs. And if you'd like to modify the image for your own purposes, such as changing web server configuration or deploying modified Hone source, the following steps show how to build and run a Docker image for Hone:
-
-1. `git clone git@github.com:erikh2000/hone.git` (clone the repo)
-2. `cd hone` (change your working directory to the hone project directory)
-3. `npm install` (installs dependencies needed to build the app)
-4. `npm run docker` (creates a hone-server image that bundles a minimal, production-ready Nginx web server with Hone.)
-
-If you want to try out the image, continue with:
-
-5. `docker run -d -p 8080:8080 hone-server` (launches a container based on the hone-server image, serving on port 8080)
-6. Browse to "http://localhost:8080" with your browser.
-
-The Docker image has been built with the following best practices in mind:
-
-* Minimal footprint: Only the necessary runtime components are included — build dependencies and extraneous software have been omitted.
-* Unprivileged execution: Nginx runs under a non-root user for enhanced security.
-* Hardened configuration: Strict Content Security Policy (CSP) headers and minimal Nginx settings reduce the risk of supply chain attacks.
-* Transparent design: Detailed comments in the Dockerfile explain all key decisions.
-
-For more details on security measures, see the `Dockerfile`, where key decisions are explained.
-
-I always welcome feedback. But on security, I double-welcome it! Please feel free to open an issue or contact me if you have any suggestions.
 
 ## Making Your Own Apps Like This
 

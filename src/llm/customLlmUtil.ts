@@ -66,6 +66,17 @@ function _createFetchOptions(messages:LLMMessage[], completionOptions:Completion
   return options;
 }
 
+function _findAndClearSecretSettings(userSettings:Record<string,string>):string[] {
+  const secretSettings:string[] = [];
+  for (const key in userSettings) {
+    if (userSettings[key] === 'SECRET') {
+      secretSettings.push(key);
+      userSettings[key] = '';
+    }
+  }
+  return secretSettings;
+}
+
 /*
   Public APIs
 */
@@ -75,6 +86,7 @@ export async function customLlmLoadConfig():Promise<CustomLLMConfig|null> {
   if (response.status !== 200 || response.headers.get('content-type') !== 'application/json') return null;
   const jsonObject = await response.json();
   _throwForInvalidCustomLLMConfig(jsonObject);
+  jsonObject.secretSettings = _findAndClearSecretSettings(jsonObject.userSettings);
   jsonObject.persistUserSettings = await getCustomLlmUserSettings(jsonObject); // If settings were available, it implies an earlier decision to persist.
   
   return jsonObject as CustomLLMConfig;

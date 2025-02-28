@@ -23,6 +23,7 @@ export type CompletionOptions = {
 // Type that mirrors what can be in the llmConfig.json file.
 export type JsonCustomLLMConfig = {
   userSettings:Record<string, string>;
+  secretSettings?:string[]; // list of keys in userSettings that are considered secret and should not be displayed to the user.
   completionUrl:string;
   completionOptions:CompletionOptions;
   maxRequestsPerMinute:number;
