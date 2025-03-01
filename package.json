@@ -16,7 +16,7 @@
     "docker": "npm run fonts && npm run build && docker build -t hone-server ."
   },
   "dependencies": {
-    "@mlc-ai/web-llm": "^0.2.75",
+    "@mlc-ai/web-llm": "^0.2.78",
     "@mlc-ai/web-runtime": "^0.18.0-dev2",
     "@mlc-ai/web-tokenizers": "^0.1.5",
     "react": "^19.0.0",
