@@ -6,7 +6,7 @@ import { GeneratedFooterText } from '@/components/sheetTable/types/GeneratedFoot
 import HorizontalScroll from '@/components/sheetTable/types/HorizontalScroll';
 import VerticalScroll from '@/components/sheetTable/types/VerticalScroll';
 
-type DivRef = RefObject<HTMLDivElement>;
+type DivRef = RefObject<HTMLDivElement|null>;
 
 export function measureColumnWidths(sheetTableElement:HTMLDivElement, columnNames:string[], rows:any[][]):number[] {
   const measurer = new DOMTextMeasurer(sheetTableElement, rowStyles.measureCellText);

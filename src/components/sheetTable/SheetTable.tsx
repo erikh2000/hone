@@ -39,7 +39,7 @@ function SheetTable({columnNames, rows, footerText, displayRowCount, selectedRow
   }, [horizontalScroll]);
 
   useEffect(() => {
-    setVerticalScroll(rowsScrollElement, verticalScroll);
+    setVerticalScroll(rowsScrollElement!, verticalScroll);
   }, [verticalScroll]);
 
   const rowCount = rows.length;
@@ -56,7 +56,7 @@ function SheetTable({columnNames, rows, footerText, displayRowCount, selectedRow
         <SheetHeader columnNames={columnNames} columnWidths={columnWidths} ref={headerInnerElement}/>
       </div>
       <div className={styles.rowsScrollContainer} style={rowScrollContainerStyle} ref={rowsScrollElement} 
-          onScroll={() => syncScrollableElements(headerInnerElement, rowsScrollElement)}>
+          onScroll={() => syncScrollableElements(headerInnerElement!, rowsScrollElement)}>
         <div className={styles.rowsInnerContainer}>
           {rowsContent}
         </div>

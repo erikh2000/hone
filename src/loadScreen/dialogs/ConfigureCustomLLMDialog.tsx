@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, JSX } from "react";
 
 import DialogButton from "@/components/modalDialogs/DialogButton";
 import DialogFooter from "@/components/modalDialogs/DialogFooter";
