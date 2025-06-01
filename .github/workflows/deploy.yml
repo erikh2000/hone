@@ -1,0 +1,28 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Build project
+        run: npm run build
+
+      - name: Deploy to Staging
+        uses: DecentAppsNet/deploy@v1
+        with:
+          app-name: ${{ vars.APP_NAME }}
+          api-key: ${{ secrets.DECENT_API_KEY }}

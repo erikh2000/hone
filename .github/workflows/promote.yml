@@ -1,0 +1,14 @@
+name: Promote Staging to Production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Promote staging to production
+        uses: DecentAppsNet/promote@v1
+        with:
+          app-name: ${{ vars.APP_NAME }}
+          api-key: ${{ secrets.DECENT_API_KEY }}

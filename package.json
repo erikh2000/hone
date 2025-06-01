@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "setup-portal-workflows": "cp -r ./node_modules/decent-portal/github-workflows/*.yml .github/workflows",
     "fonts": "node scripts/localFonts.js",
     "docker": "npm run fonts && npm run build && docker build -t hone-server ."
   },
