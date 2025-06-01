@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { parseBasePathFromUriPath, baseUrl, parseDomainUrlFromUrl } from "../urlUtil";
+import { parseBasePathFromUriPath, parseDomainUrlFromUrl } from "../urlUtil";
 
 describe('urlUtil', () => {
   describe('parseBasePathFromUriPath()', () => {
