@@ -24,7 +24,10 @@ function _findFirstJson(text:string):{toPos:number, object:Object}|null {
 }
 
 function _getMessageTextFromObject(obj:Object):string {
-  return (obj as any).message?.content || '';
+  const objAny = obj as any;
+  return objAny.message?.content // Ollama-style 
+    || objAny.choices[0]?.delta.content // OpenAI-style
+    || '';
 }
 
 class StreamCompletionReader {

@@ -19,6 +19,21 @@ export function parseDomainUrlFromUrl(url:string) {
   return `${urlObject.protocol}//${urlObject.hostname}${urlObject.port ? ':' + urlObject.port : ''}/`;
 }
 
+// Add missing scheme and hostname as needed. Retain full path.
+export function normalizeUrl(url:string):string {
+  const urlObject = new URL(url, window.location.href);
+  return urlObject.href.toString();
+}
+
+// Add a cach-busting query string to the URL, which may or may not already have a query string.
+export function cacheBustUrl(url:string):string {
+  const urlObject = new URL(url, window.location.href);
+  const params = new URLSearchParams(urlObject.search);
+  params.set('v', Date.now().toString());
+  urlObject.search = params.toString();
+  return urlObject.href.toString();
+}
+
 /* istanbul ignore next */ // Web-DOM-specific code that is not useful to test.
 function _getBasePath() {
   if (!theBasePath) { theBasePath = parseBasePathFromUriPath(window.location.pathname); }

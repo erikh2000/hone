@@ -12,8 +12,16 @@ FROM nginxinc/nginx-unprivileged:stable-alpine
 #   *.hf.co - Hugging face CDN for downloading chunks of LLM model files. Wildcard is present to allow for different regional CDNs.
 ENV CSP_WHITELIST="https://huggingface.co https://raw.githubusercontent.com https://*.hf.co"
 
-# I in-lined the Nginx configuration file below so you can see everything in one place. The philosophy is
-# to limit options to just what is needed - in this case, to serve a single static content web app with WASM execution.
+# You can override this environment variable to create a proxy route to a custom LLM provider for Hone to use.
+# So for example, the API served from https://api.openai.com could be proxied to via https://example.com/hone/custom/api, and it
+# would make REST calls to https://example.com/hone/custom/api/v1/chat/completion proxy through to https://api.openai.com/v1/chat/completion.
+# This proxying is often needed due to an understandable lack of CORS allowances by API providers. ("understandable" b/c they don't want
+# to promote API key exposure.) The proxy puts the custom LLM API and Hone on the same origin, removing the need for a CORS allowance.
+# Leave this value as its disabled default unless you are configuring a custom LLM API that is blocked by CORS allowances.
+ENV CUSTOM_LLM_PROXY_URL=""
+
+# Nginx configuration file. The philosophy is to limit options to just what is needed - in this case, to serve a 
+# single static content web app with WASM execution.
 RUN cat <<EOF > /etc/nginx/conf.d/default.conf
 server {
     listen 8080 default_server;
@@ -35,10 +43,16 @@ server {
     add_header Content-Security-Policy "default-src 'self' ${CSP_WHITELIST}; script-src 'self' 'unsafe-eval'; object-src 'none'; frame-ancestors 'none';" always;
 
     location / {
-        # Only allow GET, HEAD, and OPTIONS.
         limit_except GET HEAD OPTIONS {
             deny all;
         }
+    }
+
+    # Proxy to custom LLM API if configured. (see above comments re CUSTOM_LLM_PROXY_URL)
+    location /custom/api/ {
+        proxy_pass ${CUSTOM_LLM_PROXY_URL:-http://127.0.0.1:9};
+        proxy_ssl_server_name on;
+        proxy_ssl_protocols TLSv1.2 TLSv1.3;
     }
 }
 EOF

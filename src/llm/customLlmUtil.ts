@@ -3,7 +3,7 @@ import LLMConnection from "./types/LLMConnection";
 import LLMConnectionType from "./types/LLMConnectionType";
 import StatusUpdateCallback from "./types/StatusUpdateCallback";
 import CustomLLMConfig, { JsonCustomLLMConfig, CompletionOptions } from "./types/CustomLLMConfig";
-import { baseUrl, parseDomainUrlFromUrl } from "@/common/urlUtil";
+import { baseUrl, normalizeUrl, parseDomainUrlFromUrl } from "@/common/urlUtil";
 import LLMMessages from "./types/LLMMessages";
 import { addAssistantMessageToChatHistory, addUserMessageToChatHistory, createChatHistory } from "./messageUtil";
 import LLMMessage from "./types/LLMMessage";
@@ -93,8 +93,9 @@ export async function customLlmConnect(connection:LLMConnection, onStatusUpdate:
       await clearCustomLlmUserSettings();
     }
 
+    customLLMConfig.completionUrl = normalizeUrl(customLLMConfig.completionUrl);
     connection.serverUrl = parseDomainUrlFromUrl(customLLMConfig.completionUrl);
-    if (!await isHostListeningAtUrl(connection.serverUrl)) { 
+    if (!await isHostListeningAtUrl(customLLMConfig.completionUrl)) { 
       console.error(`Custom LLM host is not responding at ${customLLMConfig.completionUrl}`);
       return false;
     }

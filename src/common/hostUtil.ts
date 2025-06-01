@@ -1,3 +1,5 @@
+import { cacheBustUrl, normalizeUrl } from "./urlUtil";
+
 async function _send(url:string, method:string, timeout:number):Promise<boolean> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -13,11 +15,13 @@ async function _send(url:string, method:string, timeout:number):Promise<boolean>
 }
 
 export async function isHostListeningAtUrl(url:string, timeout:number = 1000) {
+    url = normalizeUrl(url);
+    url = cacheBustUrl(url);
     // Prefer to just query with HEAD, but some hosts don't respond to HEAD so use GET as a fallback.
     return await _send(url, 'HEAD', timeout) || await _send(url, 'GET', timeout);
 }
 
 export async function isHostListening(domain:string, portNo:number, timeout:number = 1000) {
-    const url = `http://${domain}:${portNo}`;
+    const url = cacheBustUrl(`http://${domain}:${portNo}`);
     return await isHostListeningAtUrl(url, timeout);
 }
