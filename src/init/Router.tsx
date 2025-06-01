@@ -1,7 +1,7 @@
 import { Route } from 'wouter';
 import LoadScreen from "@/loadScreen/LoadScreen.tsx";
 import HomeScreen from "@/homeScreen/HomeScreen.tsx";
-import {LOAD_URL, HOME_URL} from '@/common/urlUtil';
+import {LOAD_URL, HOME_URL} from '@/init/theUrls.ts';
 
 function Router() {
   return (

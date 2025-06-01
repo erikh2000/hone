@@ -1,3 +1,5 @@
 **
 !dist/
 !dist/**
+!scripts/docker/**
+dist/custom/

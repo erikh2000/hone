@@ -29,7 +29,7 @@ import ImportOptionsDialog from "./dialogs/ImportOptionsDialog";
 import ConfirmSheetPasteDialog from "./dialogs/ConfirmSheetPasteDialog";
 import ImportExampleDialog from "./dialogs/ImportExampleDialog";
 import LLMDevPauseDialog from "@/homeScreen/dialogs/LLMDevPauseDialog";
-import { LOAD_URL } from "@/common/urlUtil";
+import { LOAD_URL } from "@/init/theUrls";
 import { doesSheetHaveWritableColumns } from "@/sheets/sheetUtil";
 import HorizontalScroll from "@/components/sheetTable/types/HorizontalScroll";
 import ConfirmClearSheetDialog from "./dialogs/ConfirmClearSheetDialog";

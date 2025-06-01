@@ -1,5 +1,6 @@
 {
-  "userSettings": {"Model":"gpt-4o-mini", "API Key":""},
+  "proxyUrl": "https://api.openai.com/",
+  "userSettings": {"Model":"gpt-4o-mini", "API Key":"SECRET"},
   "completionUrl": "/custom/api/v1/chat/completions",
   "completionOptions": {
     "method": "POST",

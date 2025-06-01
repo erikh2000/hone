@@ -1,4 +1,4 @@
-import { HOME_URL } from "@/common/urlUtil";
+import { HOME_URL } from "@/init/theUrls";
 import { errorToast } from "@/components/toasts/toastUtil";
 import { customLlmLoadConfig } from "@/llm/customLlmUtil";
 import { connect as connectLlm, predictLoadTime } from "@/llm/llmUtil.ts";
@@ -159,7 +159,7 @@ export async function useLocalLlm(setPercentComplete:Function, setCurrentTask:Fu
     await connectLlm(_onStatusUpdate);
     setLocation(HOME_URL);
   } catch(e) {
-    errorToast('Error: ' + e);
+    errorToast('' + e);
     console.error(e);
   }
 }

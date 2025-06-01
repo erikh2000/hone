@@ -18,6 +18,9 @@ export default defineConfig(({mode}) => {
     build: { 
       sourcemap: true, 
       manifest: true
+    },
+    test: {
+      setupFiles: './vitest-setup.ts'
     }
   };
 });

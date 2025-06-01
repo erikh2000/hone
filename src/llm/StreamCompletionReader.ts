@@ -25,9 +25,9 @@ function _findFirstJson(text:string):{toPos:number, object:Object}|null {
 
 function _getMessageTextFromObject(obj:Object):string {
   const objAny = obj as any;
-  return objAny.message?.content // Ollama-style 
-    || objAny.choices[0]?.delta.content // OpenAI-style
-    || '';
+  return objAny.message?.content                // Ollama style
+    || objAny.choices?.[0]?.delta?.content      // OpenAI style
+    || '';                                      // Unknown format
 }
 
 class StreamCompletionReader {

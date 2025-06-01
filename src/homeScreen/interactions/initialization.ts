@@ -3,7 +3,7 @@ import { SYSTEM_MESSAGE } from "./prompt";
 import { importFromPasteEvent } from "./import";
 import { isServingLocally } from "@/developer/devEnvUtil";
 import LLMDevPauseDialog from "@/homeScreen/dialogs/LLMDevPauseDialog";
-import { LOAD_URL } from "@/common/urlUtil";
+import { LOAD_URL } from "@/init/theUrls";
 import { initBeforeUnload, deinitBeforeUnload } from "./beforeUnload";
 
 type PasteHandlerFunction = (event:ClipboardEvent) => void;

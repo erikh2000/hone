@@ -20,8 +20,9 @@ function _settingsContent(config:CustomLLMConfig, setUpdatedConfig:Function):JSX
   if (!settingKeys.length) return null;
 
   const _settingsInputs = settingKeys.map(key => {
+    const isSecret = config.secretSettings?.includes(key) ?? false;
     return (
-      <DialogTextInput key={key} labelText={key} value={config.userSettings[key]} 
+      <DialogTextInput key={key} labelText={key} value={config.userSettings[key]} isSecret={isSecret}
       onChangeText={text => {
         const nextConfig = {...config};
         nextConfig.userSettings = {...config.userSettings};
