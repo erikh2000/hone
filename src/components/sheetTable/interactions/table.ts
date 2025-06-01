@@ -1,12 +1,10 @@
-import { CSSProperties, RefObject } from 'react';
+import { CSSProperties } from 'react';
 
 import DOMTextMeasurer from '@/components/sheetTable/DOMTextMeasurer';
 import rowStyles from '@/components/sheetTable/SheetRow.module.css';
 import { GeneratedFooterText } from '@/components/sheetTable/types/GeneratedFooterText';
 import HorizontalScroll from '@/components/sheetTable/types/HorizontalScroll';
 import VerticalScroll from '@/components/sheetTable/types/VerticalScroll';
-
-type DivRef = RefObject<HTMLDivElement>;
 
 export function measureColumnWidths(sheetTableElement:HTMLDivElement, columnNames:string[], rows:any[][]):number[] {
   const measurer = new DOMTextMeasurer(sheetTableElement, rowStyles.measureCellText);
@@ -27,10 +25,9 @@ export function getFooterText(footerText:string|GeneratedFooterText|undefined, r
   return footerText;
 }
 
-export function syncScrollableElements(headerInnerElement:DivRef, rowsScrollElement:DivRef) {
-  if (!headerInnerElement.current || !rowsScrollElement.current) return;
-  const scrollLeft = rowsScrollElement.current.scrollLeft;
-  headerInnerElement.current.style.transform = `translateX(-${scrollLeft}px)`;
+export function syncScrollableElements(headerInnerElement:HTMLDivElement, rowsScrollElement:HTMLDivElement) {
+  const scrollLeft = rowsScrollElement.scrollLeft;
+  headerInnerElement.style.transform = `translateX(-${scrollLeft}px)`;
 }
 
 export function getRowScrollContainerStyle(displayRowCount:number|undefined, parentElement:HTMLDivElement|null):CSSProperties {
@@ -40,20 +37,20 @@ export function getRowScrollContainerStyle(displayRowCount:number|undefined, par
   return {maxHeight:displayRowCount * lineHeight + 'px'};
 }
 
-export function setHorizontalScroll(rowsScrollElement:DivRef, horizontalScroll?:HorizontalScroll) {
-  if (horizontalScroll === undefined || horizontalScroll === HorizontalScroll.CLEAR || rowsScrollElement.current === null) return;
+export function setHorizontalScroll(rowsScrollElement:HTMLDivElement, horizontalScroll?:HorizontalScroll) {
+  if (horizontalScroll === undefined || horizontalScroll === HorizontalScroll.CLEAR || rowsScrollElement === null) return;
   if (horizontalScroll === HorizontalScroll.LEFT) {
-    rowsScrollElement.current.scrollLeft = 0;
+    rowsScrollElement.scrollLeft = 0;
   } else if (horizontalScroll === HorizontalScroll.RIGHT) {
-    rowsScrollElement.current.scrollLeft = rowsScrollElement.current.scrollWidth;
+    rowsScrollElement.scrollLeft = rowsScrollElement.scrollWidth;
   }
 }
 
-export function setVerticalScroll(rowsScrollElement:DivRef, verticalScroll?:VerticalScroll) {
-  if (verticalScroll === undefined || verticalScroll === VerticalScroll.CLEAR || rowsScrollElement.current === null) return;
+export function setVerticalScroll(rowsScrollElement:HTMLDivElement, verticalScroll?:VerticalScroll) {
+  if (verticalScroll === undefined || verticalScroll === VerticalScroll.CLEAR || rowsScrollElement === null) return;
   if (verticalScroll === VerticalScroll.TOP) {
-    rowsScrollElement.current.scrollTop = 0;
+    rowsScrollElement.scrollTop = 0;
   } else if (verticalScroll === VerticalScroll.BOTTOM) {
-    rowsScrollElement.current.scrollTop = rowsScrollElement.current.scrollHeight;
+    rowsScrollElement.scrollTop = rowsScrollElement.scrollHeight;
   }
 }

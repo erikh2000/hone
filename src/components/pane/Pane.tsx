@@ -1,7 +1,7 @@
 import styles from './Pane.module.css';
 import PaneHeaderButton from "./PaneHeaderButton";
 
-import {PropsWithChildren} from "react";
+import {PropsWithChildren, JSX} from "react";
 
 export type ButtonDefinition = {
   text:string,
