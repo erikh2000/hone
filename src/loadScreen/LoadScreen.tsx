@@ -8,6 +8,8 @@ import ProgressStory from '@/components/progressStory/ProgressStory';
 import ConfigureCustomLLMDialog from './dialogs/ConfigureCustomLLMDialog';
 import CustomLLMConfig from '@/llm/types/CustomLLMConfig';
 import ToastPane from "@/components/toasts/ToastPane";
+import AboutDialog from "@/homeScreen/dialogs/AboutDialog";
+import TopBar from "@/components/topBar/TopBar";
 
 function LoadScreen() {
   const [percentComplete, setPercentComplete] = useState(0);
@@ -33,7 +35,8 @@ function LoadScreen() {
   
   return (
     <div className={styles.container}>
-      <div className={styles.header}><h1>Hone - Loading</h1></div>
+      <TopBar onAboutClick={() => setModalDialog(AboutDialog.name)} />
+        
       <div className={styles.content}>
         <ProgressStory svgUrl="/loading/calmPete.svg" spielUrl={spielUrl} currentTask={currentTask} percentComplete={percentComplete} />
         <div className={styles.progressBarContainer}>
@@ -48,6 +51,7 @@ function LoadScreen() {
         onUseLocalLLM={() => useLocalLlm(setPercentComplete, setCurrentTask, setSpielUrl, setModalDialog, setLocation)} 
         onUseCustomLLM={(updatedConfig) => useCustomLlm(updatedConfig, setModalDialog, setLocation)}
       />
+      <AboutDialog isOpen={modalDialog===AboutDialog.name} onClose={() => setModalDialog(null)} />
 
       <ToastPane />
     </div>
