@@ -1,23 +1,27 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { initialize, storeActualTime, setDefault, predictTime, deinitialize, MAX_STORE_TIMES } from "../timePredictionUtil";
 import * as PersistenceTimePredictions from '@/persistence/timePredictions';
 import TimePredictions from "@/timePredictions/types/TimePredictions";
 
-jest.mock('@/persistence/timePredictions');
+type MockedFn = ReturnType<typeof vi.fn>;
+
+vi.mock('@/persistence/timePredictions');
 
 function _mockTimePredictions(predictions:TimePredictions|null) {
-  (PersistenceTimePredictions.getTimePredictions as jest.Mock).mockImplementation(
+  (PersistenceTimePredictions.getTimePredictions as MockedFn).mockImplementation(
     () => Promise.resolve(predictions));
 }
 
 describe('timePredictionUtil', () => {
   beforeEach(() => {
-    (PersistenceTimePredictions.setTimePredictions as jest.Mock).mockImplementation(
+    (PersistenceTimePredictions.setTimePredictions as MockedFn).mockImplementation(
       () => Promise.resolve());
     _mockTimePredictions({});
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('initialization', () => {

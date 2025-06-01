@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest';
+
 import AppException from "../AppException";
 
 describe('AppException', () => {

@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest';
+
 import { createNonGlobalRegex, escapeRegexCharacters, findNonWhiteSpace, findWhiteSpace } from '../regExUtil';
 
 describe('regExUtil', () => {

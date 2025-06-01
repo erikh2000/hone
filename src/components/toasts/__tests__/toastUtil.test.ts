@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest';
+
 import { infoToast, importantToast, errorToast, subscribeToToasts, unsubscribeFromToasts, doesToastTypeRequireDismissing } from '../toastUtil';
 import Toast, { ToastType } from "../Toast";
 

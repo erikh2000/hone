@@ -1,3 +1,5 @@
+import { describe, test, expect } from 'vitest';
+
 import Throttler from "../Throttler";
 
 describe('Throttler', () => {

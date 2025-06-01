@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest';
+
 import {keyToPath, keyToName, splitFilenameAndExtension} from '../pathUtil';
 
 describe('pathUtil', () => {

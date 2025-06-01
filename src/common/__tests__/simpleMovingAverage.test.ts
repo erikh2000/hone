@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest';
+
 import { createMovingAverage, updateMovingAverage } from "../simpleMovingAverage";
 
 describe('simpleMovingAverage', () => {

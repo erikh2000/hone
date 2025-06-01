@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest';
+
 import { mimeTypeToExtension } from '../mimeTypes';
 
 describe('mimeTypes', () => {

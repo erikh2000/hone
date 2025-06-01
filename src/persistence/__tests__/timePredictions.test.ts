@@ -1,22 +1,26 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import TimePredictions from "@/timePredictions/types/TimePredictions";
 import { getTimePredictions, setTimePredictions, isModelCached, setModelCached } from "../timePredictions";
 import * as PathStore from '@/persistence/pathStore';
 
-jest.mock('@/persistence/pathStore');
+type MockedFn = ReturnType<typeof vi.fn>;
+
+vi.mock('@/persistence/pathStore');
 
 describe('timePredictions', () => {
   let fakeStore:{[key:string]:string} = {};
   
   beforeEach(() => {
     fakeStore = {};
-    (PathStore.getText as jest.Mock).mockImplementation(
+    (PathStore.getText as MockedFn).mockImplementation(
       (key:string) => Promise.resolve(fakeStore[key]));
-    (PathStore.setText as jest.Mock).mockImplementation(
+    (PathStore.setText as MockedFn).mockImplementation(
       (key:string, text:string) => { fakeStore[key] = text; return Promise.resolve(); });
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('getting and setting time predictions', () => {

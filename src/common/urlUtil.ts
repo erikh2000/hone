@@ -36,7 +36,9 @@ export function cacheBustUrl(url:string):string {
 
 /* istanbul ignore next */ // Web-DOM-specific code that is not useful to test.
 function _getBasePath() {
-  if (!theBasePath) { theBasePath = parseBasePathFromUriPath(window.location.pathname); }
+  if (typeof window !== 'undefined' && !theBasePath) {
+    theBasePath = parseBasePathFromUriPath(window.location.pathname);
+  }
   return theBasePath;
 }
 

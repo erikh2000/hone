@@ -16,7 +16,7 @@ type Props = {
   selectedColNo?:number,
   selectedRowNo?:number,
   horizontalScroll?:HorizontalScroll,
-  verticalScroll?:VerticalScroll,
+verticalScroll?:VerticalScroll,
   onSelectCell?:(colNo:number, rowNo:number)=>void,
   generatedColNo?:number,
   footerText?:string|GeneratedFooterText

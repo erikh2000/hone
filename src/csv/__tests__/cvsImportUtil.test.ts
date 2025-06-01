@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest';
+
 import { encodeUtf8 } from '@/common/stringUtil';
 import { csvUnicodeToRowArray, csvUtf8ToRowArray, MAX_FIELDNAME_LENGTH, MAX_FIELD_COUNT } from '../csvImportUtil';
 

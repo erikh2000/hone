@@ -1,27 +1,29 @@
+import { describe, it, expect, vi } from 'vitest';
+
 import { parseSvg, parseTagAttributes, parseTagContent } from '../svgUtil';
 
 describe('svgUtil', () => {
   describe('parseSvg()', () => {
     it('does not call onTag for an empty string', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('', onTag);
       expect(onTag).not.toHaveBeenCalled();
     });
 
     it('does not call onTag for a string without tags', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('Hello, world!', onTag);
       expect(onTag).not.toHaveBeenCalled();
     });
 
     it('does not call onTag for a string with only a comment', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('<!-- Hello, world! -->', onTag);
       expect(onTag).not.toHaveBeenCalled();
     });
 
     it('parses an <?xml> tag', () => { 
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('<?xml version="1.0" encoding="UTF-8"?>', onTag);
       expect(onTag).toHaveBeenCalledTimes(1);
       expect(onTag.mock.calls[0][1]).toBe('?xml');
@@ -29,7 +31,7 @@ describe('svgUtil', () => {
     });
 
     it('passes the full SVG text in callback', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       const svgText = '<svg width="100" height="100"><g>What?</g></svg>';
       parseSvg(svgText, onTag);
       expect(onTag).toHaveBeenCalledTimes(2);
@@ -37,7 +39,7 @@ describe('svgUtil', () => {
     });
 
     it('parses a tag', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('<svg width="100" height="100"></svg>', onTag);
       expect(onTag).toHaveBeenCalledTimes(1);
       expect(onTag.mock.calls[0][1]).toBe('svg');
@@ -45,7 +47,7 @@ describe('svgUtil', () => {
     });
 
     it('parses a tag offset from beginning of string', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('Hello, <svg width="100" height="100"></svg>', onTag);
       expect(onTag).toHaveBeenCalledTimes(1);
       expect(onTag.mock.calls[0][1]).toBe('svg');
@@ -53,7 +55,7 @@ describe('svgUtil', () => {
     });
 
     it('parses a tag with a name that ends with \r', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('<svg\r width="100" height="100"></svg>', onTag);
       expect(onTag).toHaveBeenCalledTimes(1);
       expect(onTag.mock.calls[0][1]).toBe('svg');
@@ -61,7 +63,7 @@ describe('svgUtil', () => {
     });
 
     it('parses a tag with a name that ends with \n', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('<svg\n width="100" height="100"></svg>', onTag);
       expect(onTag).toHaveBeenCalledTimes(1);
       expect(onTag.mock.calls[0][1]).toBe('svg');
@@ -69,7 +71,7 @@ describe('svgUtil', () => {
     });
 
     it('parses a tag with a name that ends with \t', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('<svg\t width="100" height="100"></svg>', onTag);
       expect(onTag).toHaveBeenCalledTimes(1);
       expect(onTag.mock.calls[0][1]).toBe('svg');
@@ -77,7 +79,7 @@ describe('svgUtil', () => {
     });
 
     it('parses a tag with no attributes', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('<svg></svg>', onTag);
       expect(onTag).toHaveBeenCalledTimes(1);
       expect(onTag.mock.calls[0][1]).toBe('svg');
@@ -85,7 +87,7 @@ describe('svgUtil', () => {
     });
 
     it('parses a tag with content', () =>{
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       parseSvg('<svg>some text</svg>', onTag);
       expect(onTag).toHaveBeenCalledTimes(1);
       expect(onTag.mock.calls[0][1]).toBe('svg');
@@ -93,17 +95,17 @@ describe('svgUtil', () => {
     });
 
     it('throws if a < is found without a >', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       expect(() => parseSvg('<svg', onTag)).toThrow();
     });
 
     it('throws if one <tag> is found but then a < is found without a >', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       expect(() => parseSvg('<svg>x<svg/', onTag)).toThrow();
     });
 
     it('throws if < is found without a tag name following', () => {
-      const onTag = jest.fn();
+      const onTag = vi.fn();
       expect(() => parseSvg('<>x</>', onTag)).toThrow();
     });
   });
