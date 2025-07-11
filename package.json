@@ -20,7 +20,7 @@
     "@mlc-ai/web-llm": "^0.2.79",
     "@mlc-ai/web-runtime": "^0.18.0-dev2",
     "@mlc-ai/web-tokenizers": "^0.1.6",
-    "decent-portal": "^1.1.4",
+    "decent-portal": "^1.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "sl-spiel": "^1.0.5",

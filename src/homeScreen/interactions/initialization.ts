@@ -1,10 +1,10 @@
 import { isLlmConnected, setSystemMessage } from "@/llm/llmUtil";
 import { SYSTEM_MESSAGE } from "./prompt";
 import { importFromPasteEvent } from "./import";
-import { isServingLocally } from "@/developer/devEnvUtil";
-import LLMDevPauseDialog from "@/homeScreen/dialogs/LLMDevPauseDialog";
 import { LOAD_URL } from "@/init/theUrls";
 import { initBeforeUnload, deinitBeforeUnload } from "./beforeUnload";
+import { ModelDeviceProblemsDialog, predictModelDeviceProblems } from "decent-portal";
+import { WEBLLM_MODEL } from "@/llm/webLlmUtil";
 
 type PasteHandlerFunction = (event:ClipboardEvent) => void;
 
@@ -24,7 +24,7 @@ function _handlePaste(clipboardEvent:ClipboardEvent, setAvailableSheets:Function
   importFromPasteEvent(clipboardEvent, setAvailableSheets, setModalDialog);
 }
 
-export async function init(setAvailableSheets:Function, setModalDialog:Function, setLocation:Function) {
+export async function init(setAvailableSheets:Function, setModalDialog:Function, setLocation:Function, setModelDeviceProblems:Function) {
   setSystemMessage(SYSTEM_MESSAGE);
   
   if (pasteHandler) document.removeEventListener('paste', pasteHandler);
@@ -33,12 +33,14 @@ export async function init(setAvailableSheets:Function, setModalDialog:Function,
 
   initBeforeUnload();
 
-  if (!isLlmConnected()) {
-    if (isServingLocally()) {
-      setModalDialog(LLMDevPauseDialog.name); // Probably a hot reload on a dev server - ask user if should load LLM.
-      return;
+  if (!isLlmConnected()) { // First arrival to screen with LLM not loaded.
+    const problems = await predictModelDeviceProblems(WEBLLM_MODEL);
+    if (problems) {
+      setModalDialog(ModelDeviceProblemsDialog.name);
+      setModelDeviceProblems(problems); // User can review problems and decide to continue loading or not.
+    } else {
+      setLocation(LOAD_URL); // Go to load screen and it will load the model.
     }
-    setLocation(LOAD_URL); // First arrival to screen with LLM not loaded. Go load it and come back.
   }
 }
 

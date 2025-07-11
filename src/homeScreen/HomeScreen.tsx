@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ModelDeviceProblem, ModelDeviceProblemsDialog } from "decent-portal";
 import { useLocation } from "wouter";
 
 import styles from './HomeScreen.module.css';
@@ -28,12 +29,12 @@ import ExportOptionsDialog from "./dialogs/ExportOptionsDialog";
 import ImportOptionsDialog from "./dialogs/ImportOptionsDialog";
 import ConfirmSheetPasteDialog from "./dialogs/ConfirmSheetPasteDialog";
 import ImportExampleDialog from "./dialogs/ImportExampleDialog";
-import LLMDevPauseDialog from "@/homeScreen/dialogs/LLMDevPauseDialog";
 import { LOAD_URL } from "@/init/theUrls";
 import { doesSheetHaveWritableColumns } from "@/sheets/sheetUtil";
 import HorizontalScroll from "@/components/sheetTable/types/HorizontalScroll";
 import ConfirmClearSheetDialog from "./dialogs/ConfirmClearSheetDialog";
 import TopBar from "@/components/topBar/TopBar";
+import { WEBLLM_MODEL } from "@/llm/webLlmUtil";
 
 function HomeScreen() {
   const [sheet, setSheet] = useState<HoneSheet|null>(null);
@@ -43,10 +44,11 @@ function HomeScreen() {
   const [modalDialog, setModalDialog] = useState<string|null>(null);
   const [promptTemplate, setPromptTemplate] = useState<string>('');
   const [sheetHorizontalScroll, setSheetHorizontalScroll] = useState<HorizontalScroll>(HorizontalScroll.CLEAR);
+  const [modelDeviceProblems, setModelDeviceProblems] = useState<ModelDeviceProblem[]>([]);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    init(setAvailableSheets, setModalDialog, setLocation).then(() => { });
+    init(setAvailableSheets, setModalDialog, setLocation, setModelDeviceProblems).then(() => { });
     return deinit;
   }, []);
 
@@ -85,9 +87,9 @@ function HomeScreen() {
       />
       {promptPaneContent}
 
-      <LLMDevPauseDialog isOpen={modalDialog === LLMDevPauseDialog.name}
-        onConfirm={() => setLocation(LOAD_URL)} onCancel={() => setModalDialog(null)} 
-      />
+      <ModelDeviceProblemsDialog 
+        modelId={WEBLLM_MODEL} isOpen={modalDialog === ModelDeviceProblemsDialog.name} problems={modelDeviceProblems} 
+        onCancel={() => setModalDialog(null)} onConfirm={() => setLocation(LOAD_URL)} />
 
       <ImportSheetDialog availableSheets={availableSheets} isOpen={modalDialog === ImportSheetDialog.name} 
         onChoose={(nextSheet, nextPromptTemplate) => onSelectSheet(nextSheet, nextPromptTemplate, setAvailableSheets, setSheet, setPromptTemplate, setModalDialog)} 

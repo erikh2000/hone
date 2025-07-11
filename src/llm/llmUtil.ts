@@ -6,6 +6,8 @@
   * call generate() to get a response for a prompt. This will call to WebLLM or CustomLLM depending on the previous call to connect().
   * other APIs are there for setting system message, chat history, etc.
 */
+import { updateModelDeviceLoadHistory, updateModelDevicePerformanceHistory } from 'decent-portal';
+
 import LLMConnection from "./types/LLMConnection";
 import LLMConnectionState from "./types/LLMConnectionState";
 import LLMConnectionType from "./types/LLMConnectionType";
@@ -93,8 +95,12 @@ export async function connect(onStatusUpdate:StatusUpdateCallback, customLLMConf
     if (!await customLlmConnect(theConnection, onStatusUpdate)) _clearConnectionAndThrow('Failed to connect to custom LLM.');
   } else {
     const startMSecs = Date.now();
-    if (!await webLlmConnect(theConnection, onStatusUpdate)) _clearConnectionAndThrow('Failed to connect to WebLLM.');
+    if (!await webLlmConnect(theConnection, onStatusUpdate)) { 
+      await updateModelDeviceLoadHistory(MODEL_ID, false);
+      _clearConnectionAndThrow('Failed to connect to WebLLM.');
+    }
     const elapsed = Date.now() - startMSecs;
+    await updateModelDeviceLoadHistory(MODEL_ID, true, elapsed);
     _storeTimePredictionData(elapsed);
   }
   theConnection.state = LLMConnectionState.READY;
@@ -121,11 +127,23 @@ export function clearChatHistory() {
   messages.chatHistory = [];
 }
 
+function _getMessagesCharCount():number {
+  return messages.chatHistory.reduce((count, message) => {
+    return count + message.content.length;
+  }, 0);
+}
+
 export async function generate(prompt:string, onStatusUpdate:StatusUpdateCallback):Promise<string> {
   const cachedResponse = getCachedPromptResponse(prompt);
   if (cachedResponse) {
     onStatusUpdate(cachedResponse, 100);
     return cachedResponse;
+  }
+
+  let firstResponseTime = 0;
+  function _onStatusUpdate(message:string, progress:number) {
+    if (!firstResponseTime) firstResponseTime = Date.now();
+    onStatusUpdate(message, progress);
   }
 
   if (!isLlmConnected()) throw Error('LLM connection is not initialized.');
@@ -134,12 +152,19 @@ export async function generate(prompt:string, onStatusUpdate:StatusUpdateCallbac
   let promptStartTime = Date.now();
   let message = '';
   switch(theConnection.connectionType) {
-    case LLMConnectionType.WEBLLM: message = await webLlmGenerate(theConnection, messages, prompt, onStatusUpdate); break;
-    case LLMConnectionType.CUSTOM: message = await customLlmGenerate(theConnection, messages, prompt, onStatusUpdate); break;
+    case LLMConnectionType.WEBLLM: 
+      message = await webLlmGenerate(theConnection, messages, prompt, _onStatusUpdate);
+      updateModelDevicePerformanceHistory(MODEL_ID, promptStartTime, firstResponseTime, Date.now(), prompt.length + _getMessagesCharCount(), message.length);
+    break;
+    case LLMConnectionType.CUSTOM: 
+      message = await customLlmGenerate(theConnection, messages, prompt, onStatusUpdate);
+      const CUSTOM_MODEL_ID = theConnection.customLLMConfig?.completionUrl ?? 'UNEXPECTED';
+      updateModelDevicePerformanceHistory(CUSTOM_MODEL_ID, promptStartTime, firstResponseTime, Date.now(), prompt.length + _getMessagesCharCount(), message.length);
+    break;
     default: throw Error('Unexpected');
   }
   setCachedPromptResponse(prompt, message);
-  updateStatsForPrompt(Date.now() - promptStartTime);
+  updateStatsForPrompt(Date.now() - promptStartTime); // This is redundant with model device performance. TODO make time prediction use model device performance instead.
   theConnection.state = LLMConnectionState.READY;
   return message;
 }
